@@ -1,0 +1,107 @@
+PROJECT NAME: HIStore'y: Michael Jackson Memorabilia Store
+
+Advance Web Application Project Requirements
+DEADLINE: JUNE 30, 2026
+DRAFT CHECKING: JUNE 23, 2026
+
+machine problems 20pts
+mp1 Laravel CRUD api 12pts
+    NodeJS CRUD api 20pts
+mp2 Laravel CRUD api 12pts
+    NodeJS CRUD api 20pts
+mp3 CRUD Jquery/datatables multiple file uploads for mp1 20pts
+mp4 CRUD Jquery/datatables frontend for mp2
+mp5 generate and send tokens for authentication. 15pts
+    save token on users table. 5pts
+mp6 User registration, Login API via Jquery AJAX. admin can update role of user. admin can deactivate users. List users on datatable. Laravel 15pts. NodeJS 20pts
+mp7  use Sequelize ORM on CRUD functions 20pts
+
+term test Lab 40pts
+transactions CRUD api and jquery front end. the sample UI implementation will have lower points. laravel 20pts NodeJS 25pts
+send an email when updating the transaction 5pts
+send an email when updating the transaction. attach the receipt with order details in pdf 10pts
+
+quiz 4 15pts
+Jquery validation for mp3 and mp4
+
+quiz 5 15pts
+jquery/api search/autocomplete on homepage. 
+
+quiz 6 15pts
+route protection. add a middleware to check a user's role. only admin roles can access crud api.   
+
+quiz 7 15pts
+three(3) js charts. bar line and pie charts 
+
+unit test 1 20pts
+UI/UX Design
+
+unit test 2 20pts
+jquery pagination (datatable pagination is not applicable) 15pts
+jquery infinite scroll (datatable pagination is not applicable) 20pts
+
+unit 3 40
+functional requirements completeness 10
+app complexity. added features 10
+program execution 10
+project contribution 10
+
+
+BAYANI
+1. UT 1: UI/UX Design
+Landing Page
+Login, Logout, Register
+
+Home Page
+Aparel / Product List Page
+Product Description Page
+Cart
+Checkout
+Transactions
+User Profile Page / Dashboard
+Admin Dashboard
+
+
+Miscelaneous Pages:
+The History of Michael Jackson
+MJ Mini Game
+
+Color Pallete: 
+Gold Yellow, Black and White
+Supplementary: Red
+
+2. Quiz 7 : three(3) js charts. bar line and pie charts 
+3. MP1: NODE JS Create Read Update Delete (use soft delete) 
+   FOR ADMIN (WEBSITE)
+
+HABOC
+1. QUIZ 5: 15pts
+   jquery/api search/autocomplete on homepage. 
+2. MP2: Laravel CRUD api 12pts
+   NodeJS CRUD api 20pts
+3. MP4: CRUD Jquery/datatables frontend for mp2
+4. Term Test Lab: 40pts
+transactions CRUD api and jquery front end. the sample UI implementation will have lower points. laravel 20pts NodeJS 25pts
+send an email when updating the transaction 5pts
+send an email when updating the transaction. attach the receipt with order details in pdf 10pts
+5. QUIZ 5: 15pts
+jquery/api search/autocomplete on homepage. 
+6. Quiz 6: 15pts
+route protection. add a middleware to check a user's role. only admin roles can access crud api.   
+7. UT3: App Complexity, added features 10
+functional requirements completeness 10
+app complexity. added features 10
+program execution 10
+project contribution 10
+
+PADILLA
+1. MP5: generate and send tokens for authentication. 15pts
+   save token on users table. 5pts
+2. MP6: User registration, Login API via Jquery AJAX. admin can update role of user. admin can deactivate users. List 
+   users on datatable. Laravel 15pts. NodeJS 20pts
+3. QUIZ 4: Jquery validation for mp3 and mp4 15pts
+4. MP7: use Sequelize ORM on CRUD functions 20pts
+5. UT2: 20pts
+   jquery pagination (datatable pagination is not applicable) 15pts
+   jquery infinite scroll (datatable pagination is not applicable) 20pts
+6. MP3: CRUD Jquery/datatables multiple file uploads for mp1 20pts
