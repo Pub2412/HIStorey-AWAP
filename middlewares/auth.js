@@ -1,5 +1,33 @@
 const nodemailer = require('nodemailer')
 const PDFDocument = require('pdfkit')
+const jwt = require('jsonwebtoken')
+
+const JWT_SECRET = process.env.JWT_SECRET || 'historey-dev-secret'
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
+
+function signToken(user) {
+	return jwt.sign(
+		{ id: user.id, email: user.email, role: user.role },
+		JWT_SECRET,
+		{ expiresIn: JWT_EXPIRES_IN }
+	)
+}
+
+function verifyToken(req, res, next) {
+	const header = req.headers.authorization || ''
+	const token = header.startsWith('Bearer ') ? header.slice(7) : null
+	if (!token) {
+		return res.status(401).json({ message: 'Authentication required' })
+	}
+
+	try {
+		req.user = jwt.verify(token, JWT_SECRET)
+		req.authToken = token
+		return next()
+	} catch (error) {
+		return res.status(401).json({ message: 'Invalid or expired token' })
+	}
+}
 
 // Simple role check middleware using header 'x-user-role'
 function checkAdmin(req, res, next) {
@@ -79,4 +107,4 @@ async function sendReceiptEmail(transaction) {
 	return { messageId: mail.messageId, preview: nodemailer.getTestMessageUrl(mail) }
 }
 
-module.exports = { checkAdmin, sendReceiptEmail }
+module.exports = { checkAdmin, sendReceiptEmail, signToken, verifyToken, JWT_SECRET }

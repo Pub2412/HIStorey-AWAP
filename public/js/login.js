@@ -1,44 +1,15 @@
 $(function() {
-	const storageKeys = {
-		users: 'historey.mockUsers',
-		session: 'historey.session'
-	}
+	const storageKey = 'historey.session'
+	const apiBase = '/api/v1'
 
 	const demoUser = {
-		id: 1,
 		name: 'Demo User',
 		email: 'demo@historey.com',
 		password: 'Demo@1234'
 	}
 
-	function seedUsers() {
-		localStorage.setItem(storageKeys.users, JSON.stringify([demoUser]))
-		return [demoUser]
-	}
-
-	function readUsers() {
-		const raw = localStorage.getItem(storageKeys.users)
-		if (!raw) {
-			return seedUsers()
-		}
-
-		try {
-			const users = JSON.parse(raw)
-			if (!Array.isArray(users) || !users.length) {
-				return seedUsers()
-			}
-			return users
-		} catch (error) {
-			return seedUsers()
-		}
-	}
-
-	function saveUsers(users) {
-		localStorage.setItem(storageKeys.users, JSON.stringify(users))
-	}
-
 	function readSession() {
-		const raw = localStorage.getItem(storageKeys.session)
+		const raw = localStorage.getItem(storageKey)
 		if (!raw) return null
 		try {
 			return JSON.parse(raw)
@@ -48,11 +19,11 @@ $(function() {
 	}
 
 	function saveSession(session) {
-		localStorage.setItem(storageKeys.session, JSON.stringify(session))
+		localStorage.setItem(storageKey, JSON.stringify(session))
 	}
 
 	function clearSession() {
-		localStorage.removeItem(storageKeys.session)
+		localStorage.removeItem(storageKey)
 	}
 
 	function setAlert(message, type) {
@@ -90,8 +61,64 @@ $(function() {
 		setAlert(`Signed in successfully as ${session.email}.`, 'success')
 	}
 
-	readUsers()
-	renderSession(readSession())
+	function setSubmitting($form, isSubmitting) {
+		const $button = $form.find('button[type="submit"]')
+		$button.prop('disabled', isSubmitting)
+		if (isSubmitting) {
+			$button.data('original-text', $button.text())
+			$button.text('Please wait...')
+		} else if ($button.data('original-text')) {
+			$button.text($button.data('original-text'))
+		}
+	}
+
+	function handleAuthResponse(response, mode, redirectTo) {
+		const session = {
+			id: response.user.id,
+			name: response.user.name,
+			email: response.user.email,
+			role: response.user.role,
+			token: response.token,
+			mode,
+			loggedInAt: new Date().toISOString()
+		}
+		saveSession(session)
+
+		if (redirectTo) {
+			window.location.href = redirectTo
+			return
+		}
+
+		renderSession(session)
+	}
+
+	function loadSession() {
+		const session = readSession()
+		if (!session || !session.token) {
+			renderSession(null)
+			return
+		}
+
+		$.ajax({
+			url: `${apiBase}/auth/me`,
+			method: 'GET',
+			headers: { Authorization: `Bearer ${session.token}` }
+		}).done(function(response) {
+			saveSession({
+				...session,
+				id: response.user.id,
+				name: response.user.name,
+				email: response.user.email,
+				role: response.user.role
+			})
+			window.location.href = '/'
+		}).fail(function() {
+			clearSession()
+			renderSession(null)
+		})
+	}
+
+	loadSession()
 
 	$('.tab-button').on('click', function() {
 		setActiveForm($(this).data('target'))
@@ -112,39 +139,37 @@ $(function() {
 
 	$('#loginForm').on('submit', function(event) {
 		event.preventDefault()
-		const email = $.trim($(this).find('[name="email"]').val())
-		const password = $(this).find('[name="password"]').val()
-		const users = readUsers()
-		const user = users.find((entry) => entry.email.toLowerCase() === email.toLowerCase())
+		const $form = $(this)
+		const email = $.trim($form.find('[name="email"]').val())
+		const password = $form.find('[name="password"]').val()
 
-		if (!user) {
-			setAlert('No account matches that email address.', 'error')
-			return
-		}
+		setSubmitting($form, true)
 
-		if (user.password !== password) {
-			setAlert('Password is incorrect. Try the demo account or register a new one.', 'error')
-			return
-		}
-
-		saveSession({
-			id: user.id,
-			name: user.name,
-			email: user.email,
-			mode: 'login',
-			loggedInAt: new Date().toISOString()
+		$.ajax({
+			url: `${apiBase}/auth/login`,
+			method: 'POST',
+			contentType: 'application/json',
+			data: JSON.stringify({ email, password })
+		}).done(function(response) {
+			handleAuthResponse(response, 'login', '/')
+		}).fail(function(xhr) {
+			const message = xhr.responseJSON && xhr.responseJSON.message
+				? xhr.responseJSON.message
+				: 'Could not sign in. Please try again.'
+			setAlert(message, 'error')
+		}).always(function() {
+			setSubmitting($form, false)
 		})
-		renderSession(readSession())
 	})
 
 	$('#registerForm').on('submit', function(event) {
 		event.preventDefault()
-		const name = $.trim($(this).find('[name="name"]').val())
-		const email = $.trim($(this).find('[name="email"]').val())
-		const password = $(this).find('[name="password"]').val()
-		const confirmPassword = $(this).find('[name="confirmPassword"]').val()
-		const termsAccepted = $(this).find('[name="terms"]').is(':checked')
-		const users = readUsers()
+		const $form = $(this)
+		const name = $.trim($form.find('[name="name"]').val())
+		const email = $.trim($form.find('[name="email"]').val())
+		const password = $form.find('[name="password"]').val()
+		const confirmPassword = $form.find('[name="confirmPassword"]').val()
+		const termsAccepted = $form.find('[name="terms"]').is(':checked')
 
 		if (name.length < 2) {
 			setAlert('Enter a valid name to create your account.', 'error')
@@ -171,49 +196,44 @@ $(function() {
 			return
 		}
 
-		if (users.some((entry) => entry.email.toLowerCase() === email.toLowerCase())) {
-			setAlert('An account already exists for that email address.', 'error')
-			return
-		}
+		setSubmitting($form, true)
 
-		const nextUser = {
-			id: users.length ? Math.max(...users.map((entry) => entry.id || 0)) + 1 : 1,
-			name,
-			email,
-			password
-		}
-
-		const nextUsers = [...users, nextUser]
-		saveUsers(nextUsers)
-		saveSession({
-			id: nextUser.id,
-			name: nextUser.name,
-			email: nextUser.email,
-			mode: 'register',
-			loggedInAt: new Date().toISOString()
+		$.ajax({
+			url: `${apiBase}/auth/register`,
+			method: 'POST',
+			contentType: 'application/json',
+			data: JSON.stringify({ name, email, password })
+		}).done(function(response) {
+			handleAuthResponse(response, 'register')
+		}).fail(function(xhr) {
+			const message = xhr.responseJSON && xhr.responseJSON.message
+				? xhr.responseJSON.message
+				: 'Could not create account. Please try again.'
+			setAlert(message, 'error')
+		}).always(function() {
+			setSubmitting($form, false)
 		})
-		renderSession(readSession())
 	})
 
 	$('#logoutButton').on('click', function() {
-		clearSession()
-		$('#loginForm').trigger('reset')
-		$('#registerForm').trigger('reset')
-		$('#loginForm, #registerForm').removeClass('hidden')
-		$('#sessionView').addClass('hidden')
-		setActiveForm('loginForm')
-		setAlert('You have been signed out.', 'success')
-	})
+		const session = readSession()
+		const request = session && session.token
+			? $.ajax({
+				url: `${apiBase}/auth/logout`,
+				method: 'POST',
+				headers: { Authorization: `Bearer ${session.token}` }
+			})
+			: $.Deferred().resolve()
 
-	$('#resetDemoButton').on('click', function() {
-		seedUsers()
-		clearSession()
-		$('#loginForm').trigger('reset')
-		$('#registerForm').trigger('reset')
-		$('#loginForm, #registerForm').removeClass('hidden')
-		$('#sessionView').addClass('hidden')
-		setActiveForm('loginForm')
-		setAlert('Demo users were reset. The demo account is available again.', 'success')
+		request.always(function() {
+			clearSession()
+			$('#loginForm').trigger('reset')
+			$('#registerForm').trigger('reset')
+			$('#loginForm, #registerForm').removeClass('hidden')
+			$('#sessionView').addClass('hidden')
+			setActiveForm('loginForm')
+			setAlert('You have been signed out.', 'success')
+		})
 	})
 
 	if (!readSession()) {

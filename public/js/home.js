@@ -1,4 +1,81 @@
 $(function(){
+	const storageKey = 'historey.session'
+	const apiBase = '/api/v1'
+
+	function readSession() {
+		const raw = localStorage.getItem(storageKey)
+		if (!raw) return null
+		try {
+			return JSON.parse(raw)
+		} catch (error) {
+			return null
+		}
+	}
+
+	function clearSession() {
+		localStorage.removeItem(storageKey)
+	}
+
+	function renderAuthActions(session) {
+		const $actions = $('#authActions')
+		$actions.empty()
+
+		if (session && session.token) {
+			const name = session.name || session.email || 'User'
+			$actions.append($('<span class="user-greeting">').text(name))
+			$actions.append(
+				`<button type="button" class="header-button primary" id="logoutButton">Log out</button>`
+			)
+			return
+		}
+
+		$actions.append(
+			`<a class="header-button" href="/login">Sign In</a>` +
+			`<a class="header-button primary" href="/register">Register</a>`
+		)
+	}
+
+	function loadAuthState() {
+		const session = readSession()
+		if (!session || !session.token) {
+			renderAuthActions(null)
+			return
+		}
+
+		$.ajax({
+			url: `${apiBase}/auth/me`,
+			method: 'GET',
+			headers: { Authorization: `Bearer ${session.token}` }
+		}).done(function(response) {
+			renderAuthActions({
+				...session,
+				name: response.user.name,
+				email: response.user.email
+			})
+		}).fail(function() {
+			clearSession()
+			renderAuthActions(null)
+		})
+	}
+
+	$('#authActions').on('click', '#logoutButton', function() {
+		const session = readSession()
+		const request = session && session.token
+			? $.ajax({
+				url: `${apiBase}/auth/logout`,
+				method: 'POST',
+				headers: { Authorization: `Bearer ${session.token}` }
+			})
+			: $.Deferred().resolve()
+
+		request.always(function() {
+			clearSession()
+			renderAuthActions(null)
+		})
+	})
+
+	loadAuthState()
+
 	// Autocomplete
 	let timer = null
 	$('#search').on('input', function(){

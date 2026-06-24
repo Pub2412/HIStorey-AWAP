@@ -1,30 +1,10 @@
 $(function() {
-	const storageKeys = {
-		users: 'historey.mockUsers'
-	}
+	const apiBase = '/api/v1'
 
 	const sampleUser = {
-		name: 'Demo User',
-		email: 'demo@historey.com',
+		name: 'Ava Johnson',
+		email: 'ava@historey.com',
 		password: 'Demo@1234'
-	}
-
-	function readUsers() {
-		const raw = localStorage.getItem(storageKeys.users)
-		if (!raw) {
-			return []
-		}
-
-		try {
-			const users = JSON.parse(raw)
-			return Array.isArray(users) ? users : []
-		} catch (error) {
-			return []
-		}
-	}
-
-	function saveUsers(users) {
-		localStorage.setItem(storageKeys.users, JSON.stringify(users))
 	}
 
 	function setAlert(message, type) {
@@ -38,6 +18,17 @@ $(function() {
 		const $input = $button.closest('.input-row').find('input')
 		$input.attr('type', show ? 'text' : 'password')
 		$button.text(show ? 'Hide' : 'Show')
+	}
+
+	function setSubmitting($form, isSubmitting) {
+		const $button = $form.find('button[type="submit"]')
+		$button.prop('disabled', isSubmitting)
+		if (isSubmitting) {
+			$button.data('original-text', $button.text())
+			$button.text('Please wait...')
+		} else if ($button.data('original-text')) {
+			$button.text($button.data('original-text'))
+		}
 	}
 
 	$('.toggle-password').on('click', function() {
@@ -57,12 +48,12 @@ $(function() {
 
 	$('#registerForm').on('submit', function(event) {
 		event.preventDefault()
-		const name = $.trim($(this).find('[name="name"]').val())
-		const email = $.trim($(this).find('[name="email"]').val())
-		const password = $(this).find('[name="password"]').val()
-		const confirmPassword = $(this).find('[name="confirmPassword"]').val()
-		const termsAccepted = $(this).find('[name="terms"]').is(':checked')
-		const users = readUsers()
+		const $form = $(this)
+		const name = $.trim($form.find('[name="name"]').val())
+		const email = $.trim($form.find('[name="email"]').val())
+		const password = $form.find('[name="password"]').val()
+		const confirmPassword = $form.find('[name="confirmPassword"]').val()
+		const termsAccepted = $form.find('[name="terms"]').is(':checked')
 
 		if (name.length < 2) {
 			setAlert('Enter a valid name.', 'error')
@@ -89,24 +80,27 @@ $(function() {
 			return
 		}
 
-		if (users.some((entry) => entry.email.toLowerCase() === email.toLowerCase())) {
-			setAlert('An account already exists for that email address.', 'error')
-			return
-		}
+		setSubmitting($form, true)
 
-		const nextUsers = [...users, {
-			id: users.length ? Math.max(...users.map((entry) => entry.id || 0)) + 1 : 1,
-			name,
-			email,
-			password
-		}]
-
-		saveUsers(nextUsers)
-		$('#registerForm').trigger('reset')
-		$('#registerForm').addClass('hidden')
-		$('#successEmail').text(email)
-		$('#successTitle').text(`Account created for ${name}`)
-		$('#successView').removeClass('hidden')
-		setAlert('Account created successfully. You can sign in now.', 'success')
+		$.ajax({
+			url: `${apiBase}/auth/register`,
+			method: 'POST',
+			contentType: 'application/json',
+			data: JSON.stringify({ name, email, password })
+		}).done(function() {
+			$form.trigger('reset')
+			$form.addClass('hidden')
+			$('#successEmail').text(email)
+			$('#successTitle').text(`Account created for ${name}`)
+			$('#successView').removeClass('hidden')
+			setAlert('Account created successfully. You can sign in now.', 'success')
+		}).fail(function(xhr) {
+			const message = xhr.responseJSON && xhr.responseJSON.message
+				? xhr.responseJSON.message
+				: 'Could not create account. Please try again.'
+			setAlert(message, 'error')
+		}).always(function() {
+			setSubmitting($form, false)
+		})
 	})
 })

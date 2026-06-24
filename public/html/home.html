@@ -35,10 +35,16 @@
 			border: 1px solid #222;
 			color: #222;
 			background: #fff;
+			font: inherit;
+			cursor: pointer;
 		}
 		.header-button.primary {
 			background: #222;
 			color: #fff;
+		}
+		.user-greeting {
+			font-weight: 700;
+			color: #222;
 		}
 	</style>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -47,10 +53,7 @@
 <body>
 	<header class="page-header">
 		<h1 class="page-brand">HIStorey - Mockup UI</h1>
-		<div class="page-actions">
-			<a class="header-button" href="/login">Sign In</a>
-			<a class="header-button primary" href="/login">Register</a>
-		</div>
+		<div class="page-actions" id="authActions"></div>
 	</header>
 
 	<section>
