@@ -40,9 +40,7 @@ $(function() {
 		},
 		confirmPassword: {
 			required: true,
-			equalTo: function() {
-				return $(this).closest('form').find('[name="password"]')
-			}
+			equalTo: "#password"
 		},
 		terms: {
 			required: true
