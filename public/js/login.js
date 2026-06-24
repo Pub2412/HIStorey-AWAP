@@ -124,9 +124,8 @@ $(function() {
 		setPasswordVisibility($(this), isHidden)
 	})
 
-	$('#loginForm').on('submit', function(event) {
-		event.preventDefault()
-		const $form = $(this)
+	initLoginValidator(function(form) {
+		const $form = $(form)
 		const email = $.trim($form.find('[name="email"]').val())
 		const password = $form.find('[name="password"]').val()
 
@@ -149,39 +148,11 @@ $(function() {
 		})
 	})
 
-	$('#registerForm').on('submit', function(event) {
-		event.preventDefault()
-		const $form = $(this)
+	initRegisterValidator('#registerForm', function(form) {
+		const $form = $(form)
 		const name = $.trim($form.find('[name="name"]').val())
 		const email = $.trim($form.find('[name="email"]').val())
 		const password = $form.find('[name="password"]').val()
-		const confirmPassword = $form.find('[name="confirmPassword"]').val()
-		const termsAccepted = $form.find('[name="terms"]').is(':checked')
-
-		if (name.length < 2) {
-			setAlert('Enter a valid name to create your account.', 'error')
-			return
-		}
-
-		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-			setAlert('Enter a valid email address.', 'error')
-			return
-		}
-
-		if (password.length < 8) {
-			setAlert('Password must be at least 8 characters long.', 'error')
-			return
-		}
-
-		if (password !== confirmPassword) {
-			setAlert('Passwords do not match.', 'error')
-			return
-		}
-
-		if (!termsAccepted) {
-			setAlert('Please agree to the terms before continuing.', 'error')
-			return
-		}
 
 		setSubmitting($form, true)
 

@@ -6,6 +6,7 @@
 	<title>HIStorey | Login</title>
 	<link rel="stylesheet" href="/public/css/login.css">
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 </head>
 <body>
 	<main class="auth-shell">
@@ -13,7 +14,7 @@
 			<div class="auth-header">
 				<div>
 					<p class="eyebrow">HIStorey</p>
-					<h1>Login or register</h1>
+					<h1>Login</h1>
 				</div>
 				<div>
 					<a class="plain-link" href="/register">Register</a>
@@ -26,20 +27,20 @@
 
 			<div id="authAlert" class="alert" aria-live="polite">Enter your credentials below to sign in.</div>
 
-			<div class="tab-switcher" role="tablist" aria-label="Login or register">
+			<!-- <div class="tab-switcher" role="tablist" aria-label="Login or register">
 				<button type="button" class="tab-button active" data-target="loginForm">Login</button>
 				<button type="button" class="tab-button" data-target="registerForm">Register</button>
-			</div>
+			</div> -->
 
-			<form id="loginForm" class="auth-form active" autocomplete="on">
+			<form id="loginForm" class="auth-form active" autocomplete="on" novalidate>
 				<label>
 					<span>Email address</span>
-					<input type="email" name="email" placeholder="you@historey.com" required>
+					<input type="text" name="email" placeholder="you@historey.com">
 				</label>
 				<label>
 					<span>Password</span>
 					<div class="input-row">
-						<input type="password" name="password" placeholder="Your password" required>
+						<input type="password" name="password" placeholder="Your password">
 						<button type="button" class="icon-button toggle-password">Show</button>
 					</div>
 				</label>
@@ -50,31 +51,31 @@
 				<button type="submit" class="primary-button">Sign in</button>
 			</form>
 
-			<form id="registerForm" class="auth-form" autocomplete="on">
+			<form id="registerForm" class="auth-form" autocomplete="on" novalidate>
 				<label>
 					<span>Full name</span>
-					<input type="text" name="name" placeholder="Ava Johnson" required>
+					<input type="text" name="name" placeholder="Ava Johnson">
 				</label>
 				<label>
 					<span>Email address</span>
-					<input type="email" name="email" placeholder="ava@historey.com" required>
+					<input type="text" name="email" placeholder="ava@historey.com">
 				</label>
 				<label>
 					<span>Password</span>
 					<div class="input-row">
-						<input type="password" name="password" placeholder="Create a password" required>
+						<input type="password" name="password" placeholder="Create a password">
 						<button type="button" class="icon-button toggle-password">Show</button>
 					</div>
 				</label>
 				<label>
 					<span>Confirm password</span>
 					<div class="input-row">
-						<input type="password" name="confirmPassword" placeholder="Repeat your password" required>
+						<input type="password" name="confirmPassword" placeholder="Repeat your password">
 						<button type="button" class="icon-button toggle-password">Show</button>
 					</div>
 				</label>
 				<label class="checkbox-field terms-field">
-					<input type="checkbox" name="terms" required>
+					<input type="checkbox" name="terms">
 					<span>I agree to the terms and privacy policy.</span>
 				</label>
 				<button type="submit" class="primary-button">Create account</button>
@@ -103,6 +104,7 @@
 		</div>
 	</main>
 
+	<script src="/public/js/auth-validation.js"></script>
 	<script src="/public/js/login.js"></script>
 </body>
 </html>

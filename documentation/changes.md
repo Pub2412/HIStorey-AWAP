@@ -26,9 +26,103 @@ OWWWWWW
   - Added: `public/js/register.js` for jQuery-based registration behavior
   - Modified: `app.js` to serve `/register`
 
-- To change behavior:
-  - Replace in-memory arrays in `routes/products.js` and `routes/transactions.js` with a database (Sequelize is already in `package.json`).
-  - Update `middlewares/auth.js` to integrate real authentication and role lookup (e.g., verify JWT and load user role).
-  - Frontend files are simple and meant as mockups; edit `public/html/home.html` and `public/js/home.js` to adapt the UI.
-
 - Landing page: Added `public/html/landing.html` and `public/js/landing.js`. The landing page is now served at `/` (default page). It loads background audio `/media/songs/mj_landing.mp3` and images from `/media/images/`. A mute toggle stores preference in `localStorage`.
+
+---
+
+## 06/24/2026 — Database-backed auth (login & register)
+
+### Backend
+- **Added:** `models/user.js` — Sequelize model for the `users` table (`password_hash`, `role`, `active_token`, `is_active`, etc.)
+- **Added:** `controllers/userController.js` — auth logic:
+  - `register` — validate input, bcrypt hash, create user, JWT, save `active_token`
+  - `login` — find user, compare password, JWT, save `active_token`
+  - `logout` — clear `active_token`
+  - `getMe` — validate session (JWT + DB `active_token` match)
+  - `listUsers` — list active users
+- **Modified:** `routes/user.js` — thin router only; maps endpoints to `userController` + `verifyToken` middleware
+- **Modified:** `middlewares/auth.js` — added `signToken`, `verifyToken`, JWT config (`JWT_SECRET`, `JWT_EXPIRES_IN`)
+- **Modified:** `.env.example` — added `DB_*` and `JWT_*` variables
+
+### API endpoints (`/api/v1`)
+| Method | Endpoint | Auth |
+|--------|----------|------|
+| `POST` | `/auth/register` | No |
+| `POST` | `/auth/login` | No |
+| `GET` | `/auth/me` | Bearer JWT |
+| `POST` | `/auth/logout` | Bearer JWT |
+| `GET` | `/users` | No |
+
+### Frontend
+- **Modified:** `public/js/login.js` — jQuery AJAX to auth API; session stored in `localStorage` (`historey.session`) with `token`, `name`, `email`, `role`
+- **Modified:** `public/js/register.js` — jQuery AJAX to `/auth/register`
+- **Fixed:** `public/html/login.html` — typo `ljabel` → `label`
+
+---
+
+## 06/24/2026 — Home page session UI
+
+- **Modified:** `public/html/home.html` — `#authActions` container; `Add product` hidden by default
+- **Modified:** `public/js/home.js`:
+  - Signed out: show **Sign In** / **Register** links
+  - Signed in: show user **name** + **Log out** button
+  - Validates session via `GET /api/v1/auth/me`; stores `role` in `localStorage`
+  - Logout calls `POST /api/v1/auth/logout` and refreshes header + products table
+
+---
+
+## 06/24/2026 — Login redirect to home
+
+- **Modified:** `public/js/login.js` — after successful login, redirect to `/`
+- **Modified:** `public/js/login.js` — if user visits `/login` with a valid session, redirect to `/` instead of showing signed-in view on login page
+
+---
+
+## 06/24/2026 — Admin-only product actions on home
+
+- **Modified:** `public/js/home.js` — only users with `role === 'admin'` see:
+  - **Add product** button
+  - **Actions** column (Edit / Delete) in the products DataTable
+- Customers and signed-out users see ID, Name, Price only
+- Table re-initializes on auth state change (login/logout)
+
+---
+
+## 06/24/2026 — Removed demo / in-memory auth
+
+- **Modified:** `controllers/userController.js` — removed `demoUsers` array, `ensureDemoUsers()` seeding, and in-memory fallback; auth requires MySQL (returns `503` if DB unavailable)
+- **Modified:** `public/html/login.html` — removed demo account button, demo copy, and demo placeholders
+- **Modified:** `public/html/register.html` — removed sample-values button and demo copy
+- **Modified:** `public/js/login.js` — removed `fillDemoLogin` and demo user object
+- **Modified:** `public/js/register.js` — removed `fillDemoRegister` and sample user object
+
+---
+
+## 06/24/2026 — jQuery Validation (login & register)
+
+Replaced HTML5 validation (`required`, `type="email"`) with **jQuery Validation** plugin.
+
+- **Added:** `public/js/auth-validation.js` — shared rules, messages, error placement, `initLoginValidator`, `initRegisterValidator`
+- **Modified:** `public/html/login.html` — `novalidate` on forms; removed `required`; CDN for `jquery.validate.min.js`
+- **Modified:** `public/html/register.html` — same as login page
+- **Modified:** `public/js/login.js` — AJAX runs in validation `submitHandler`; removed manual `if` checks on register tab
+- **Modified:** `public/js/register.js` — same pattern
+- **Modified:** `public/css/login.css` — `.field-error` and `.input-error` styles
+
+### Validation rules
+| Field | Rules |
+|-------|--------|
+| Email | Required, valid email |
+| Password | Required, min 8 characters |
+| Name (register) | Required, min 2 characters |
+| Confirm password | Must match password in same form |
+| Terms (register) | Required checkbox |
+
+---
+
+## Still to do (from project plan)
+
+- Replace in-memory arrays in `routes/products.js` and `routes/transactions.js` with full Sequelize CRUD (`productController`, `transactionController`)
+- Protect product CRUD API with JWT role middleware (Quiz 6) instead of `x-user-role` header
+- MP6: admin update user role, deactivate users, list users on DataTable
+- Replace placeholder admin bcrypt hash in `database/hstore_db.sql` with a real hash for seeded admin login

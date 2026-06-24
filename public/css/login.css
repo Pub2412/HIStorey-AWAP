@@ -164,6 +164,17 @@ body {
 	box-shadow: 0 0 0 2px rgba(31, 75, 153, 0.12);
 }
 
+.auth-form input.input-error {
+	border-color: #b00020;
+}
+
+.auth-form .field-error {
+	display: block;
+	margin-top: 6px;
+	font-size: 0.85rem;
+	color: #b00020;
+}
+
 .input-row {
 	display: grid;
 	grid-template-columns: 1fr auto;

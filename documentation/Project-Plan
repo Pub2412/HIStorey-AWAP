@@ -84,9 +84,9 @@ HABOC
 transactions CRUD api and jquery front end. the sample UI implementation will have lower points. laravel 20pts NodeJS 25pts
 send an email when updating the transaction 5pts
 send an email when updating the transaction. attach the receipt with order details in pdf 10pts
-5. QUIZ 5: 15pts
+5. QUIZ 5: 15pts 
 jquery/api search/autocomplete on homepage. 
-6. Quiz 6: 15pts
+6. Quiz 6: 15pts ✅
 route protection. add a middleware to check a user's role. only admin roles can access crud api.   
 7. UT3: App Complexity, added features 10
 functional requirements completeness 10
@@ -95,10 +95,8 @@ program execution 10
 project contribution 10
 
 PADILLA
-1. MP5: generate and send tokens for authentication. 15pts
-   save token on users table. 5pts
-2. MP6: User registration, Login API via Jquery AJAX. admin can update role of user. admin can deactivate users. List 
-   users on datatable. Laravel 15pts. NodeJS 20pts
+1. MP5: generate and send tokens for authentication. 15pts ✅
+2. MP6: User registration ✅, Login API via Jquery AJAX ✅. admin can update role of user. admin can deactivate users. List users on datatable. NodeJS 20pts
 3. QUIZ 4: Jquery validation for mp3 and mp4 15pts
 4. MP7: use Sequelize ORM on CRUD functions 20pts
 5. UT2: 20pts

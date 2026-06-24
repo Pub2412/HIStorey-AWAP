@@ -31,39 +31,11 @@ $(function() {
 		togglePassword($(this), isHidden)
 	})
 
-	$('#registerForm').on('submit', function(event) {
-		event.preventDefault()
-		const $form = $(this)
+	initRegisterValidator('#registerForm', function(form) {
+		const $form = $(form)
 		const name = $.trim($form.find('[name="name"]').val())
 		const email = $.trim($form.find('[name="email"]').val())
 		const password = $form.find('[name="password"]').val()
-		const confirmPassword = $form.find('[name="confirmPassword"]').val()
-		const termsAccepted = $form.find('[name="terms"]').is(':checked')
-
-		if (name.length < 2) {
-			setAlert('Enter a valid name.', 'error')
-			return
-		}
-
-		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-			setAlert('Enter a valid email address.', 'error')
-			return
-		}
-
-		if (password.length < 8) {
-			setAlert('Password must be at least 8 characters long.', 'error')
-			return
-		}
-
-		if (password !== confirmPassword) {
-			setAlert('Passwords do not match.', 'error')
-			return
-		}
-
-		if (!termsAccepted) {
-			setAlert('You must agree to the terms to continue.', 'error')
-			return
-		}
 
 		setSubmitting($form, true)
 
