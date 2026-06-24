@@ -22,9 +22,9 @@
 				</div>
 			</div>
 
-			<p class="plain-intro">Use the demo account or create a new local account for this browser.</p>
+			<p class="plain-intro">Sign in to your account or create a new one.</p>
 
-			<div id="authAlert" class="alert" aria-live="polite">Use the demo account or register a new one below.</div>
+			<div id="authAlert" class="alert" aria-live="polite">Enter your credentials below to sign in.</div>
 
 			<div class="tab-switcher" role="tablist" aria-label="Login or register">
 				<button type="button" class="tab-button active" data-target="loginForm">Login</button>
@@ -34,22 +34,19 @@
 			<form id="loginForm" class="auth-form active" autocomplete="on">
 				<label>
 					<span>Email address</span>
-					<input type="email" name="email" placeholder="demo@historey.com" required>
+					<input type="email" name="email" placeholder="you@historey.com" required>
 				</label>
 				<label>
 					<span>Password</span>
 					<div class="input-row">
-						<input type="password" name="password" placeholder="Demo@1234" required>
+						<input type="password" name="password" placeholder="Your password" required>
 						<button type="button" class="icon-button toggle-password">Show</button>
 					</div>
 				</label>
-				<div class="split-row">
-					<label class="checkbox-field">
-						<input type="checkbox" name="remember">
-						<span>Remember me</span>
-					</label>
-					<button type="button" class="text-button" id="fillDemoLogin">Use demo account</button>
-				</div>
+				<label class="checkbox-field">
+					<input type="checkbox" name="remember">
+					<span>Remember me</span>
+				</label>
 				<button type="submit" class="primary-button">Sign in</button>
 			</form>
 
@@ -78,7 +75,7 @@
 				</label>
 				<label class="checkbox-field terms-field">
 					<input type="checkbox" name="terms" required>
-					<span>I agree to the demo terms and session storage policy.</span>
+					<span>I agree to the terms and privacy policy.</span>
 				</label>
 				<button type="submit" class="primary-button">Create account</button>
 			</form>
@@ -95,7 +92,7 @@
 				<div class="session-summary">
 					<div>
 						<span>Account</span>
-						<strong id="sessionEmail">demo@historey.com</strong>
+						<strong id="sessionEmail"></strong>
 					</div>
 					<div>
 						<span>Status</span>

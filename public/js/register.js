@@ -1,12 +1,6 @@
 $(function() {
 	const apiBase = '/api/v1'
 
-	const sampleUser = {
-		name: 'Ava Johnson',
-		email: 'ava@historey.com',
-		password: 'Demo@1234'
-	}
-
 	function setAlert(message, type) {
 		$('#registerAlert')
 			.removeClass('is-error is-success')
@@ -35,15 +29,6 @@ $(function() {
 		const $input = $(this).closest('.input-row').find('input')
 		const isHidden = $input.attr('type') === 'password'
 		togglePassword($(this), isHidden)
-	})
-
-	$('#fillDemoRegister').on('click', function() {
-		$('#registerForm [name="name"]').val(sampleUser.name)
-		$('#registerForm [name="email"]').val(sampleUser.email)
-		$('#registerForm [name="password"]').val(sampleUser.password)
-		$('#registerForm [name="confirmPassword"]').val(sampleUser.password)
-		$('#registerForm [name="terms"]').prop('checked', true)
-		setAlert('Sample values loaded. Submit the form to create the account.', 'success')
 	})
 
 	$('#registerForm').on('submit', function(event) {

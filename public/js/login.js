@@ -2,12 +2,6 @@ $(function() {
 	const storageKey = 'historey.session'
 	const apiBase = '/api/v1'
 
-	const demoUser = {
-		name: 'Demo User',
-		email: 'demo@historey.com',
-		password: 'Demo@1234'
-	}
-
 	function readSession() {
 		const raw = localStorage.getItem(storageKey)
 		if (!raw) return null
@@ -130,13 +124,6 @@ $(function() {
 		setPasswordVisibility($(this), isHidden)
 	})
 
-	$('#fillDemoLogin').on('click', function() {
-		setActiveForm('loginForm')
-		$('#loginForm [name="email"]').val(demoUser.email)
-		$('#loginForm [name="password"]').val(demoUser.password)
-		setAlert('Demo credentials loaded. Submit the login form to continue.', 'success')
-	})
-
 	$('#loginForm').on('submit', function(event) {
 		event.preventDefault()
 		const $form = $(this)
@@ -192,7 +179,7 @@ $(function() {
 		}
 
 		if (!termsAccepted) {
-			setAlert('Please agree to the demo terms before continuing.', 'error')
+			setAlert('Please agree to the terms before continuing.', 'error')
 			return
 		}
 
