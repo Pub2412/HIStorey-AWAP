@@ -30,3 +30,5 @@ OWWWWWW
   - Replace in-memory arrays in `routes/products.js` and `routes/transactions.js` with a database (Sequelize is already in `package.json`).
   - Update `middlewares/auth.js` to integrate real authentication and role lookup (e.g., verify JWT and load user role).
   - Frontend files are simple and meant as mockups; edit `public/html/home.html` and `public/js/home.js` to adapt the UI.
+
+- Landing page: Added `public/html/landing.html` and `public/js/landing.js`. The landing page is now served at `/` (default page). It loads background audio `/media/songs/mj_landing.mp3` and images from `/media/images/`. A mute toggle stores preference in `localStorage`.

@@ -10,10 +10,13 @@ app.use(express.urlencoded({ extended: true }))
 
 // Serve public files
 app.use('/public', express.static(path.join(__dirname, 'public')))
+// Serve media (audio/images) folder
+app.use('/media', express.static(path.join(__dirname, 'media')))
 
 // Basic pages
+// Landing page is the default for non-authenticated users
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'html', 'home.html'))
+    res.sendFile(path.join(__dirname, 'public', 'html', 'landing.html'))
 });
 
 app.get('/login', (req, res) => {
