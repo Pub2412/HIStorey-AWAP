@@ -12,9 +12,20 @@ $(function(){
 		}
 	}
 
+	function saveSession(session) {
+		localStorage.setItem(storageKey, JSON.stringify(session))
+	}
+
 	function clearSession() {
 		localStorage.removeItem(storageKey)
 	}
+
+	function isAdminUser(session) {
+		return !!(session && session.role === 'admin')
+	}
+
+	let isAdmin = false
+	let table = null
 
 	function renderAuthActions(session) {
 		const $actions = $('#authActions')
@@ -39,6 +50,7 @@ $(function(){
 		const session = readSession()
 		if (!session || !session.token) {
 			renderAuthActions(null)
+			startApp(null)
 			return
 		}
 
@@ -47,14 +59,19 @@ $(function(){
 			method: 'GET',
 			headers: { Authorization: `Bearer ${session.token}` }
 		}).done(function(response) {
-			renderAuthActions({
+			const updatedSession = {
 				...session,
 				name: response.user.name,
-				email: response.user.email
-			})
+				email: response.user.email,
+				role: response.user.role
+			}
+			saveSession(updatedSession)
+			renderAuthActions(updatedSession)
+			startApp(updatedSession)
 		}).fail(function() {
 			clearSession()
 			renderAuthActions(null)
+			startApp(null)
 		})
 	}
 
@@ -71,10 +88,61 @@ $(function(){
 		request.always(function() {
 			clearSession()
 			renderAuthActions(null)
+			resetProductsTable(null)
 		})
 	})
 
 	loadAuthState()
+
+	function updateAdminUI() {
+		$('#addProduct').toggle(isAdmin)
+		$('#productsTable thead th').last().toggle(isAdmin)
+	}
+
+	function initProductsTable() {
+		const columns = [
+			{ data: 'id' },
+			{ data: 'name' },
+			{ data: 'price' }
+		]
+
+		if (isAdmin) {
+			columns.push({
+				data: null,
+				orderable: false,
+				render: (row) =>
+					`<button class="edit" data-id="${row.id}">Edit</button> ` +
+					`<button class="del" data-id="${row.id}">Delete</button>`
+			})
+		}
+
+		table = $('#productsTable').DataTable({ columns })
+	}
+
+	function loadProducts() {
+		if (!table) return
+		$.get('/api/v1/products', function(data) {
+			table.clear()
+			table.rows.add(data)
+			table.draw()
+		})
+	}
+
+	function resetProductsTable(session) {
+		isAdmin = isAdminUser(session)
+		updateAdminUI()
+		if (table) {
+			table.destroy()
+			table = null
+			$('#productsTable tbody').empty()
+		}
+		initProductsTable()
+		loadProducts()
+	}
+
+	function startApp(session) {
+		resetProductsTable(session)
+	}
 
 	// Autocomplete
 	let timer = null
@@ -90,22 +158,7 @@ $(function(){
 		}, 200)
 	})
 
-	// DataTable for products
-	const table = $('#productsTable').DataTable({
-		columns: [
-			{ data: 'id' },
-			{ data: 'name' },
-			{ data: 'price' },
-			{ data: null, orderable: false, render: (v) => `<button class="edit" data-id="${v.id}">Edit</button> <button class="del" data-id="${v.id}">Delete</button>` }
-		]
-	})
-
-	function loadProducts(){
-		$.get('/api/v1/products', function(data){ table.clear(); table.rows.add(data); table.draw(); })
-	}
-	loadProducts()
-
-	$('#addProduct').on('click', function(){
+	$('#addProduct').on('click', function() {
 		const name = prompt('Name')
 		const price = prompt('Price')
 		if (!name) return alert('name required')
