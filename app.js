@@ -3,26 +3,26 @@ const app = express();
 const cors = require('cors')
 const path = require('path');
 
+// Middleware
+app.use(cors())
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
+
+// Serve public files
+app.use('/public', express.static(path.join(__dirname, 'public')))
+
+// Basic root
 app.get('/', (req, res) => {
-    res.send('Hello World');
+    res.sendFile(path.join(__dirname, 'public', 'html', 'home.html'))
 });
 
-// const items = require('./routes/item');
-// const users = require('./routes/user');
-// const orders = require('./routes/order');
-// const dashboard = require('./routes/dashboard')
+// API routes
+const products = require('./routes/products')
+const transactions = require('./routes/transactions')
+const userRoutes = require('./routes/user')
 
-// // app.get('/', (req, res) => {
-// //     res.send('Hello from nodejs!')
-// // })
-// app.use(cors())
-// app.use(express.json())
-// app.use('/images', express.static(path.join(__dirname, 'images')))
-// // app.use(express.urlencoded({ extended: true }));
-
-// app.use('/api/v1', items);
-// app.use('/api/v1', users);
-// app.use('/api/v1', orders);
-// app.use('/api/v1', dashboard);
+app.use('/api/v1', products)
+app.use('/api/v1', transactions)
+app.use('/api/v1', userRoutes)
 
 module.exports = app

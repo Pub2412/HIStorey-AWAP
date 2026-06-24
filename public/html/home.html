@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8" />
+	<title>HIStorey - Mockup</title>
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+	<style>
+		body { font-family: Arial, Helvetica, sans-serif; margin: 20px }
+		.search-box { margin-bottom: 12px }
+	</style>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+</head>
+<body>
+	<h1>HIStorey - Mockup UI</h1>
+
+	<section>
+		<h2>Search / Autocomplete</h2>
+		<input id="search" class="search-box" placeholder="Search products..." />
+		<div id="suggestions"></div>
+	</section>
+
+	<section>
+		<h2>Products (DataTable)</h2>
+		<button id="addProduct">Add product (admin header required)</button>
+		<table id="productsTable" class="display" style="width:100%">
+			<thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Actions</th></tr></thead>
+			<tbody></tbody>
+		</table>
+	</section>
+
+	<section>
+		<h2>Transactions</h2>
+		<form id="txForm">
+			<label>Email: <input name="email" /></label>
+			<label>Total: <input name="total" type="number" /></label>
+			<button type="submit">Create Transaction</button>
+		</form>
+		<div id="txResult"></div>
+	</section>
+
+	<script src="/public/js/home.js"></script>
+</body>
+</html>
