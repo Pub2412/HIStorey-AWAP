@@ -11,8 +11,20 @@ app.use(express.urlencoded({ extended: true }))
 // Serve public files
 app.use('/public', express.static(path.join(__dirname, 'public')))
 
-// Basic root
+// Basic pages
 app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'home.html'))
+});
+
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'login.html'))
+});
+
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'register.html'))
+});
+
+app.get('/home', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'home.html'))
 });
 

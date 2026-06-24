@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>HIStorey | Login</title>
+	<link rel="stylesheet" href="/public/css/login.css">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+	<main class="auth-shell">
+		<div class="auth-card">
+			<div class="auth-header">
+				<div>
+					<p class="eyebrow">HIStorey</p>
+					<h1>Login or register</h1>
+				</div>
+				<div>
+					<a class="plain-link" href="/register">Register</a>
+					&nbsp;
+					<a class="plain-link" href="/">Back to home</a>
+				</div>
+			</div>
+
+			<p class="plain-intro">Use the demo account or create a new local account for this browser.</p>
+
+			<div id="authAlert" class="alert" aria-live="polite">Use the demo account or register a new one below.</div>
+
+			<div class="tab-switcher" role="tablist" aria-label="Login or register">
+				<button type="button" class="tab-button active" data-target="loginForm">Login</button>
+				<button type="button" class="tab-button" data-target="registerForm">Register</button>
+			</div>
+
+			<form id="loginForm" class="auth-form active" autocomplete="on">
+				<label>
+					<span>Email address</span>
+					<input type="email" name="email" placeholder="demo@historey.com" required>
+				</label>
+				<label>
+					<span>Password</span>
+					<div class="input-row">
+						<input type="password" name="password" placeholder="Demo@1234" required>
+						<button type="button" class="icon-button toggle-password">Show</button>
+					</div>
+				</label>
+				<div class="split-row">
+					<ljabel class="checkbox-field">
+						<input type="checkbox" name="remember">
+						<span>Remember me</span>
+					</label>
+					<button type="button" class="text-button" id="fillDemoLogin">Use demo account</button>
+				</div>
+				<button type="submit" class="primary-button">Sign in</button>
+			</form>
+
+			<form id="registerForm" class="auth-form" autocomplete="on">
+				<label>
+					<span>Full name</span>
+					<input type="text" name="name" placeholder="Ava Johnson" required>
+				</label>
+				<label>
+					<span>Email address</span>
+					<input type="email" name="email" placeholder="ava@historey.com" required>
+				</label>
+				<label>
+					<span>Password</span>
+					<div class="input-row">
+						<input type="password" name="password" placeholder="Create a password" required>
+						<button type="button" class="icon-button toggle-password">Show</button>
+					</div>
+				</label>
+				<label>
+					<span>Confirm password</span>
+					<div class="input-row">
+						<input type="password" name="confirmPassword" placeholder="Repeat your password" required>
+						<button type="button" class="icon-button toggle-password">Show</button>
+					</div>
+				</label>
+				<label class="checkbox-field terms-field">
+					<input type="checkbox" name="terms" required>
+					<span>I agree to the demo terms and session storage policy.</span>
+				</label>
+				<button type="submit" class="primary-button">Create account</button>
+			</form>
+
+			<div id="sessionView" class="session-view hidden">
+				<div class="session-header">
+					<div>
+						<p class="eyebrow">Signed in</p>
+						<h2 id="sessionTitle">Welcome</h2>
+					</div>
+					<button type="button" class="secondary-button" id="logoutButton">Log out</button>
+				</div>
+
+				<div class="session-summary">
+					<div>
+						<span>Account</span>
+						<strong id="sessionEmail">demo@historey.com</strong>
+					</div>
+					<div>
+						<span>Status</span>
+						<strong id="sessionMode">Active session</strong>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script src="/public/js/login.js"></script>
+</body>
+</html>

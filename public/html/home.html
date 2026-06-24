@@ -7,12 +7,51 @@
 	<style>
 		body { font-family: Arial, Helvetica, sans-serif; margin: 20px }
 		.search-box { margin-bottom: 12px }
+		.page-header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 16px;
+			margin-bottom: 24px;
+			padding-bottom: 14px;
+			border-bottom: 1px solid #ddd;
+		}
+		.page-brand {
+			font-size: 1.8rem;
+			font-weight: 700;
+			margin: 0;
+		}
+		.page-actions {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+		}
+		.header-button {
+			display: inline-block;
+			padding: 10px 16px;
+			border-radius: 8px;
+			text-decoration: none;
+			font-weight: 700;
+			border: 1px solid #222;
+			color: #222;
+			background: #fff;
+		}
+		.header-button.primary {
+			background: #222;
+			color: #fff;
+		}
 	</style>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 </head>
 <body>
-	<h1>HIStorey - Mockup UI</h1>
+	<header class="page-header">
+		<h1 class="page-brand">HIStorey - Mockup UI</h1>
+		<div class="page-actions">
+			<a class="header-button" href="/login">Sign In</a>
+			<a class="header-button primary" href="/login">Register</a>
+		</div>
+	</header>
 
 	<section>
 		<h2>Search / Autocomplete</h2>

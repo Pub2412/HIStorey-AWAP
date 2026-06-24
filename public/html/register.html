@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>HIStorey | Register</title>
+	<link rel="stylesheet" href="/public/css/login.css">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+	<main class="auth-shell">
+		<div class="auth-card">
+			<div class="auth-header">
+				<div>
+					<p class="eyebrow">HIStorey</p>
+					<h1>Create account</h1>
+				</div>
+				<a class="plain-link" href="/login">Back to login</a>
+			</div>
+
+			<p class="plain-intro">Register a new local account for this browser.</p>
+
+			<div id="registerAlert" class="alert" aria-live="polite">Fill out the form below to create a demo account.</div>
+
+			<form id="registerForm" class="auth-form active" autocomplete="on">
+				<label>
+					<span>Full name</span>
+					<input type="text" name="name" placeholder="Ava Johnson" required>
+				</label>
+				<label>
+					<span>Email address</span>
+					<input type="email" name="email" placeholder="ava@historey.com" required>
+				</label>
+				<label>
+					<span>Password</span>
+					<div class="input-row">
+						<input type="password" name="password" placeholder="Create a password" required>
+						<button type="button" class="icon-button toggle-password">Show</button>
+					</div>
+				</label>
+				<label>
+					<span>Confirm password</span>
+					<div class="input-row">
+						<input type="password" name="confirmPassword" placeholder="Repeat your password" required>
+						<button type="button" class="icon-button toggle-password">Show</button>
+					</div>
+				</label>
+				<label class="checkbox-field terms-field">
+					<input type="checkbox" name="terms" required>
+					<span>I agree to the demo terms and session storage policy.</span>
+				</label>
+				<div class="split-row">
+					<a class="plain-link" href="/login">Already have an account?</a>
+					<button type="button" class="text-button" id="fillDemoRegister">Use sample values</button>
+				</div>
+				<button type="submit" class="primary-button">Create account</button>
+		</form>
+
+			<div id="successView" class="session-view hidden">
+				<div class="session-header">
+					<div>
+						<p class="eyebrow">Created</p>
+						<h2 id="successTitle">Account ready</h2>
+					</div>
+					<a class="secondary-button" href="/login">Go to login</a>
+				</div>
+
+				<div class="session-summary">
+					<div>
+						<span>Email</span>
+						<strong id="successEmail">demo@historey.com</strong>
+					</div>
+					<div>
+						<span>Status</span>
+						<strong>Ready to sign in</strong>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script src="/public/js/register.js"></script>
+</body>
+</html>
