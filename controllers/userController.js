@@ -45,8 +45,7 @@ async function listUsers(req, res) {
 
 	try {
 		const users = await UserModel.findAll({
-			where: { is_active: true },
-			attributes: ['id', 'name', 'email', 'role']
+			attributes: ['id', 'name', 'email', 'role', 'phone', 'is_active', 'created_at']
 		})
 		return res.json(users)
 	} catch (err) {
@@ -177,10 +176,88 @@ async function logout(req, res) {
 	return res.json({ message: 'Signed out successfully.' })
 }
 
+async function updateRole(req, res) {
+    if (!requireDatabase(res)) return
+
+    try {
+        const { id } = req.params
+        const { role } = req.body
+
+        // 1. validate role first
+        if (!['admin', 'customer'].includes(role)) {
+            return res.status(400).json({ message: 'Invalid role' })
+        }
+
+        // 2. get target user
+        const user = await UserModel.findByPk(id)
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        // 3. 🔒 SAFETY CHECK (PUT IT HERE)
+        if (Number(req.user.id) === Number(id)) {
+			return res.status(403).json({
+				message: "You cannot change your own role"
+			})
+		}
+
+        // 4. update role
+        await user.update({ role })
+
+        return res.json({ message: 'Role updated successfully' })
+    } catch (err) {
+        console.error(err)
+        return res.status(500).json({ message: 'Failed to update role' })
+    }
+}
+
+async function deactivateUser(req, res) {
+    if (!requireDatabase(res)) return
+
+    try {
+        const { id } = req.params
+
+        const user = await UserModel.findByPk(id)
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        await user.update({ is_active: false })
+
+        return res.json({ message: 'User deactivated' })
+    } catch (err) {
+        console.error(err)
+        return res.status(500).json({ message: 'Failed to deactivate user' })
+    }
+}
+
+async function reactivateUser(req, res) {
+    if (!requireDatabase(res)) return
+
+    try {
+        const { id } = req.params
+
+        const user = await UserModel.findByPk(id)
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' })
+        }
+
+        await user.update({ is_active: true })
+
+        return res.json({ message: 'User reactivated' })
+    } catch (err) {
+        console.error(err)
+        return res.status(500).json({ message: 'Failed to reactivate user' })
+    }
+}
+
 module.exports = {
 	listUsers,
 	register,
 	login,
 	getMe,
-	logout
+	logout,
+	updateRole,
+    deactivateUser,
+	reactivateUser
 }

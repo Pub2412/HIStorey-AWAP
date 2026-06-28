@@ -31,6 +31,10 @@ app.get('/home', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'home.html'))
 });
 
+app.get('/admin/users', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'admin', 'users.html'))
+})
+
 // API routes
 const products = require('./routes/products')
 const transactions = require('./routes/transactions')

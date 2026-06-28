@@ -31,9 +31,15 @@ function verifyToken(req, res, next) {
 
 // Simple role check middleware using header 'x-user-role'
 function checkAdmin(req, res, next) {
-	const role = (req.headers['x-user-role'] || '').toLowerCase()
-	if (role === 'admin') return next()
-	return res.status(403).json({ message: 'Admin role required (set header x-user-role: admin)' })
+    if (!req.user) {
+        return res.status(401).json({ message: 'Authentication required' });
+    }
+
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Admin access required' });
+    }
+
+    next();
 }
 
 // Create transporter once using ethereal for testing
