@@ -161,3 +161,8 @@ Replaced HTML5 validation (`required`, `type="email"`) with **jQuery Validation*
 - Updated: `app.js` to serve the new admin routes
 - Updated: `routes/products.js` to support admin product deactivation/reactivation and protected product writes
 - Updated: `controllers/userController.js` to allow admin-created users to be assigned a role during registration
+
+### Product backend fix
+- I put the CRUD functions on the Product Controller
+- Ensured Sequelize is used
+- I added multiple image uploads for products.

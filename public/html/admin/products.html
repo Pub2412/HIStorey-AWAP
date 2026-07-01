@@ -16,6 +16,22 @@
     form { display: grid; gap: 10px; margin-top: 16px; }
     form input, form select, form textarea { padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
     .hidden { display: none; }
+    .prod-thumb { width:96px; height:96px; object-fit:cover; border-radius:6px; margin-right:8px; cursor:pointer; border:1px solid #ddd }
+    #imageModal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:10000 }
+    #imageModal img { max-width:90%; max-height:90%; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.5) }
+    #imageModal .close { position:absolute; top:20px; right:24px; color:#fff; font-size:24px; cursor:pointer }
+    #imageModal div {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #f5f5f5;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      z-index: 10;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -36,17 +52,24 @@
         <input type="text" id="productCategory" placeholder="Category" value="General" />
         <textarea id="productDescription" placeholder="Description"></textarea>
         <input type="number" id="productStock" placeholder="Stock" value="0" />
+        <input type="file" id="productImages" name="images" multiple accept="image/*" />
+        <div id="productImagesPreview" style="display:flex;gap:8px;margin-top:8px"></div>
         <button type="submit">Save product</button>
       </form>
 
       <table id="productsTable" class="display" style="width:100%">
         <thead>
           <tr>
-            <th>ID</th><th>Name</th><th>Price</th><th>Category</th><th>Stock</th><th>Status</th><th>Actions</th>
+            <th>ID</th><th>Name</th><th>Images</th><th>Price</th><th>Category</th><th>Stock</th><th>Status</th><th>Actions</th>
           </tr>
         </thead>
       </table>
     </div>
+  </div>
+
+  <div id="imageModal">
+    <div class="close" onclick="closeImageModal()">✕ Close</div>
+    <img src="" alt="preview" />
   </div>
 
   <script src="/public/js/admin-products.js"></script>

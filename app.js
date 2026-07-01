@@ -12,6 +12,8 @@ app.use(express.urlencoded({ extended: true }))
 app.use('/public', express.static(path.join(__dirname, 'public')))
 // Serve media (audio/images) folder
 app.use('/media', express.static(path.join(__dirname, 'media')))
+// Serve uploads (legacy seed paths)
+app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')))
 
 // Basic pages
 // Landing page is the default for non-authenticated users

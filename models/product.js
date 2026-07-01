@@ -19,3 +19,12 @@ const Product = sequelize.define('Product', {
 })
 
 module.exports = Product
+
+// associate images (ensure this runs on startup)
+try {
+  const ProductImage = require('./product_image')
+  Product.hasMany(ProductImage, { as: 'images', foreignKey: 'product_id' })
+  ProductImage.belongsTo(Product, { foreignKey: 'product_id' })
+} catch (e) {
+  // model may not exist yet during some tooling runs — ignore
+}

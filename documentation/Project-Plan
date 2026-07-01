@@ -96,9 +96,9 @@ project contribution 10
 
 PADILLA
 1. MP5: generate and send tokens for authentication. 15pts ✅
-2. MP6: User registration ✅, Login API via Jquery AJAX ✅. admin can update role of user. admin can deactivate users. List users on datatable. NodeJS 20pts
-3. QUIZ 4: Jquery validation for mp3 and mp4 15pts
-4. MP7: use Sequelize ORM on CRUD functions 20pts
+2. MP6: User registration , Login API via Jquery AJAX . admin can update role of user. admin can deactivate users. List users on datatable. NodeJS 20pts ✅
+3. QUIZ 4: Jquery validation for mp3 and mp4 15pts 
+4. MP7: use Sequelize ORM on CRUD functions 20pts ✅
 5. UT2: 20pts
    jquery pagination (datatable pagination is not applicable) 15pts
    jquery infinite scroll (datatable pagination is not applicable) 20pts
