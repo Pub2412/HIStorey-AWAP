@@ -31,9 +31,25 @@ app.get('/home', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'home.html'))
 });
 
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'admin', 'dashboard.html'))
+});
+
+app.get('/admin/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'admin', 'dashboard.html'))
+});
+
 app.get('/admin/users', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'admin', 'users.html'))
-})
+});
+
+app.get('/admin/products', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'admin', 'products.html'))
+});
+
+app.get('/admin/orders', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'admin', 'orders.html'))
+});
 
 // API routes
 const products = require('./routes/products')

@@ -67,6 +67,10 @@ $(function(){
 			}
 			saveSession(updatedSession)
 			renderAuthActions(updatedSession)
+			if (updatedSession.role === 'admin') {
+				window.location.href = '/admin'
+				return
+			}
 			startApp(updatedSession)
 		}).fail(function() {
 			clearSession()

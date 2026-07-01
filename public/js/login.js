@@ -78,8 +78,9 @@ $(function() {
 		}
 		saveSession(session)
 
-		if (redirectTo) {
-			window.location.href = redirectTo
+		const targetPath = redirectTo || (response.user.role === 'admin' ? '/admin' : null)
+		if (targetPath) {
+			window.location.href = targetPath
 			return
 		}
 
@@ -98,14 +99,15 @@ $(function() {
 			method: 'GET',
 			headers: { Authorization: `Bearer ${session.token}` }
 		}).done(function(response) {
-			saveSession({
+			const updatedSession = {
 				...session,
 				id: response.user.id,
 				name: response.user.name,
 				email: response.user.email,
 				role: response.user.role
-			})
-			window.location.href = '/'
+			}
+			saveSession(updatedSession)
+			window.location.href = updatedSession.role === 'admin' ? '/admin' : '/'
 		}).fail(function() {
 			clearSession()
 			renderSession(null)
@@ -137,7 +139,7 @@ $(function() {
 			contentType: 'application/json',
 			data: JSON.stringify({ email, password })
 		}).done(function(response) {
-			handleAuthResponse(response, 'login', '/')
+			handleAuthResponse(response, 'login')
 		}).fail(function(xhr) {
 			const message = xhr.responseJSON && xhr.responseJSON.message
 				? xhr.responseJSON.message

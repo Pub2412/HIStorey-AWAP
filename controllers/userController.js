@@ -60,6 +60,7 @@ async function register(req, res) {
 	const name = String(req.body.name || '').trim()
 	const email = String(req.body.email || '').trim().toLowerCase()
 	const password = String(req.body.password || '')
+	const requestedRole = String(req.body.role || 'customer').toLowerCase()
 
 	if (name.length < 2) {
 		return res.status(400).json({ message: 'Enter a valid name to create your account.' })
@@ -73,6 +74,10 @@ async function register(req, res) {
 		return res.status(400).json({ message: 'Password must be at least 8 characters long.' })
 	}
 
+	if (!['customer', 'admin'].includes(requestedRole)) {
+		return res.status(400).json({ message: 'Invalid role.' })
+	}
+
 	try {
 		const existing = await UserModel.findOne({ where: { email } })
 		if (existing) {
@@ -84,7 +89,7 @@ async function register(req, res) {
 			name,
 			email,
 			password_hash,
-			role: 'customer',
+			role: requestedRole,
 			is_active: true
 		})
 

@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { checkAdmin } = require('../middlewares/auth')
+const { checkAdmin, verifyToken } = require('../middlewares/auth')
 let ProductModel = null
 let useDb = false
 
@@ -56,7 +56,7 @@ router.get('/products/:id', async (req, res) => {
   res.json(p)
 })
 
-router.post('/products', checkAdmin, async (req, res) => {
+router.post('/products', verifyToken, checkAdmin, async (req, res) => {
   const { name, price, category = 'General' } = req.body
   if (useDb && ProductModel) {
     try {
@@ -69,7 +69,7 @@ router.post('/products', checkAdmin, async (req, res) => {
   res.status(201).json(p)
 })
 
-router.put('/products/:id', checkAdmin, async (req, res) => {
+router.put('/products/:id', verifyToken, checkAdmin, async (req, res) => {
   const id = Number(req.params.id)
   if (useDb && ProductModel) {
     try {
@@ -86,7 +86,7 @@ router.put('/products/:id', checkAdmin, async (req, res) => {
   res.json(p)
 })
 
-router.delete('/products/:id', checkAdmin, async (req, res) => {
+router.delete('/products/:id', verifyToken, checkAdmin, async (req, res) => {
   const id = Number(req.params.id)
   if (useDb && ProductModel) {
     try {
@@ -102,7 +102,37 @@ router.delete('/products/:id', checkAdmin, async (req, res) => {
   products.splice(idx, 1)
   res.json({ message: 'Deleted' })
 })
+router.patch('/products/:id/deactivate', verifyToken, checkAdmin, async (req, res) => {
+  const id = Number(req.params.id)
+  if (useDb && ProductModel) {
+    try {
+      const p = await ProductModel.findByPk(id)
+      if (!p) return res.status(404).json({ message: 'Not found' })
+      await p.update({ is_deleted: true })
+      return res.json({ message: 'Product deactivated' })
+    } catch (err) { return res.status(500).json({ message: 'DB update error' }) }
+  }
+  const p = products.find(x => x.id === id)
+  if (!p) return res.status(404).json({ message: 'Not found' })
+  p.is_deleted = true
+  res.json({ message: 'Product deactivated' })
+})
 
+router.patch('/products/:id/reactivate', verifyToken, checkAdmin, async (req, res) => {
+  const id = Number(req.params.id)
+  if (useDb && ProductModel) {
+    try {
+      const p = await ProductModel.findByPk(id)
+      if (!p) return res.status(404).json({ message: 'Not found' })
+      await p.update({ is_deleted: false })
+      return res.json({ message: 'Product reactivated' })
+    } catch (err) { return res.status(500).json({ message: 'DB update error' }) }
+  }
+  const p = products.find(x => x.id === id)
+  if (!p) return res.status(404).json({ message: 'Not found' })
+  p.is_deleted = false
+  res.json({ message: 'Product reactivated' })
+})
 // helper for basic search using Sequelize
 function sequelizeWhere(q) {
   return {

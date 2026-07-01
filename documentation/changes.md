@@ -126,3 +126,38 @@ Replaced HTML5 validation (`required`, `type="email"`) with **jQuery Validation*
 - Protect product CRUD API with JWT role middleware (Quiz 6) instead of `x-user-role` header
 - MP6: admin update user role, deactivate users, list users on DataTable
 - Replace placeholder admin bcrypt hash in `database/hstore_db.sql` with a real hash for seeded admin login
+
+---
+
+## 07/01/2026 — Admin dashboard and management pages
+
+### Admin experience
+- Added a dedicated admin landing page at `/admin` and `/admin/dashboard` served from `public/html/admin/dashboard.html`
+- Built a placeholder-ready admin dashboard with:
+  - summary cards for total sales, active users, total products, and pending orders
+  - a revenue trend line chart
+  - a user-role distribution pie/doughnut chart with daily, weekly, monthly, and yearly range toggles
+  - a top-selling items table
+- Added admin navigation pages for:
+  - users management at `/admin/users`
+  - products management at `/admin/products`
+  - orders management at `/admin/orders`
+
+### Admin actions
+- Added logout support from the admin dashboard that clears the stored session and redirects users back to the landing page
+- Enabled admin CRUD-style product management from the products page, including create, edit, deactivate, and reactivate actions
+- Expanded user management to support role updates, deactivation/reactivation, and creating new users from the admin users page
+- Added order management UI backed by the existing transaction API
+
+### Files added/updated
+- Added: `public/html/admin/dashboard.html`
+- Added: `public/html/admin/users.html`
+- Added: `public/html/admin/products.html`
+- Added: `public/html/admin/orders.html`
+- Added: `public/js/admin-dashboard.js`
+- Added: `public/js/user.js`
+- Added: `public/js/admin-products.js`
+- Added: `public/js/admin-orders.js`
+- Updated: `app.js` to serve the new admin routes
+- Updated: `routes/products.js` to support admin product deactivation/reactivation and protected product writes
+- Updated: `controllers/userController.js` to allow admin-created users to be assigned a role during registration
