@@ -1,5 +1,6 @@
 const bcrypt = require('bcrypt')
-const { signToken } = require('../middlewares/auth')
+const jwt = require('jsonwebtoken')
+const { signToken, JWT_SECRET } = require('../middlewares/auth')
 
 let UserModel = null
 let useDb = false
@@ -62,6 +63,26 @@ async function register(req, res) {
 	const password = String(req.body.password || '')
 	const requestedRole = String(req.body.role || 'customer').toLowerCase()
 
+	// Only allow creating admin users when the request is authenticated by an admin token.
+	let roleToSet = 'customer'
+	if (requestedRole === 'admin') {
+		const header = req.headers.authorization || ''
+		const token = header.startsWith('Bearer ') ? header.slice(7) : null
+		if (!token) {
+			return res.status(403).json({ message: 'Admin creation requires authentication.' })
+		}
+
+		try {
+			const requester = jwt.verify(token, JWT_SECRET)
+			if (!requester || requester.role !== 'admin') {
+				return res.status(403).json({ message: 'Only admins can create admin accounts.' })
+			}
+			roleToSet = 'admin'
+		} catch (err) {
+			return res.status(401).json({ message: 'Invalid or expired token.' })
+		}
+	}
+
 	if (name.length < 2) {
 		return res.status(400).json({ message: 'Enter a valid name to create your account.' })
 	}
@@ -89,7 +110,7 @@ async function register(req, res) {
 			name,
 			email,
 			password_hash,
-			role: requestedRole,
+			role: roleToSet,
 			is_active: true
 		})
 
@@ -167,12 +188,12 @@ async function getMe(req, res) {
 }
 
 async function logout(req, res) {
-	if (!requireDatabase(res)) return
-
 	try {
-		const user = await UserModel.findByPk(req.user.id)
-		if (user) {
-			await user.update({ active_token: null })
+		if (useDb && UserModel && req.user && req.user.id) {
+			const user = await UserModel.findByPk(req.user.id)
+			if (user) {
+				await user.update({ active_token: null })
+			}
 		}
 	} catch (err) {
 		console.error(err)

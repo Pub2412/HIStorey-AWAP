@@ -4,74 +4,115 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HIStorey | Admin Products</title>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #f5f5f5; color: #222; }
-    .shell { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
-    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
-    .actions button, .actions a { border: none; background: #222; color: #fff; padding: 10px 14px; border-radius: 8px; cursor: pointer; text-decoration: none; }
-    form { display: grid; gap: 10px; margin-top: 16px; }
-    form input, form select, form textarea { padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
-    .hidden { display: none; }
-    .prod-thumb { width:96px; height:96px; object-fit:cover; border-radius:6px; margin-right:8px; cursor:pointer; border:1px solid #ddd }
-    #imageModal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.6); z-index:10000 }
-    #imageModal img { max-width:90%; max-height:90%; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.5) }
-    #imageModal .close { position:absolute; top:20px; right:24px; color:#fff; font-size:24px; cursor:pointer }
-    #imageModal div {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: #f5f5f5;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      z-index: 10;
-      display: none;
+    @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@700&family=Poppins:wght@400;500;600;700&display=swap');
+    :root {
+      --bg: #9b7d3d;
+      --panel: #d9d9d9;
+      --accent: #634a1a;
+      --text: #171717;
+      --white: #fff;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
     }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: 'Poppins', Arial, sans-serif; background: linear-gradient(135deg, var(--bg), #b48b42); color: var(--text); }
+    .app-shell { display: flex; min-height: 100vh; padding: 18px; gap: 18px; }
+    .sidebar { width: 86px; background: rgba(217,217,217,0.96); border-radius: 32px; display: flex; flex-direction: column; align-items: center; padding: 20px 10px; gap: 14px; box-shadow: var(--shadow); flex-shrink: 0; }
+    .sidebar a { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; text-decoration: none; transition: transform 0.2s ease, background 0.2s ease; }
+    .sidebar a:hover { transform: translateY(-1px); background: rgba(99,74,26,0.12); }
+    .sidebar a.active { background: var(--accent); }
+    .sidebar img { width: 28px; height: 28px; object-fit: contain; }
+    .main-content { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; background: rgba(99,74,26,0.92); color: var(--white); padding: 16px 24px; border-radius: 22px; box-shadow: var(--shadow); }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img { height: 36px; }
+    .brand h1 { margin: 0; font-family: 'Bodoni Moda', serif; font-size: 2rem; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .primary-btn, .secondary-btn, .ghost-btn { border: none; border-radius: 999px; padding: 10px 14px; cursor: pointer; font-weight: 600; }
+    .primary-btn { background: var(--accent); color: var(--white); }
+    .secondary-btn { background: #2e7d32; color: var(--white); }
+    .ghost-btn { background: #6b6b6b; color: var(--white); }
+    .search-box input { border: 1px solid #bda978; border-radius: 999px; padding: 10px 14px; min-width: 220px; }
+    .table-card { background: rgba(217,217,217,0.96); border-radius: 22px; padding: 16px; box-shadow: var(--shadow); overflow: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    th, td { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); text-align: left; }
+    .status-pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+    .status-pill.active { background: #2e7d32; color: var(--white); }
+    .status-pill.inactive { background: #c0392b; color: var(--white); }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
+    .modal.hidden { display: none; }
+    .modal-card { width: min(560px, 100%); background: var(--white); border-radius: 20px; padding: 20px; box-shadow: var(--shadow); }
+    .modal-card h3 { margin-top: 0; }
+    form { display: grid; gap: 10px; }
+    form input, form select, form textarea, form input[type="file"] { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #d0c7b5; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
+    .toast { position: fixed; right: 16px; bottom: 16px; background: #2e7d32; color: var(--white); padding: 12px 16px; border-radius: 999px; box-shadow: var(--shadow); z-index: 1100; }
+    @media (max-width: 860px) { .app-shell { flex-direction: column; } .sidebar { width: 100%; flex-direction: row; justify-content: center; } .toolbar { flex-direction: column; align-items: stretch; } .search-box input { min-width: 0; width: 100%; } }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <div class="card">
-      <div class="topbar">
-        <h1>Product Management</h1>
-        <div class="actions">
-          <a href="/admin">Back to dashboard</a>
-          <button id="toggleForm">Add product</button>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="/admin/dashboard" aria-label="Dashboard"><img src="/media/images/admin_pg/admin_dash_icon.png" alt="Dashboard"></a>
+      <a class="active" href="/admin/products" aria-label="Products"><img src="/media/images/admin_pg/ac_admin_product_icon.png" alt="Products"></a>
+      <a href="/admin/users" aria-label="Users"><img src="/media/images/admin_pg/admin_user_icon.png" alt="Users"></a>
+      <a href="/admin/orders" aria-label="Orders"><img src="/media/images/admin_pg/admin_trans_icon.png" alt="Orders"></a>
+      <a href="/login?logout=1" aria-label="Log out" data-admin-logout="true"><img src="/media/images/admin_pg/admin_moremenu_icon.png" alt="Log out"></a>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="brand">
+          <img src="/media/images/admin_pg/admin_headerlogo.png" alt="HI Store'y ADMIN">
+          <h1>Products</h1>
         </div>
+        <div class="header-right">Inventory control suite</div>
+      </header>
+
+      <div class="toolbar">
+        <button class="primary-btn" id="openProductForm">Add New Product</button>
+        <div class="search-box"><input id="productSearch" type="text" placeholder="Search products..."></div>
       </div>
 
-      <form id="productForm" class="hidden">
-        <input type="hidden" id="productId" />
-        <input type="text" id="productName" placeholder="Product name" required />
-        <input type="number" id="productPrice" placeholder="Price" step="0.01" required />
-        <input type="text" id="productCategory" placeholder="Category" value="General" />
-        <textarea id="productDescription" placeholder="Description"></textarea>
-        <input type="number" id="productStock" placeholder="Stock" value="0" />
-        <input type="file" id="productImages" name="images" multiple accept="image/*" />
-        <div id="productImagesPreview" style="display:flex;gap:8px;margin-top:8px"></div>
-        <button type="submit">Save product</button>
-      </form>
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="productsBody"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
 
-      <table id="productsTable" class="display" style="width:100%">
-        <thead>
-          <tr>
-            <th>ID</th><th>Name</th><th>Images</th><th>Price</th><th>Category</th><th>Stock</th><th>Status</th><th>Actions</th>
-          </tr>
-        </thead>
-      </table>
+  <div class="modal hidden" id="productModal">
+    <div class="modal-card">
+      <h3 id="modalTitle">Add Product</h3>
+      <form id="productForm">
+        <input type="hidden" id="productId">
+        <input id="productName" type="text" placeholder="Product name" required>
+        <select id="productCategory">
+          <option value="General">General</option>
+          <option value="Apparel">Apparel</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Music">Music</option>
+        </select>
+        <input id="productPrice" type="number" step="0.01" placeholder="Price" required>
+        <input id="productStock" type="number" min="0" placeholder="Stock" required>
+        <textarea id="productDescription" rows="3" placeholder="Short description"></textarea>
+        <label for="productImages">Product Images</label>
+        <input id="productImages" type="file" accept="image/*" multiple>
+        <div class="modal-actions">
+          <button type="button" class="ghost-btn" id="cancelProduct">Cancel</button>
+          <button type="submit" class="secondary-btn">Save Product</button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <div id="imageModal">
-    <div class="close" onclick="closeImageModal()">✕ Close</div>
-    <img src="" alt="preview" />
-  </div>
-
   <script src="/public/js/admin-products.js"></script>
+  <script src="/public/js/admin-auth.js"></script>
 </body>
 </html>

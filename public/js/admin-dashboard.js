@@ -1,38 +1,52 @@
-function getToken() {
-  const session = JSON.parse(localStorage.getItem('historey.session') || 'null')
-  return session?.token
-}
-
 function formatCurrency(value) {
-  return `$${Number(value || 0).toFixed(2)}`
+  return `PHP ${Number(value || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-function buildChartData(range) {
-  const labels = {
-    daily: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    weekly: ['W1', 'W2', 'W3', 'W4'],
-    monthly: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    yearly: ['2022', '2023', '2024', '2025', '2026']
-  }
-  const revenue = {
-    daily: [120, 90, 150, 200, 300, 240, 180],
-    weekly: [400, 560, 720, 680],
-    monthly: [1800, 2400, 2100, 2900, 3200, 3600],
-    yearly: [12000, 14500, 16800, 19200, 21400]
-  }
-  const roles = {
-    daily: [65, 35],
-    weekly: [72, 28],
-    monthly: [68, 32],
-    yearly: [70, 30]
-  }
-  return { labels: labels[range], revenue: revenue[range], roles: roles[range] }
+function updateClock() {
+  const now = new Date()
+  $('#todayLabel').text(now.toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric' }))
+  $('#clockDisplay').text(now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' }))
 }
 
-function renderDashboard(range) {
-  const chartData = buildChartData(range)
+function getSessionHeaders() {
+  try {
+    const session = JSON.parse(localStorage.getItem('historey.session') || 'null')
+    return session && session.token ? { Authorization: `Bearer ${session.token}` } : {}
+  } catch (error) {
+    return {}
+  }
+}
+
+function buildWeeklyRevenue(transactions) {
+  const labels = []
+  const data = []
+  const today = new Date()
+
+  for (let index = 6; index >= 0; index -= 1) {
+    const date = new Date(today)
+    date.setDate(today.getDate() - index)
+    const key = date.toISOString().slice(0, 10)
+    labels.push(date.toLocaleDateString('en-PH', { weekday: 'short' }))
+    const revenue = (transactions || []).reduce((sum, transaction) => {
+      const createdAt = transaction.created_at || transaction.createdAt || transaction.updated_at || transaction.updatedAt
+      if (!createdAt) return sum
+      const transactionDay = new Date(createdAt).toISOString().slice(0, 10)
+      if (transactionDay === key && transaction.status !== 'Cancelled') {
+        return sum + Number(transaction.total_amount || transaction.total || 0)
+      }
+      return sum
+    }, 0)
+    data.push(revenue)
+  }
+
+  return { labels, data }
+}
+
+function renderCharts(summary) {
   const revenueCtx = document.getElementById('revenueChart')
   const roleCtx = document.getElementById('roleChart')
+
+  if (!revenueCtx || !roleCtx) return
 
   if (window.revenueChart && typeof window.revenueChart.destroy === 'function') {
     window.revenueChart.destroy()
@@ -41,58 +55,55 @@ function renderDashboard(range) {
     window.roleChart.destroy()
   }
 
-  if (revenueCtx && roleCtx) {
-    window.revenueChart = new Chart(revenueCtx, {
-      type: 'line',
-      data: {
-        labels: chartData.labels,
-        datasets: [{ label: 'Revenue', data: chartData.revenue, borderColor: '#222', backgroundColor: 'rgba(34,34,34,0.15)', fill: true, tension: 0.3 }]
-      },
-      options: { responsive: true, plugins: { legend: { display: false } } }
-    })
+  const weeklyRevenue = buildWeeklyRevenue(summary.transactions)
 
-    window.roleChart = new Chart(roleCtx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Admin', 'Customer'],
-        datasets: [{ data: chartData.roles, backgroundColor: ['#222', '#8d6e63'] }]
-      },
-      options: { responsive: true }
-    })
-  }
+  window.revenueChart = new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+      labels: weeklyRevenue.labels,
+      datasets: [{
+        label: 'Revenue',
+        data: weeklyRevenue.data,
+        borderColor: '#634a1a',
+        backgroundColor: 'rgba(99, 74, 26, 0.18)',
+        fill: true,
+        tension: 0.35,
+        pointRadius: 4,
+        pointHoverRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { callback: (value) => `PHP ${value}` }
+        }
+      }
+    }
+  })
+
+  window.roleChart = new Chart(roleCtx, {
+    type: 'pie',
+    data: {
+      labels: ['Admin', 'Customer'],
+      datasets: [{
+        data: [summary.adminUsers, summary.customerUsers],
+        backgroundColor: ['#634a1a', '#8d6e63'],
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom' } }
+    }
+  })
 }
 
-function logoutAdmin() {
-  const session = JSON.parse(localStorage.getItem('historey.session') || 'null')
-  localStorage.removeItem('historey.session')
-
-  if (session?.token) {
-    $.ajax({
-      url: '/api/v1/auth/logout',
-      method: 'POST',
-      headers: { Authorization: `Bearer ${session.token}` }
-    }).always(() => {
-      window.location.assign('/')
-    })
-    return
-  }
-
-  window.location.assign('/')
-}
-
-$(function () {
-  const summary = {
-    sales: 12540,
-    users: 84,
-    products: 36,
-    orders: 12,
-    topItems: [
-      { name: 'MJ Poster', units: 24, revenue: 960 },
-      { name: 'Concert Tee', units: 18, revenue: 540 },
-      { name: 'Limited Edition Vinyl', units: 12, revenue: 720 }
-    ]
-  }
-
+function renderSummary(summary) {
   $('#salesValue').text(formatCurrency(summary.sales))
   $('#usersValue').text(summary.users)
   $('#productsValue').text(summary.products)
@@ -100,17 +111,75 @@ $(function () {
 
   const $topItems = $('#topItems')
   $topItems.empty()
+
+  if (!summary.topItems.length) {
+    $topItems.append('<div class="list-item"><strong>No sales yet</strong><span>Transactions will appear here once orders are placed.</span></div>')
+    return
+  }
+
   summary.topItems.forEach((item) => {
-    $topItems.append(`<tr><td>${item.name}</td><td>${item.units}</td><td>${formatCurrency(item.revenue)}</td></tr>`)
+    $topItems.append(`
+      <div class="list-item">
+        <strong>${item.name}</strong>
+        <span>${item.units} sold · ${formatCurrency(item.revenue)}</span>
+      </div>
+    `)
   })
+}
 
-  $('#logoutButton').on('click', logoutAdmin)
+function loadDashboard() {
+  const productsPromise = $.ajax({ url: '/api/v1/products', method: 'GET' }).then((data) => data, () => [])
+  const usersPromise = $.ajax({ url: '/api/v1/users', method: 'GET', headers: getSessionHeaders() }).then((data) => data, () => [])
+  const transactionsPromise = $.ajax({ url: '/api/v1/transactions', method: 'GET' }).then((data) => data, () => [])
 
-  $('.range button').on('click', function () {
-    $('.range button').removeClass('active')
-    $(this).addClass('active')
-    renderDashboard($(this).data('range'))
+  $.when(productsPromise, usersPromise, transactionsPromise).done(function (productsResponse, usersResponse, transactionsResponse) {
+    const products = Array.isArray(productsResponse) ? productsResponse : []
+    const users = Array.isArray(usersResponse) ? usersResponse : []
+    const transactions = Array.isArray(transactionsResponse) ? transactionsResponse : []
+
+    const activeProducts = products.filter((product) => !product.is_deleted)
+    const activeUsers = users.filter((user) => user.is_active !== false)
+    const adminUsers = activeUsers.filter((user) => String(user.role).toLowerCase() === 'admin').length
+    const customerUsers = activeUsers.filter((user) => String(user.role).toLowerCase() === 'customer').length
+    const completedSales = transactions.filter((transaction) => transaction.status !== 'Cancelled')
+    const sales = completedSales.reduce((sum, transaction) => sum + Number(transaction.total_amount || transaction.total || 0), 0)
+    const pendingOrders = transactions.filter((transaction) => String(transaction.status).toLowerCase() === 'pending').length
+
+    const itemSales = completedSales.reduce((accumulator, transaction) => {
+      const items = Array.isArray(transaction.items) ? transaction.items : []
+      items.forEach((item) => {
+        const key = item.product_id || item.id || item.name
+        if (!accumulator[key]) {
+          accumulator[key] = { name: item.name || item.product_name || 'Item', units: 0, revenue: 0 }
+        }
+        accumulator[key].units += Number(item.quantity || 0)
+        accumulator[key].revenue += Number(item.unit_price || item.price || 0) * Number(item.quantity || 0)
+      })
+      return accumulator
+    }, {})
+
+    const topItems = Object.values(itemSales)
+      .sort((left, right) => right.units - left.units)
+      .slice(0, 3)
+
+    const summary = {
+      sales,
+      users: activeUsers.length,
+      products: activeProducts.length,
+      orders: pendingOrders,
+      adminUsers,
+      customerUsers,
+      topItems,
+      transactions
+    }
+
+    renderSummary(summary)
+    renderCharts(summary)
   })
+}
 
-  renderDashboard('daily')
+$(function () {
+  updateClock()
+  loadDashboard()
+  setInterval(updateClock, 1000)
 })

@@ -4,33 +4,87 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HIStorey | Admin Orders</title>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #f5f5f5; color: #222; }
-    .shell { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
-    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .actions a { text-decoration: none; background: #222; color: #fff; padding: 10px 14px; border-radius: 8px; }
+    @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@700&family=Poppins:wght@400;500;600;700&display=swap');
+    :root {
+      --bg: #9b7d3d;
+      --panel: #d9d9d9;
+      --accent: #634a1a;
+      --text: #171717;
+      --white: #fff;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: 'Poppins', Arial, sans-serif; background: linear-gradient(135deg, var(--bg), #b48b42); color: var(--text); }
+    .app-shell { display: flex; min-height: 100vh; padding: 18px; gap: 18px; }
+    .sidebar { width: 86px; background: rgba(217,217,217,0.96); border-radius: 32px; display: flex; flex-direction: column; align-items: center; padding: 20px 10px; gap: 14px; box-shadow: var(--shadow); flex-shrink: 0; }
+    .sidebar a { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; text-decoration: none; transition: transform 0.2s ease, background 0.2s ease; }
+    .sidebar a:hover { transform: translateY(-1px); background: rgba(99,74,26,0.12); }
+    .sidebar a.active { background: var(--accent); }
+    .sidebar img { width: 28px; height: 28px; object-fit: contain; }
+    .main-content { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+    .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; background: rgba(99,74,26,0.92); color: var(--white); padding: 16px 24px; border-radius: 22px; box-shadow: var(--shadow); }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img { height: 36px; }
+    .brand h1 { margin: 0; font-family: 'Bodoni Moda', serif; font-size: 2rem; }
+    .table-card { background: rgba(217,217,217,0.96); border-radius: 22px; padding: 16px; box-shadow: var(--shadow); overflow: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th, td { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); text-align: left; }
+    .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
+    .pill.pending { background: #c0392b; color: var(--white); }
+    .pill.paid { background: #2e7d32; color: var(--white); }
+    .pill.processing { background: #8d6e63; color: var(--white); }
+    .action-btn { border: none; border-radius: 999px; padding: 8px 12px; cursor: pointer; font-weight: 600; background: var(--accent); color: var(--white); }
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
+    .modal.hidden { display: none; }
+    .modal-card { width: min(520px, 100%); background: var(--white); border-radius: 20px; padding: 20px; box-shadow: var(--shadow); }
+    .modal-card h3 { margin-top: 0; }
+    .toast { position: fixed; right: 16px; bottom: 16px; background: #2e7d32; color: var(--white); padding: 12px 16px; border-radius: 999px; box-shadow: var(--shadow); z-index: 1100; }
+    @media (max-width: 860px) { .app-shell { flex-direction: column; } .sidebar { width: 100%; flex-direction: row; justify-content: center; } }
   </style>
 </head>
 <body>
-  <div class="shell">
-    <div class="card">
-      <div class="topbar">
-        <h1>Order Management</h1>
-        <div class="actions"><a href="/admin">Back to dashboard</a></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a href="/admin/dashboard" aria-label="Dashboard"><img src="/media/images/admin_pg/admin_dash_icon.png" alt="Dashboard"></a>
+      <a href="/admin/products" aria-label="Products"><img src="/media/images/admin_pg/admin_product_icon.png" alt="Products"></a>
+      <a href="/admin/users" aria-label="Users"><img src="/media/images/admin_pg/admin_user_icon.png" alt="Users"></a>
+      <a class="active" href="/admin/orders" aria-label="Orders"><img src="/media/images/admin_pg/ac_admin_trans_icon.png" alt="Orders"></a>
+      <a href="/login?logout=1" aria-label="Log out" data-admin-logout="true"><img src="/media/images/admin_pg/admin_moremenu_icon.png" alt="Log out"></a>
+    </aside>
+
+    <main class="main-content">
+      <header class="header">
+        <div class="brand">
+          <img src="/media/images/admin_pg/admin_headerlogo.png" alt="HI Store'y ADMIN">
+          <h1>Orders</h1>
+        </div>
+        <div class="header-right">Recent transactions and fulfilment</div>
+      </header>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
       </div>
-      <table id="ordersTable" class="display" style="width:100%">
-        <thead>
-          <tr>
-            <th>ID</th><th>Email</th><th>Total</th><th>Status</th><th>Updated</th>
-          </tr>
-        </thead>
-      </table>
+    </main>
+  </div>
+
+  <div class="modal hidden" id="orderModal">
+    <div class="modal-card">
+      <h3 id="orderModalTitle">Update Order</h3>
+      <p id="orderModalDetails"></p>
+      <div class="actions">
+        <button class="action-btn" id="closeOrderModal">Close</button>
+      </div>
     </div>
   </div>
+
   <script src="/public/js/admin-orders.js"></script>
+  <script src="/public/js/admin-auth.js"></script>
 </body>
 </html>

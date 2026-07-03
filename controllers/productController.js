@@ -36,10 +36,9 @@ function sequelizeWhere(q) {
 
 function toImageUrl(filePath) {
   if (!filePath) return ''
-  // already absolute path
   if (filePath.startsWith('/')) return filePath
-  // legacy relative paths like "uploads/..." or "uploads/products/..."
   if (filePath.startsWith('uploads/')) return `/${filePath}`
+  if (filePath.startsWith('images/')) return `/${filePath}`
   return `/${filePath}`
 }
 
@@ -206,9 +205,8 @@ exports.uploadImages = async (req, res) => {
 
       const created = []
       for (const f of req.files) {
-        // store file_path as a public URL path
-        const filePath = `/uploads/products/${f.filename}`
-        const img = await ProductImage.create({ product_id: id, file_path: filePath, is_primary: false })
+        const publicPath = `/uploads/products/${f.filename}`
+        const img = await ProductImage.create({ product_id: id, file_path: publicPath, is_primary: false })
         created.push({
           id: img.id,
           file_path: img.file_path,

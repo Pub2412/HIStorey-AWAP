@@ -88,7 +88,17 @@ $(function() {
 	}
 
 	function loadSession() {
+		const params = new URLSearchParams(window.location.search)
+		const justLoggedOut = params.get('logout') === '1'
 		const session = readSession()
+
+		if (justLoggedOut) {
+			clearSession()
+			renderSession(null)
+			setActiveForm('loginForm')
+			return
+		}
+
 		if (!session || !session.token) {
 			renderSession(null)
 			return
@@ -193,6 +203,7 @@ $(function() {
 			$('#sessionView').addClass('hidden')
 			setActiveForm('loginForm')
 			setAlert('You have been signed out.', 'success')
+			window.location.replace('/login?logout=1')
 		})
 	})
 

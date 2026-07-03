@@ -3,70 +3,136 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>HIStorey | Admin</title>
+  <title>HIStorey | Admin Dashboard</title>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; background: #f5f5f5; color: #222; }
-    .shell { max-width: 1200px; margin: 0 auto; padding: 24px; }
-    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
-    .nav { display: flex; gap: 10px; flex-wrap: wrap; }
-    .nav a { text-decoration: none; background: #222; color: #fff; padding: 8px 12px; border-radius: 8px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px; }
-    .card { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 8px 24px rgba(0,0,0,.08); }
-    .metric { font-size: 1.8rem; font-weight: 700; margin-top: 8px; }
-    .chart-wrap { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
-    canvas { width: 100%; height: 240px; }
-    .range { display: flex; gap: 8px; margin-bottom: 12px; }
-    .range button { border: 1px solid #ccc; background: #fff; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
-    .range button.active { background: #222; color: #fff; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { padding: 8px; border-bottom: 1px solid #eee; text-align: left; }
-    @media (max-width: 900px) { .chart-wrap { grid-template-columns: 1fr; } }
+    @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@700&family=Poppins:wght@400;500;600;700&display=swap');
+    :root {
+      --bg: #9b7d3d;
+      --panel: #d9d9d9;
+      --accent: #634a1a;
+      --text: #171717;
+      --white: #fff;
+      --shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg), #b48b42);
+      color: var(--text);
+    }
+    .app-shell { display: flex; min-height: 100vh; padding: 18px; gap: 18px; }
+    .sidebar {
+      width: 86px;
+      background: rgba(217,217,217,0.96);
+      border-radius: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 10px;
+      gap: 14px;
+      box-shadow: var(--shadow);
+      flex-shrink: 0;
+    }
+    .sidebar a {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      text-decoration: none;
+      background: transparent;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+    .sidebar a:hover { transform: translateY(-1px); background: rgba(99,74,26,0.12); }
+    .sidebar a.active { background: var(--accent); }
+    .sidebar img { width: 28px; height: 28px; object-fit: contain; }
+    .main-content { flex: 1; display: flex; flex-direction: column; gap: 18px; }
+    .header {
+      display: flex; justify-content: space-between; align-items: center; gap: 16px;
+      background: rgba(99,74,26,0.92);
+      color: var(--white);
+      padding: 16px 24px;
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img { height: 36px; }
+    .brand h1 { margin: 0; font-family: 'Bodoni Moda', serif; font-size: 2rem; }
+    .header-meta { text-align: right; font-size: 0.95rem; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+    .metric-card, .panel { background: rgba(217,217,217,0.95); border-radius: 20px; box-shadow: var(--shadow); }
+    .metric-card { padding: 18px; text-align: center; }
+    .metric-card .label { font-size: 0.95rem; color: #555; margin-bottom: 8px; }
+    .metric-card .value { font-size: 1.55rem; font-weight: 700; }
+    .panels { display: grid; grid-template-columns: 1.15fr 0.95fr 0.95fr; gap: 16px; flex: 1; }
+    .panel { padding: 18px; display: flex; flex-direction: column; }
+    .panel h2 { margin: 0 0 12px; font-size: 1.05rem; text-align: center; }
+    .chart-panel { position: relative; height: 240px; }
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .list-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.7); padding: 10px 12px; border-radius: 12px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+    .bar { flex: 1; height: 10px; border-radius: 999px; background: #c9c1ae; overflow: hidden; }
+    .bar > span { display: block; height: 100%; background: var(--accent); }
+    .legend { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; }
+    .dot.admin { background: var(--accent); }
+    .dot.customer { background: #8d6e63; }
+    @media (max-width: 1080px) { .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .panels { grid-template-columns: 1fr; } }
+    @media (max-width: 720px) { .app-shell { flex-direction: column; } .sidebar { width: 100%; flex-direction: row; justify-content: center; padding: 12px; } .header { flex-direction: column; align-items: flex-start; } }
   </style>
 </head>
 <body>
-  <main class="shell">
-    <div class="topbar">
-      <h1>Admin Dashboard</h1>
-      <div class="nav">
-        <a href="/home">Storefront</a>
-        <a href="/admin/users">Users</a>
-        <a href="/admin/products">Products</a>
-        <a href="/admin/orders">Orders</a>
-        <button id="logoutButton" type="button" style="border:none; background:#c0392b; color:#fff; padding:8px 12px; border-radius:8px; cursor:pointer;">Logout</button>
-      </div>
-    </div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="active" href="/admin/dashboard" aria-label="Dashboard"><img src="/media/images/admin_pg/ac_admin_dash_icon.png" alt="Dashboard"></a>
+      <a href="/admin/products" aria-label="Products"><img src="/media/images/admin_pg/admin_product_icon.png" alt="Products"></a>
+      <a href="/admin/users" aria-label="Users"><img src="/media/images/admin_pg/admin_user_icon.png" alt="Users"></a>
+      <a href="/admin/orders" aria-label="Orders"><img src="/media/images/admin_pg/admin_trans_icon.png" alt="Orders"></a>
+      <a href="/login?logout=1" aria-label="Log out" data-admin-logout="true"><img src="/media/images/admin_pg/admin_moremenu_icon.png" alt="Log out"></a>
+    </aside>
 
-    <section class="grid">
-      <div class="card"><div>Total Sales</div><div class="metric" id="salesValue">$0.00</div></div>
-      <div class="card"><div>Active Users</div><div class="metric" id="usersValue">0</div></div>
-      <div class="card"><div>Total Products</div><div class="metric" id="productsValue">0</div></div>
-      <div class="card"><div>Pending Orders</div><div class="metric" id="ordersValue">0</div></div>
-    </section>
+    <main class="main-content">
+      <header class="header">
+        <div class="brand">
+          <img src="/media/images/admin_pg/admin_headerlogo.png" alt="HI Store'y ADMIN">
+          <h1>Dashboard</h1>
+        </div>
+        <div class="header-meta">
+          <div id="todayLabel">Loading date...</div>
+          <div id="clockDisplay">00:00</div>
+        </div>
+      </header>
 
-    <section class="card">
-      <div class="range">
-        <button class="active" data-range="daily">Daily</button>
-        <button data-range="weekly">Weekly</button>
-        <button data-range="monthly">Monthly</button>
-        <button data-range="yearly">Yearly</button>
-      </div>
-      <div class="chart-wrap">
-        <div><canvas id="revenueChart"></canvas></div>
-        <div><canvas id="roleChart"></canvas></div>
-      </div>
-    </section>
+      <section class="metrics">
+        <div class="metric-card"><div class="label">Total Sales</div><div class="value" id="salesValue">PHP 000.00</div></div>
+        <div class="metric-card"><div class="label">Active Users</div><div class="value" id="usersValue">0</div></div>
+        <div class="metric-card"><div class="label">Catalog Items</div><div class="value" id="productsValue">0</div></div>
+        <div class="metric-card"><div class="label">Pending Orders</div><div class="value" id="ordersValue">0</div></div>
+      </section>
 
-    <section class="card" style="margin-top:16px;">
-      <h3>Top Selling Items</h3>
-      <table>
-        <thead><tr><th>Item</th><th>Units</th><th>Revenue</th></tr></thead>
-        <tbody id="topItems"></tbody>
-      </table>
-    </section>
-  </main>
+      <section class="panels">
+        <article class="panel">
+          <h2>Top Selling Items</h2>
+          <div class="list" id="topItems"></div>
+        </article>
+        <article class="panel">
+          <h2>Revenue Trend</h2>
+          <div class="chart-panel"><canvas id="revenueChart"></canvas></div>
+        </article>
+        <article class="panel">
+          <h2>User Roles</h2>
+          <div class="chart-panel"><canvas id="roleChart"></canvas></div>
+        </article>
+      </section>
+    </main>
+  </div>
 
   <script src="/public/js/admin-dashboard.js"></script>
+  <script src="/public/js/admin-auth.js"></script>
 </body>
 </html>

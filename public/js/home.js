@@ -92,7 +92,10 @@ $(function(){
 		request.always(function() {
 			clearSession()
 			renderAuthActions(null)
-			resetProductsTable(null)
+			if (typeof resetProductsTable === 'function') {
+				resetProductsTable(null)
+			}
+			window.location.replace('/login?logout=1')
 		})
 	})
 
