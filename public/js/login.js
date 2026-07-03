@@ -78,7 +78,7 @@ $(function() {
 		}
 		saveSession(session)
 
-		const targetPath = redirectTo || (response.user.role === 'admin' ? '/admin' : null)
+		const targetPath = redirectTo || (response.user.role === 'admin' ? '/admin' : '/home')
 		if (targetPath) {
 			window.location.href = targetPath
 			return
@@ -117,7 +117,7 @@ $(function() {
 				role: response.user.role
 			}
 			saveSession(updatedSession)
-			window.location.href = updatedSession.role === 'admin' ? '/admin' : '/'
+			window.location.href = updatedSession.role === 'admin' ? '/admin' : '/home'
 		}).fail(function() {
 			clearSession()
 			renderSession(null)

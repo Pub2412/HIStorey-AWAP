@@ -64,7 +64,7 @@ exports.listProducts = async (req, res) => {
   if (useDb && ProductModel) {
     try {
       const all = await ProductModel.findAll({
-        where: q ? sequelizeWhere(q) : { },
+        where: q ? sequelizeWhere(q) : { is_deleted: false },
         include: [{ model: ProductImage, as: 'images', attributes: ['id','file_path','is_primary','uploaded_at'] }]
       })
       const mapped = all.map(mapProduct)
@@ -74,8 +74,8 @@ exports.listProducts = async (req, res) => {
       return res.status(500).json({ message: 'DB error' })
     }
   }
-  if (q) return res.json(products.filter(p => p.name.toLowerCase().includes(q)))
-  res.json(products)
+  if (q) return res.json(products.filter(p => p.name.toLowerCase().includes(q) && !p.is_deleted))
+  res.json(products.filter(p => !p.is_deleted))
 }
 
 exports.getProduct = async (req, res) => {

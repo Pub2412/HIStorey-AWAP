@@ -3,107 +3,639 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>HIStorey | Login</title>
+	<title>HIStore'y - Login</title>
 	<link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
-	<link rel="stylesheet" href="/public/css/login.css">
-	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,400;1,6..96,700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+	<style>
+		:root {
+			--bg-a: #120f14;
+			--bg-b: #2a1f27;
+			--accent: #d6b15b;
+			--accent-2: #7a5f2c;
+			--panel: rgba(245, 241, 235, 0.94);
+			--text: #161616;
+			--muted: #5f5a52;
+			--white: #ffffff;
+			--shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+		}
+
+		* { box-sizing: border-box; }
+		html, body { min-height: 100%; }
+		body {
+			margin: 0;
+			font-family: 'Poppins', Arial, sans-serif;
+			color: var(--white);
+			background:
+				radial-gradient(circle at 18% 20%, rgba(214, 177, 91, 0.16), transparent 18%),
+				radial-gradient(circle at 78% 12%, rgba(255, 255, 255, 0.06), transparent 20%),
+				linear-gradient(135deg, var(--bg-a), var(--bg-b));
+			min-height: 100vh;
+			overflow-x: hidden;
+			position: relative;
+		}
+
+		body::before,
+		body::after {
+			content: '';
+			position: fixed;
+			inset: auto;
+			border-radius: 999px;
+			filter: blur(18px);
+			pointer-events: none;
+			opacity: 0.38;
+			animation: drift 12s ease-in-out infinite alternate;
+		}
+
+		body::before {
+			width: 280px;
+			height: 280px;
+			left: -80px;
+			top: 10%;
+			background: rgba(214, 177, 91, 0.24);
+		}
+
+		body::after {
+			width: 340px;
+			height: 340px;
+			right: -120px;
+			bottom: 10%;
+			background: rgba(255, 255, 255, 0.07);
+			animation-delay: -4s;
+		}
+
+		@keyframes drift {
+			from { transform: translateY(0) scale(1); }
+			to { transform: translateY(-18px) scale(1.04); }
+		}
+
+		.auth-layout {
+			min-height: 100vh;
+			display: grid;
+			grid-template-columns: 1.1fr 0.9fr;
+			align-items: stretch;
+		}
+
+		.visual-panel {
+			padding: 40px 5vw;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+			gap: 30px;
+			position: relative;
+			isolation: isolate;
+		}
+
+		.visual-panel::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background:
+				radial-gradient(circle at 30% 20%, rgba(255,255,255,0.12), transparent 28%),
+				linear-gradient(160deg, rgba(17, 13, 20, 0.2), rgba(17, 13, 20, 0.72));
+			z-index: -1;
+		}
+
+		.brand-link {
+			display: inline-flex;
+			align-items: center;
+			text-decoration: none;
+			width: fit-content;
+		}
+
+		.brand-logo {
+			height: 46px;
+			width: auto;
+			display: block;
+			filter: drop-shadow(0 0 12px rgba(255,255,255,0.38));
+		}
+
+		.visual-copy {
+			max-width: 640px;
+			margin-top: auto;
+			animation: copyEnter 0.8s ease both;
+		}
+
+		.visual-copy .eyebrow {
+			margin: 0 0 10px;
+			font-size: 0.78rem;
+			letter-spacing: 0.22em;
+			text-transform: uppercase;
+			color: rgba(255,255,255,0.72);
+		}
+
+		.visual-copy h1 {
+			margin: 0;
+			font-family: 'Bodoni Moda', serif;
+			font-style: italic;
+			font-size: clamp(3rem, 6vw, 5.9rem);
+			line-height: 0.95;
+			letter-spacing: 0.03em;
+		}
+
+		.visual-copy p {
+			margin: 18px 0 0;
+			max-width: 560px;
+			font-size: 1.02rem;
+			line-height: 1.7;
+			color: rgba(255,255,255,0.84);
+		}
+
+		.visual-card {
+			margin-top: 28px;
+			width: min(100%, 520px);
+			padding: 18px;
+			border-radius: 28px;
+			background: rgba(255,255,255,0.08);
+			border: 1px solid rgba(255,255,255,0.08);
+			backdrop-filter: blur(14px);
+			box-shadow: 0 18px 40px rgba(0,0,0,0.24);
+			animation: cardFloat 0.9s ease both;
+		}
+
+		.visual-card .line {
+			display: block;
+			width: 100%;
+			height: 8px;
+			border-radius: 999px;
+			background: linear-gradient(90deg, var(--accent), rgba(255,255,255,0.24));
+			margin-bottom: 12px;
+		}
+
+		.visual-card .note {
+			margin: 0;
+			font-size: 0.92rem;
+			line-height: 1.6;
+			color: rgba(255,255,255,0.84);
+		}
+
+		.panel-side {
+			padding: 28px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.auth-shell {
+			width: min(100%, 540px);
+			margin: auto;
+		}
+
+		.auth-card {
+			background: var(--panel);
+			color: var(--text);
+			border-radius: 30px;
+			box-shadow: var(--shadow);
+			border: 1px solid rgba(255,255,255,0.25);
+			overflow: hidden;
+			position: relative;
+			animation: panelEnter 0.85s ease both;
+		}
+
+		.auth-card::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background:
+				linear-gradient(135deg, rgba(214,177,91,0.12), transparent 25%),
+				radial-gradient(circle at 100% 0%, rgba(255,255,255,0.45), transparent 26%);
+			pointer-events: none;
+		}
+
+		.auth-content {
+			position: relative;
+			padding: 34px 32px 30px;
+		}
+
+		.auth-header {
+			display: flex;
+			align-items: flex-start;
+			justify-content: space-between;
+			gap: 16px;
+			margin-bottom: 10px;
+		}
+
+		.auth-header h2,
+		.session-header h2 {
+			margin: 0;
+			font-family: 'Bodoni Moda', serif;
+			font-style: italic;
+			font-size: clamp(2rem, 4vw, 2.6rem);
+			line-height: 1.1;
+		}
+
+		.eyebrow {
+			margin: 0 0 6px;
+			font-size: 0.75rem;
+			letter-spacing: 0.2em;
+			text-transform: uppercase;
+			color: var(--muted);
+		}
+
+		.plain-link {
+			color: #111;
+			text-decoration: none;
+			font-weight: 700;
+			white-space: nowrap;
+		}
+
+		.plain-intro {
+			margin: 0 0 14px;
+			color: var(--muted);
+			line-height: 1.6;
+		}
+
+		.alert {
+			min-height: 54px;
+			margin: 18px 0 16px;
+			padding: 12px 14px;
+			border: 1px solid rgba(0,0,0,0.08);
+			border-radius: 16px;
+			background: rgba(255,255,255,0.65);
+			color: #5f584d;
+			display: flex;
+			align-items: center;
+			transition: transform 0.3s ease, opacity 0.3s ease, background 0.3s ease;
+		}
+
+		.alert.is-error {
+			border-color: #efb4b4;
+			background: #fff5f5;
+			color: #8d1f1f;
+		}
+
+		.alert.is-success {
+			border-color: #b7dfc7;
+			background: #f2fbf5;
+			color: #1f6a35;
+		}
+
+		.tab-switcher {
+			display: grid;
+			grid-template-columns: repeat(2, 1fr);
+			gap: 10px;
+			margin: 18px 0 10px;
+		}
+
+		.tab-button,
+		.icon-button,
+		.primary-button,
+		.secondary-button {
+			border: 0;
+			font: inherit;
+			cursor: pointer;
+			transition: transform 180ms ease, background 180ms ease, color 180ms ease, opacity 180ms ease, box-shadow 180ms ease;
+		}
+
+		.tab-button {
+			padding: 12px 14px;
+			border: 1px solid rgba(0,0,0,0.08);
+			border-radius: 16px;
+			background: rgba(255,255,255,0.75);
+			color: #2c2721;
+			font-weight: 700;
+		}
+
+		.tab-button.active {
+			background: linear-gradient(135deg, var(--accent), #f3df9f);
+			color: #1f1708;
+			box-shadow: 0 10px 22px rgba(214,177,91,0.26);
+		}
+
+		.auth-form {
+			display: flex;
+			flex-direction: column;
+			gap: 14px;
+			margin-top: 14px;
+			max-height: 0;
+			overflow: hidden;
+			opacity: 0;
+			transform: translateY(14px);
+			pointer-events: none;
+			transition: max-height 0.45s ease, opacity 0.32s ease, transform 0.32s ease;
+		}
+
+		.auth-form.active {
+			max-height: 980px;
+			opacity: 1;
+			transform: translateY(0);
+			pointer-events: auto;
+		}
+
+		.auth-form label {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+			color: #2f2a23;
+			font-size: 0.95rem;
+		}
+
+		.auth-form input {
+			width: 100%;
+			padding: 12px 14px;
+			border-radius: 16px;
+			border: 1px solid rgba(0,0,0,0.1);
+			background: rgba(255,255,255,0.8);
+			color: #191715;
+			font: inherit;
+			outline: none;
+			transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+		}
+
+		.auth-form input:focus {
+			border-color: var(--accent-2);
+			box-shadow: 0 0 0 3px rgba(122,95,44,0.16);
+		}
+
+		.auth-form input.input-error {
+			border-color: #b00020;
+		}
+
+		.auth-form .field-error {
+			display: block;
+			margin-top: 6px;
+			font-size: 0.85rem;
+			color: #b00020;
+		}
+
+		.input-row {
+			display: grid;
+			grid-template-columns: 1fr auto;
+			gap: 10px;
+			align-items: center;
+		}
+
+		.checkbox-field {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			font-size: 0.94rem;
+		}
+
+		.checkbox-field input {
+			width: 16px;
+			height: 16px;
+			margin: 0;
+		}
+
+		.icon-button,
+		.secondary-button {
+			padding: 12px 16px;
+			border-radius: 16px;
+			font-weight: 700;
+		}
+
+		.icon-button,
+		.secondary-button {
+			background: rgba(255,255,255,0.82);
+			color: #2a251f;
+			border: 1px solid rgba(0,0,0,0.08);
+		}
+
+		.primary-button {
+			padding: 14px 18px;
+			border-radius: 16px;
+			border: 0;
+			background: linear-gradient(135deg, var(--accent-2), var(--accent));
+			color: #fff;
+			font: inherit;
+			font-weight: 700;
+			box-shadow: 0 12px 24px rgba(122,95,44,0.2);
+		}
+
+		.primary-button:hover,
+		.secondary-button:hover,
+		.icon-button:hover,
+		.tab-button:hover,
+		.plain-link:hover {
+			transform: translateY(-1px);
+		}
+
+		.session-view {
+			padding-top: 6px;
+			transition: opacity 0.35s ease, transform 0.35s ease;
+		}
+
+		.session-view.hidden {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+
+		.session-header,
+		.session-summary {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 12px;
+			margin-top: 18px;
+		}
+
+		.session-summary {
+			padding: 14px;
+			border: 1px solid rgba(0,0,0,0.08);
+			border-radius: 16px;
+			background: rgba(255,255,255,0.65);
+		}
+
+		.session-summary > div { flex: 1; }
+
+		.session-summary span {
+			display: block;
+			margin-bottom: 4px;
+			font-size: 0.85rem;
+			color: var(--muted);
+		}
+
+		.session-summary strong {
+			font-size: 1rem;
+			word-break: break-word;
+		}
+
+		.hidden { display: none !important; }
+
+		.auth-footer {
+			margin-top: 20px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 12px;
+			color: var(--muted);
+			font-size: 0.92rem;
+		}
+
+		.auth-footer a {
+			color: #111;
+			font-weight: 700;
+			text-decoration: none;
+		}
+
+		.auth-footer a:hover { text-decoration: underline; }
+
+		@keyframes panelEnter {
+			from { opacity: 0; transform: translateY(22px) scale(0.98); }
+			to { opacity: 1; transform: translateY(0) scale(1); }
+		}
+
+		@keyframes copyEnter {
+			from { opacity: 0; transform: translateX(-20px); }
+			to { opacity: 1; transform: translateX(0); }
+		}
+
+		@keyframes cardFloat {
+			from { opacity: 0; transform: translateX(-10px) translateY(12px); }
+			to { opacity: 1; transform: translateX(0) translateY(0); }
+		}
+
+		@media (max-width: 980px) {
+			.auth-layout { grid-template-columns: 1fr; }
+			.visual-panel { min-height: 360px; }
+			.panel-side { padding: 0 20px 34px; }
+			.visual-copy h1 { font-size: clamp(2.3rem, 8vw, 4rem); }
+		}
+
+		@media (max-width: 560px) {
+			.visual-panel { padding: 24px 18px 24px; }
+			.auth-content { padding: 26px 20px 22px; }
+			.auth-header,
+			.session-header,
+			.session-summary,
+			.auth-footer { flex-direction: column; align-items: stretch; }
+			.tab-switcher,
+			.input-row { grid-template-columns: 1fr; }
+			.primary-button,
+			.secondary-button,
+			.icon-button,
+			.tab-button,
+			.plain-link { width: 100%; justify-content: center; }
+		}
+	</style>
 </head>
 <body>
-	<main class="auth-shell">
-		<div class="auth-card">
-			<div class="auth-header">
-				<div>
-					<p class="eyebrow">HIStorey</p>
-					<h1>Login</h1>
-				</div>
-				<div>
-					<a class="plain-link" href="/register">Register</a>
-					&nbsp;
-					<a class="plain-link" href="/">Back to home</a>
-				</div>
-			</div>
+	<div class="auth-layout">
+		<section class="visual-panel">
+			<a href="/" class="brand-link" aria-label="Back to home">
+				<img src="/media/images/logreg_pg/LogoWhite.png" alt="HIStore'y" class="brand-logo">
+			</a>
 
-			<p class="plain-intro">Sign in to your account or create a new one.</p>
-
-			<div id="authAlert" class="alert" aria-live="polite">Enter your credentials below to sign in.</div>
-
-			<!-- <div class="tab-switcher" role="tablist" aria-label="Login or register">
-				<button type="button" class="tab-button active" data-target="loginForm">Login</button>
-				<button type="button" class="tab-button" data-target="registerForm">Register</button>
-			</div> -->
-
-			<form id="loginForm" class="auth-form active" autocomplete="on" novalidate>
-				<label>
-					<span>Email address</span>
-					<input type="text" name="email" placeholder="you@historey.com">
-				</label>
-				<label>
-					<span>Password</span>
-					<div class="input-row">
-						<input type="password" name="password" placeholder="Your password">
-						<button type="button" class="icon-button toggle-password">Show</button>
-					</div>
-				</label>
-				<label class="checkbox-field">
-					<input type="checkbox" name="remember">
-					<span>Remember me</span>
-				</label>
-				<button type="submit" class="primary-button">Sign in</button>
-			</form>
-
-			<form id="registerForm" class="auth-form" autocomplete="on" novalidate>
-				<label>
-					<span>Full name</span>
-					<input type="text" name="name" placeholder="Ava Johnson">
-				</label>
-				<label>
-					<span>Email address</span>
-					<input type="text" name="email" placeholder="ava@historey.com">
-				</label>
-				<label>
-					<span>Password</span>
-					<div class="input-row">
-						<input type="password" name="password" placeholder="Create a password">
-						<button type="button" class="icon-button toggle-password">Show</button>
-					</div>
-				</label>
-				<label>
-					<span>Confirm password</span>
-					<div class="input-row">
-						<input type="password" name="confirmPassword" placeholder="Repeat your password">
-						<button type="button" class="icon-button toggle-password">Show</button>
-					</div>
-				</label>
-				<label class="checkbox-field terms-field">
-					<input type="checkbox" name="terms">
-					<span>I agree to the terms and privacy policy.</span>
-				</label>
-				<button type="submit" class="primary-button">Create account</button>
-			</form>
-
-			<div id="sessionView" class="session-view hidden">
-				<div class="session-header">
-					<div>
-						<p class="eyebrow">Signed in</p>
-						<h2 id="sessionTitle">Welcome</h2>
-					</div>
-					<button type="button" class="secondary-button" id="logoutButton">Log out</button>
-				</div>
-
-				<div class="session-summary">
-					<div>
-						<span>Account</span>
-						<strong id="sessionEmail"></strong>
-					</div>
-					<div>
-						<span>Status</span>
-						<strong id="sessionMode">Active session</strong>
-					</div>
+			<div class="visual-copy">
+				<p class="eyebrow">Member access</p>
+				<h1>Welcome back.</h1>
+				<p>Sign in to keep your cart, favorites, and customer profile in sync across the store.</p>
+				<div class="visual-card">
+					<span class="line"></span>
+					<p class="note">Animated card transitions keep the login and register views fluid while preserving the familiar HIStore'y flow.</p>
 				</div>
 			</div>
-		</div>
-	</main>
+		</section>
+
+		<section class="panel-side">
+			<div class="auth-shell">
+				<div class="auth-card">
+					<div class="auth-content">
+						<div class="auth-header">
+							<div>
+								<p class="eyebrow">HIStore'y</p>
+								<h2>Login</h2>
+							</div>
+							<div>
+								<a class="plain-link" href="/register">Register</a>
+								&nbsp;
+								<a class="plain-link" href="/">Home</a>
+							</div>
+						</div>
+
+						<p class="plain-intro">Sign in to your account or switch to register for a new one.</p>
+
+						<div id="authAlert" class="alert" aria-live="polite">Enter your credentials below to sign in.</div>
+
+						<div class="tab-switcher" role="tablist" aria-label="Login or register">
+							<button type="button" class="tab-button active" data-target="loginForm">Login</button>
+							<button type="button" class="tab-button" data-target="registerForm">Register</button>
+						</div>
+
+						<form id="loginForm" class="auth-form active" autocomplete="on" novalidate>
+							<label>
+								<span>Email address</span>
+								<input type="text" name="email" placeholder="you@historey.com">
+							</label>
+							<label>
+								<span>Password</span>
+								<div class="input-row">
+									<input type="password" name="password" placeholder="Your password">
+									<button type="button" class="icon-button toggle-password">Show</button>
+								</div>
+							</label>
+							<label class="checkbox-field">
+								<input type="checkbox" name="remember">
+								<span>Remember me</span>
+							</label>
+							<button type="submit" class="primary-button">Sign in</button>
+							<div class="auth-footer">
+								<a href="/forgot">Forgot Password?</a>
+								<span>Need an account?</span>
+							</div>
+						</form>
+
+						<form id="registerForm" class="auth-form" autocomplete="on" novalidate>
+							<label>
+								<span>Full name</span>
+								<input type="text" name="name" placeholder="Ava Johnson">
+							</label>
+							<label>
+								<span>Email address</span>
+								<input type="text" name="email" placeholder="ava@historey.com">
+							</label>
+							<label>
+								<span>Password</span>
+								<div class="input-row">
+									<input type="password" name="password" placeholder="Create a password">
+									<button type="button" class="icon-button toggle-password">Show</button>
+								</div>
+							</label>
+							<label>
+								<span>Confirm password</span>
+								<div class="input-row">
+									<input type="password" name="confirmPassword" placeholder="Repeat your password">
+									<button type="button" class="icon-button toggle-password">Show</button>
+								</div>
+							</label>
+							<label class="checkbox-field terms-field">
+								<input type="checkbox" name="terms">
+								<span>I agree to the terms and privacy policy.</span>
+							</label>
+							<button type="submit" class="primary-button">Create account</button>
+							<div class="auth-footer">
+								<a href="/forgot">Forgot Password?</a>
+								<span>Switch back to login above</span>
+							</div>
+						</form>
+
+						<div id="sessionView" class="session-view hidden">
+							<div class="session-header">
+								<div>
+									<p class="eyebrow">Signed in</p>
+									<h2 id="sessionTitle">Welcome</h2>
+								</div>
+								<button type="button" class="secondary-button" id="logoutButton">Log out</button>
+							</div>
+
+							<div class="session-summary">
+								<div>
+									<span>Account</span>
+									<strong id="sessionEmail"></strong>
+								</div>
+								<div>
+									<span>Status</span>
+									<strong id="sessionMode">Active session</strong>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
 
 	<script src="/public/js/auth-validation.js"></script>
 	<script src="/public/js/login.js"></script>

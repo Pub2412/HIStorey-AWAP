@@ -29,6 +29,14 @@ app.get('/register', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'register.html'))
 });
 
+app.get('/signup', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'register.html'))
+});
+
+app.get('/forgot', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'forgot.html'))
+});
+
 app.get('/home', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'home.html'))
 });
