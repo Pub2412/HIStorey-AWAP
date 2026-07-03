@@ -1,18 +1,26 @@
 document.addEventListener('DOMContentLoaded', () => {
   const audio = document.getElementById('bg-audio')
-  const muteBtn = document.getElementById('mute')
+  const muteBtn = document.getElementById('audioToggleBtn')
+  const iconVolOn = document.getElementById('icon-vol-on')
+  const iconVolOff = document.getElementById('icon-vol-off')
+
+  if (!audio || !muteBtn) return
+
+  function setMuteState(muted) {
+    audio.muted = muted
+    muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false')
+    if (iconVolOn) iconVolOn.style.display = muted ? 'none' : 'block'
+    if (iconVolOff) iconVolOff.style.display = muted ? 'block' : 'none'
+  }
 
   // Try to play (modern browsers may block autoplay with sound)
   function tryPlay() {
-    if (!audio) return
     audio.muted = false
     const p = audio.play()
     if (p && p.then) {
       p.catch(() => {
         // Autoplay failed; start muted instead
-        audio.muted = true
-        muteBtn.textContent = '🔇'
-        muteBtn.setAttribute('aria-pressed', 'true')
+        setMuteState(true)
       })
     }
   }
@@ -20,9 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load previous mute preference
   const mutedPref = localStorage.getItem('landing-muted')
   if (mutedPref === 'true') {
-    audio.muted = true
-    muteBtn.textContent = '🔇'
-    muteBtn.setAttribute('aria-pressed', 'true')
+    setMuteState(true)
   } else {
     tryPlay()
   }
@@ -36,14 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // ignore
       }
     }
-    const muted = !(audio.muted)
-    audio.muted = muted
+    const muted = !audio.muted
+    setMuteState(muted)
     // If audio was paused and now unmuted, ensure it's playing
     if (!muted && audio.paused) {
       try { await audio.play() } catch (e) {}
     }
-    muteBtn.textContent = muted ? '🔇' : '🔊'
-    muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false')
     localStorage.setItem('landing-muted', muted ? 'true' : 'false')
   })
 })

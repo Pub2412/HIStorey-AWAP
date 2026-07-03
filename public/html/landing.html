@@ -1,98 +1,353 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HIStore'y - Landing</title>
   <link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    :root{--gold:#d4b05a;--maroon:#8b0b0b;--bg1:#4d3f2f;--bg2:#3d3024}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter, Arial, Helvetica, sans-serif;background:linear-gradient(180deg,var(--bg1),var(--bg2));color:#fff}
-    header{padding:18px 0;background:transparent}
-    header .inner{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:24px;padding:0 24px}
-    .logo{display:flex;align-items:center;gap:16px}
-    .logo img{height:56px}
-    .search{display:flex;justify-content:center}
-    .search input{width:60%;max-width:720px;padding:14px 24px;border-radius:32px;border:none;box-shadow:0 6px 18px rgba(0,0,0,0.5)}
-    .actions{display:flex;align-items:center;gap:12px}
-    .actions button{background:#fff;color:#222;border-radius:28px;padding:10px 18px;border:none}
-    .nav{background:var(--maroon);padding:12px 0;color:#fff}
-    .nav .container{max-width:1200px;margin:0 auto;display:flex;gap:60px;padding:0 16px;justify-content:center}
-    .nav .container a{color:#ffffff;text-decoration:none;text-transform:uppercase;font-weight:700;font-size:16px;letter-spacing:1px;padding:8px 6px}
-    .nav .container a:hover{opacity:0.9}
-    .page-content{max-width:1200px;margin:0 auto;padding:0 24px 80px}
-    .hero{position:relative;display:flex;align-items:center;justify-content:space-between;padding:80px 56px 40px;margin:0 auto}
-    .hero .left{max-width:56%}
-    .hero h1{font-size:96px;margin:0 0 18px;color:#fff;text-shadow:0 8px 26px rgba(0,0,0,0.65);letter-spacing:2px}
-    .hero .logo-img{max-width:420px;width:100%;height:auto;display:block}
-    .hero .logo-img.small{max-width:260px}
-    .hero p{font-size:20px;opacity:0.95;line-height:1.4}
-    .cta{margin-top:24px}
-    .cta a{display:inline-block;background:#fff;color:#222;padding:14px 28px;border-radius:40px;text-decoration:none;font-weight:600}
-    .hero .right{position:relative;width:480px;height:auto;padding:0;background:transparent;overflow:visible;display:flex;align-items:center;justify-content:center}
-    .hero .right img{position:relative;max-width:420px;width:100%;height:auto;object-fit:contain;border-radius:6px;box-shadow:0 18px 40px rgba(0,0,0,0.6)}
-    /* small screens */
-    @media(max-width:900px){
-      .search input{width:90%}
-      .hero{flex-direction:column;gap:20px;padding:40px 20px}
-      .hero .left{max-width:100%;text-align:center}
-      .hero h1{font-size:48px}
-      .hero .right{width:100%;height:auto;padding:0}
-      .hero .right img{position:relative;right:auto;bottom:auto;margin:0 auto;display:block;width:80%;height:auto;object-fit:contain;border-radius:6px}
+    :root {
+      --gold: #dcb538;
+      --maroon: #8a0c0c;
+      --topbar: #36322b;
+      --footer: #424036;
+      --bg-start: #463a2a;
+      --bg-end: #2f251c;
+      --white: #ffffff;
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.38);
     }
-    .mute-btn{position:fixed;right:20px;top:20px;background:rgba(255,255,255,0.95);border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;border:none;box-shadow:0 6px 18px rgba(0,0,0,0.4);font-size:18px}
-    footer{padding:28px 0;background:rgba(0,0,0,0.12);color:#ddd;position:fixed;left:0;right:0;bottom:0;font-size:20px}
-    /* ensure page content isn't hidden behind fixed footer */
-    .page-pad{height:110px}
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      font-family: 'Roboto', Arial, sans-serif;
+      color: var(--white);
+      background:
+        radial-gradient(circle at 24% 18%, rgba(220, 181, 56, 0.14), transparent 26%),
+        radial-gradient(circle at 78% 16%, rgba(255, 255, 255, 0.06), transparent 24%),
+        linear-gradient(180deg, var(--bg-start), var(--bg-end));
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .top-header {
+      background: var(--topbar);
+      padding: 16px 5%;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16);
+    }
+
+    .header-logo {
+      display: block;
+      height: 42px;
+      width: auto;
+    }
+
+    .search-container {
+      max-width: 560px;
+      margin: 0 auto;
+      position: relative;
+      width: 100%;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 48px 12px 20px;
+      border-radius: 999px;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      font-size: 15px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    .search-btn {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #000;
+      display: grid;
+      place-items: center;
+    }
+
+    .auth-container {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      justify-self: end;
+    }
+
+    .sign-in-btn,
+    .start-btn,
+    .audio-btn {
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .sign-in-btn,
+    .start-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 24px;
+      border-radius: 999px;
+      background: var(--white);
+      color: #111;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 15px;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+    }
+
+    .sign-in-btn:hover,
+    .start-btn:hover,
+    .audio-btn:hover {
+      transform: translateY(-1px);
+      background: #f0f0f0;
+    }
+
+    .audio-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--white);
+      color: #111;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+      flex-shrink: 0;
+    }
+
+    .main-nav {
+      background: var(--maroon);
+      border-bottom: 2px solid var(--gold);
+      padding: 13px 5%;
+      display: flex;
+      justify-content: center;
+      gap: clamp(28px, 6vw, 72px);
+      flex-wrap: wrap;
+    }
+
+    .main-nav a {
+      color: var(--white);
+      text-decoration: none;
+      text-transform: uppercase;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.8px;
+    }
+
+    .main-nav a:hover { opacity: 0.85; }
+
+    .page-content {
+      flex: 1;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 44px 5% 52px;
+      display: flex;
+      align-items: center;
+    }
+
+    .hero {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      align-items: center;
+      gap: clamp(28px, 4vw, 64px);
+    }
+
+    .hero-left {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 20px;
+      padding: 20px 0;
+      max-width: 620px;
+    }
+
+    .hero-logo-large {
+      width: min(100%, 480px);
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.7));
+    }
+
+    .hero-subheading {
+      margin: 0;
+      color: var(--white);
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      font-size: clamp(18px, 2vw, 22px);
+      font-weight: 500;
+    }
+
+    .hero-copy {
+      margin: 0;
+      max-width: 560px;
+      font-size: 19px;
+      line-height: 1.55;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 0 28px;
+      border-radius: 999px;
+      background: var(--white);
+      color: #111;
+      text-decoration: none;
+      font-size: 15px;
+      font-weight: 500;
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+    }
+
+    .cta-btn:hover { transform: translateY(-1px); }
+
+    .hero-right {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 520px;
+      padding: 12px;
+    }
+
+    .hero-image {
+      width: min(100%, 640px);
+      height: auto;
+      display: block;
+      object-fit: contain;
+      filter: drop-shadow(14px 20px 28px rgba(0, 0, 0, 0.6));
+    }
+
+    .site-footer {
+      background: var(--footer);
+      padding: 24px 5%;
+      text-align: center;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.92);
+    }
+
+    #bg-audio { display: none; }
+
+    @media (max-width: 980px) {
+      .top-header {
+        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .auth-container {
+        justify-self: center;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-left {
+        align-items: center;
+        text-align: center;
+        margin: 0 auto;
+      }
+
+      .hero-right {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-content {
+        padding: 34px 20px 40px;
+      }
+
+      .search-container {
+        order: 3;
+        width: 100%;
+      }
+
+      .auth-container {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .hero-logo-large {
+        width: min(100%, 360px);
+      }
+
+      .hero-copy {
+        font-size: 17px;
+      }
+
+      .hero-image {
+        width: min(100%, 520px);
+      }
+    }
   </style>
 </head>
 <body>
-  <header>
-    <div class="inner">
-      <div class="logo">
-        <img src="/media/images/LogoWhite.png" alt="logo">
-      </div>
-      <div class="search">
-        <input placeholder="Search here" aria-label="search" />
-      </div>
-      <div class="actions">
-        <button onclick="location.href='/home'">Start Shopping</button>
-        <button onclick="location.href='/login'">Sign In</button>
-      </div>
+  <header class="top-header">
+    <div class="logo-container">
+      <img src="/media/images/LogoWhite.png" alt="HIStore'y" class="header-logo">
+    </div>
+    <div class="search-container">
+      <input type="text" placeholder="Search here" class="search-input" aria-label="search">
+      <button class="search-btn" type="button" aria-label="Search">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+    </div>
+    <div class="auth-container">
+      <a href="/login" class="sign-in-btn">Sign In</a>
+      <button class="audio-btn" id="audioToggleBtn" type="button" aria-label="Toggle audio" aria-pressed="false">
+        <svg id="icon-vol-on" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <svg id="icon-vol-off" style="display: none;" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="1" x2="1" y2="23"></line></svg>
+      </button>
     </div>
   </header>
-  <div class="nav">
-    <div class="container">
-      <a href="#" aria-label="Products">PRODUCTS</a>
-      <a href="#" aria-label="HIStory">HIS STORY</a>
-      <a href="#" aria-label="MJ Minigame">MJ MINIGAME</a>
-    </div>
-  </div>
 
-  <div class="page-content">
+  <nav class="main-nav" aria-label="Primary">
+    <a href="#" aria-label="Products">PRODUCTS</a>
+    <a href="#" aria-label="HIStory">HIS STORY</a>
+    <a href="#" aria-label="MJ Minigame">MJ MINIGAME</a>
+  </nav>
+
+  <main class="page-content">
     <section class="hero">
-    <div class="left">
-      <img src="/media/images/LogoWhite.png" alt="HIStore'y" class="logo-img" />
-      <p style="font-size:20px;opacity:0.95;max-width:600px">Get the fan essentials — exclusive Michael Jackson memorabilia curated for collectors.</p>
-      <div class="cta"><a href="/home">Start Shopping</a></div>
-    </div>
-    <div class="right">
-      <img src="/media/images/land_pg/landingmerch.png" alt="landing image">
-    </div>
+      <div class="hero-left">
+        <img src="/media/images/LogoWhite.png" alt="HIStore'y" class="hero-logo-large">
+        <h2 class="hero-subheading">Get The Fan Essentials</h2>
+        <p class="hero-copy">Get the fan essentials — exclusive Michael Jackson memorabilia curated for collectors.</p>
+        <a href="/home" class="cta-btn">Start Shopping</a>
+      </div>
+      <div class="hero-right">
+        <img src="/media/images/land_pg/landingmerch.png" alt="Fan Merchandise" class="hero-image">
+      </div>
     </section>
-  </div>
+  </main>
 
-  <div class="page-pad"></div>
-
-  <button id="mute" class="mute-btn" aria-pressed="false">🔊</button>
-
-  <audio id="bg-audio" src="/media/songs/mj_landing.mp3" loop autoplay playsinline preload="auto"></audio>
-
-  <footer>
-    <div style="max-width:1100px;margin:0 auto;display:flex;justify-content:center"><div>Copyright 2026 HIStore'y E-commerce</div></div>
+  <footer class="site-footer">
+    <p>Copyright 2026 HIStore'y E-commerce</p>
   </footer>
 
+  <audio id="bg-audio" src="/media/songs/mj_landing.mp3" loop autoplay playsinline preload="auto"></audio>
   <script src="/public/js/landing.js"></script>
 </body>
 </html>
