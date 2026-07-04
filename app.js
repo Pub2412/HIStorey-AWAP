@@ -41,6 +41,10 @@ app.get('/home', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'home.html'))
 });
 
+app.get('/product/:id', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'product.html'))
+});
+
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'admin', 'dashboard.html'))
 });
@@ -61,6 +65,10 @@ app.get('/admin/orders', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'admin', 'orders.html'))
 });
 
+app.get('/404', (req, res) => {
+    res.status(404).sendFile(path.join(__dirname, 'public', 'html', '404.html'))
+})
+
 // API routes
 const products = require('./routes/products')
 const transactions = require('./routes/transactions')
@@ -69,5 +77,13 @@ const userRoutes = require('./routes/user')
 app.use('/api/v1', products)
 app.use('/api/v1', transactions)
 app.use('/api/v1', userRoutes)
+
+app.use((req, res, next) => {
+    if (req.method !== 'GET' || req.path.startsWith('/api/')) {
+        return next()
+    }
+
+    return res.status(404).sendFile(path.join(__dirname, 'public', 'html', '404.html'))
+})
 
 module.exports = app

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>HIStore'y - 404</title>
+	<link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
+	<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@1,400;1,700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--bg: #8b7440;
+			--bg-dark: #6a592f;
+			--text: #ffffff;
+			--button: #ffffff;
+			--button-text: #171717;
+		}
+
+		* { box-sizing: border-box; }
+		html, body { min-height: 100%; }
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: 'Poppins', Arial, sans-serif;
+			color: var(--text);
+			background:
+				radial-gradient(circle at 50% 35%, rgba(255,255,255,0.08), transparent 20%),
+				linear-gradient(180deg, var(--bg), var(--bg-dark));
+			overflow: hidden;
+		}
+
+		.page-shell {
+			min-height: 100vh;
+			padding: 28px 34px 24px;
+			display: flex;
+			flex-direction: column;
+		}
+
+		.brand-link {
+			display: inline-flex;
+			width: fit-content;
+			text-decoration: none;
+		}
+
+		.brand-logo {
+			height: 52px;
+			width: auto;
+			display: block;
+		}
+
+		.error-stage {
+			flex: 1;
+			display: grid;
+			place-items: center;
+			text-align: center;
+			padding: 24px 0 40px;
+		}
+
+		.error-copy {
+			max-width: 760px;
+		}
+
+		.error-code {
+			margin: 0;
+			font-family: 'Bodoni Moda', serif;
+			font-style: italic;
+			font-size: clamp(6rem, 18vw, 10rem);
+			line-height: 0.9;
+			font-weight: 700;
+		}
+
+		.error-title {
+			margin: 10px 0 0;
+			font-family: 'Bodoni Moda', serif;
+			font-style: italic;
+			font-size: clamp(2rem, 5vw, 4rem);
+			line-height: 1.05;
+			font-weight: 700;
+		}
+
+		.error-text {
+			margin: 14px auto 0;
+			max-width: 620px;
+			font-size: 18px;
+			line-height: 1.6;
+		}
+
+		.cta-btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			min-height: 48px;
+			padding: 0 26px;
+			margin-top: 26px;
+			border-radius: 999px;
+			background: var(--button);
+			color: var(--button-text);
+			text-decoration: none;
+			font-weight: 600;
+			box-shadow: 0 10px 22px rgba(0, 0, 0, 0.24);
+		}
+
+		.footer {
+			font-size: 14px;
+			line-height: 1.5;
+		}
+
+		@media (max-width: 640px) {
+			.page-shell { padding: 22px 18px 18px; }
+			.brand-logo { height: 42px; }
+			.error-text { font-size: 16px; }
+		}
+	</style>
+</head>
+<body>
+	<div class="page-shell">
+		<a href="/" class="brand-link" aria-label="Back to home">
+			<img src="/media/images/logreg_pg/LogoWhite.png" alt="HIStore'y" class="brand-logo">
+		</a>
+
+		<main class="error-stage" aria-labelledby="errorTitle">
+			<div class="error-copy">
+				<h1 class="error-code">404</h1>
+				<h2 class="error-title" id="errorTitle">Annie are you okay?</h2>
+				<p class="error-text">Looks like the page you’re trying to reach is unavailable, restricted, or linked from the wrong place.</p>
+				<a href="/" class="cta-btn">Go back to home</a>
+			</div>
+		</main>
+
+		<footer class="footer">Copyright 2026 HIStore’y E-commerce</footer>
+	</div>
+</body>
+</html>

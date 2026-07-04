@@ -1,4 +1,4 @@
-$(function() {
+(function() {
 	const storageKey = 'historey.session'
 	const apiBase = '/api/v1'
 
@@ -16,15 +16,22 @@ $(function() {
 		localStorage.removeItem(storageKey)
 	}
 
+	function redirectToNotFound() {
+		window.location.replace('/404')
+	}
+
+	const session = readSession()
+	if (!session || !session.token || String(session.role).toLowerCase() !== 'admin') {
+		redirectToNotFound()
+		return
+	}
+
 	function logoutAdmin() {
-		const session = readSession()
-		const request = session && session.token
-			? $.ajax({
-				url: `${apiBase}/auth/logout`,
-				method: 'POST',
-				headers: { Authorization: `Bearer ${session.token}` }
-			})
-			: $.Deferred().resolve()
+		const request = $.ajax({
+			url: `${apiBase}/auth/logout`,
+			method: 'POST',
+			headers: { Authorization: `Bearer ${session.token}` }
+		})
 
 		request.always(function() {
 			clearSession()
@@ -36,4 +43,4 @@ $(function() {
 		event.preventDefault()
 		logoutAdmin()
 	})
-})
+})()

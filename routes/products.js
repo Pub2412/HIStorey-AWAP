@@ -6,6 +6,8 @@ const upload = require('../utils/multer')
 
 router.get('/products', productController.listProducts)
 router.get('/products/:id', productController.getProduct)
+router.get('/products/:id/reviews', productController.listProductReviews)
+router.post('/products/:id/reviews', verifyToken, productController.createProductReview)
 router.post('/products', verifyToken, checkAdmin, productController.createProduct)
 router.put('/products/:id', verifyToken, checkAdmin, productController.updateProduct)
 router.delete('/products/:id', verifyToken, checkAdmin, productController.deleteProduct)

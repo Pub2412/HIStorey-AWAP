@@ -3,6 +3,8 @@ let ProductModel = null
 let useDb = false
 
 const ProductImage = require('../models/product_image')
+const ReviewModel = require('../models/review')
+const UserModel = require('../models/user')
 const path = require('path')
 const fs = require('fs')
 
@@ -59,6 +61,20 @@ function mapProduct(instance) {
   return obj
 }
 
+function mapReview(instance) {
+  if (!instance) return null
+  const obj = instance.toJSON ? instance.toJSON() : instance
+  return {
+  id: obj.id,
+  user_id: obj.user_id,
+  product_id: obj.product_id,
+  rating: obj.rating,
+  comment: obj.comment,
+  created_at: obj.created_at,
+  user: obj.User || obj.user || null
+  }
+}
+
 exports.listProducts = async (req, res) => {
   const q = (req.query.q || '').toLowerCase()
   if (useDb && ProductModel) {
@@ -95,6 +111,80 @@ exports.getProduct = async (req, res) => {
   const p = products.find(x => x.id === id)
   if (!p) return res.status(404).json({ message: 'Not found' })
   res.json(p)
+}
+
+exports.listProductReviews = async (req, res) => {
+  if (!useDb || !ProductModel || !ReviewModel || !UserModel) {
+    return res.status(503).json({ message: 'Database is not available.' })
+  }
+
+  const id = Number(req.params.id)
+  try {
+    const reviews = await ReviewModel.findAll({
+      where: { product_id: id },
+      include: [{ model: UserModel, attributes: ['id', 'name', 'role'] }],
+      order: [['created_at', 'DESC']]
+    })
+
+    return res.json(reviews.map(mapReview))
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'DB error' })
+  }
+}
+
+exports.createProductReview = async (req, res) => {
+  if (!useDb || !ProductModel || !ReviewModel || !UserModel) {
+    return res.status(503).json({ message: 'Database is not available.' })
+  }
+
+  const productId = Number(req.params.id)
+  const rating = Number(req.body.rating)
+  const comment = String(req.body.comment || '').trim()
+
+  if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    return res.status(400).json({ message: 'Rating must be between 1 and 5.' })
+  }
+
+  try {
+    const product = await ProductModel.findByPk(productId)
+    if (!product || product.is_deleted) {
+      return res.status(404).json({ message: 'Product not found.' })
+    }
+
+    const user = await UserModel.findByPk(req.user.id)
+    if (!user || !user.is_active) {
+      return res.status(401).json({ message: 'Session is no longer valid.' })
+    }
+
+    if (String(user.role).toLowerCase() !== 'customer') {
+      return res.status(403).json({ message: 'Only customer accounts can submit reviews.' })
+    }
+
+    const existingReview = await ReviewModel.findOne({ where: { user_id: user.id, product_id: productId } })
+    if (existingReview) {
+      return res.status(409).json({ message: 'You have already reviewed this product.' })
+    }
+
+    const review = await ReviewModel.create({
+      user_id: user.id,
+      product_id: productId,
+      rating,
+      comment
+    })
+
+    const created = await ReviewModel.findByPk(review.id, {
+      include: [{ model: UserModel, attributes: ['id', 'name', 'role'] }]
+    })
+
+    return res.status(201).json(mapReview(created))
+  } catch (err) {
+    if (err && err.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ message: 'You have already reviewed this product.' })
+    }
+    console.error(err)
+    return res.status(500).json({ message: 'Could not save review.' })
+  }
 }
 
 exports.createProduct = async (req, res) => {

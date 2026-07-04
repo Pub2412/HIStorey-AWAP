@@ -28,6 +28,10 @@ $(function() {
 	let currentRadioIndex = -1
 	let searchTimer = null
 
+	function redirectToNotFound() {
+		window.location.replace('/404')
+	}
+
 	function readSession() {
 		const raw = localStorage.getItem(storageKey)
 		if (!raw) return null
@@ -197,7 +201,7 @@ $(function() {
 
 			return `
 				<article class="product-card" data-product-id="${product.id}">
-					<a href="#" class="product-link" aria-label="${title}">
+					<a href="/product/${product.id}" class="product-link" aria-label="${title}">
 						<div class="product-image-placeholder">
 							<img src="${escapeHtml(imageUrl)}" alt="${imageAlt}" loading="lazy" onerror="this.onerror=null;this.src='${fallbackImage}';">
 						</div>
@@ -216,6 +220,13 @@ $(function() {
 					</div>
 				</article>`
 		}).join(''))
+
+		const session = readSession()
+		if (!session || !session.token) {
+			$grid.find('.add-to-cart-btn').each(function() {
+				$(this).text('Sign in to buy')
+			})
+		}
 	}
 
 	function loadProducts(query) {
@@ -316,11 +327,20 @@ $(function() {
 	})
 
 	$(document).on('click', '.product-link', function(e) {
-		e.preventDefault()
+		const href = $(this).attr('href')
+		if (!href || href === '#') {
+			e.preventDefault()
+		}
 	})
 
 	$(document).on('click', '.add-to-cart-btn', function() {
 		const productId = $(this).data('product-id')
+		const session = readSession()
+		if (!session || !session.token) {
+			window.location.href = '/login'
+			return
+		}
+
 		window.alert(`Add to cart is ready for product ${productId}.`)
 	})
 

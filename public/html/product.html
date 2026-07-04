@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>HIStore'y - Product Detail</title>
+	<link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
+	<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@1,400;1,700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+	<style>
+		:root {
+			--topbar: #36322b;
+			--nav: #8a0c0c;
+			--nav-border: #dcb538;
+			--bg-start: #b59758;
+			--bg-end: #9a8148;
+			--panel: #dfdbd2;
+			--card: #ece7dc;
+			--accent: #a6814c;
+			--accent-dark: #403b30;
+			--text: #111111;
+			--white: #ffffff;
+			--shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+		}
+
+		* { box-sizing: border-box; }
+		html, body { min-height: 100%; }
+		body {
+			margin: 0;
+			font-family: 'Poppins', Arial, sans-serif;
+			color: var(--text);
+			background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
+			display: flex;
+			flex-direction: column;
+			min-height: 100vh;
+			overflow-x: hidden;
+		}
+
+		.top-header {
+			background: var(--topbar);
+			padding: 16px 5%;
+			display: grid;
+			grid-template-columns: 1fr minmax(0, 1.3fr) 1fr;
+			align-items: center;
+			gap: 18px;
+			box-shadow: var(--shadow);
+		}
+
+		.logo-container { display: flex; align-items: center; }
+		.header-logo { height: 40px; width: auto; display: block; }
+
+		.search-container {
+			max-width: 560px;
+			width: 100%;
+			margin: 0 auto;
+			position: relative;
+		}
+
+		.search-input {
+			width: 100%;
+			padding: 12px 48px 12px 20px;
+			border-radius: 999px;
+			border: none;
+			outline: none;
+			font: inherit;
+			font-size: 15px;
+			box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+		}
+
+		.search-btn {
+			position: absolute;
+			right: 14px;
+			top: 50%;
+			transform: translateY(-50%);
+			background: none;
+			border: none;
+			cursor: pointer;
+			display: grid;
+			place-items: center;
+			color: #000;
+		}
+
+		.auth-container {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 14px;
+			flex-wrap: wrap;
+		}
+
+		.cart-btn,
+		.account-btn,
+		.sign-in-btn,
+		.audio-btn,
+		.primary-btn,
+		.secondary-btn,
+		.ghost-btn,
+		.btn-buy,
+		.btn-cart,
+		.btn-heart-counter,
+		.qty-controls button {
+			border: none;
+			cursor: pointer;
+		}
+
+		.cart-btn,
+		.account-btn,
+		.sign-in-btn {
+			background: var(--white);
+			color: #000;
+			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+			text-decoration: none;
+		}
+
+		.cart-btn {
+			padding: 8px 20px;
+			border-radius: 999px;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+			font-size: 16px;
+			font-weight: 500;
+		}
+
+		.account-btn,
+		.sign-in-btn {
+			padding: 10px 20px;
+			border-radius: 999px;
+			font-size: 15px;
+			font-weight: 500;
+		}
+
+		.audio-btn {
+			background: var(--white);
+			color: #000;
+			width: 42px;
+			height: 42px;
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			transition: background-color 0.2s ease;
+			box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+		}
+		.audio-btn:hover { background: #e0e0e0; }
+
+		.account-dropdown { position: relative; display: inline-block; }
+
+		.dropdown-content {
+			visibility: hidden;
+			opacity: 0;
+			transform: translateY(-10px);
+			transition: all 0.3s ease;
+			position: absolute;
+			right: 0;
+			top: 120%;
+			background: var(--white);
+			min-width: 150px;
+			border-radius: 15px;
+			box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.3);
+			z-index: 10;
+			overflow: hidden;
+			text-align: center;
+		}
+
+		.dropdown-content.show { visibility: visible; opacity: 1; transform: translateY(0); }
+		.dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; font-size: 15px; }
+		.dropdown-content a:hover { background-color: #f1f1f1; }
+
+		.main-nav {
+			background: var(--nav);
+			border-bottom: 2px solid var(--nav-border);
+			padding: 15px 0;
+			display: flex;
+			justify-content: center;
+			gap: 5%;
+		}
+		.main-nav a { color: var(--white); text-decoration: none; text-transform: uppercase; font-weight: 600; font-size: 15px; letter-spacing: 0.5px; }
+		.main-nav a:hover { opacity: 0.8; }
+
+		.main-content {
+			flex-grow: 1;
+			padding: 40px 5%;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 30px;
+		}
+
+		.content-container {
+			background-color: #dbdada;
+			border-radius: 20px;
+			padding: 40px;
+			width: 100%;
+			max-width: 1200px;
+			box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+		}
+
+		.product-overview { display: flex; gap: 40px; }
+		.gallery-column { flex: 1; display: flex; flex-direction: column; gap: 15px; }
+		.img-placeholder { background-color: #bcbcbc; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #ffffff; overflow: hidden; }
+		.img-placeholder img { width: 100%; height: 100%; object-fit: cover; display: block; }
+		.main-img { width: 100%; aspect-ratio: 1/1; }
+		.thumb-row { display: flex; gap: 15px; }
+		.thumb-img { flex: 1; aspect-ratio: 1/1; opacity: 0.65; cursor: pointer; border: 2px solid transparent; transition: opacity 0.2s, border 0.2s; }
+		.thumb-img:hover { opacity: 0.95; }
+		.thumb-img.active { opacity: 1; border: 2px solid #a6814c; }
+
+		.details-column { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 18px; }
+		.detail-badge { display: inline-flex; width: fit-content; padding: 6px 12px; border-radius: 999px; background: rgba(166,129,76,0.14); color: #5f4320; font-size: 13px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+		.detail-title { font-size: 26px; font-weight: 700; color: #222; line-height: 1.08; }
+		.detail-price { font-size: 36px; font-weight: 700; color: #000; }
+		.detail-rating { display: flex; align-items: center; gap: 8px; font-size: 18px; color: #312b20; }
+		.stars-svg { color: #f5b50a; }
+
+		.product-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+		.meta-card { background: rgba(255,255,255,0.8); border-radius: 14px; padding: 12px 14px; }
+		.meta-card span { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: #666; margin-bottom: 6px; }
+		.meta-card strong { font-size: 16px; color: #1f1a13; }
+
+		.qty-row { display: flex; align-items: center; gap: 15px; font-size: 16px; flex-wrap: wrap; }
+		.qty-controls { display: flex; align-items: center; background-color: #bcbcbc; border-radius: 6px; overflow: hidden; }
+		.qty-controls button { background: none; padding: 5px 12px; font-size: 16px; }
+		.qty-controls span { padding: 0 12px; font-weight: 600; min-width: 36px; text-align: center; }
+
+		.action-row { display: flex; gap: 15px; margin-top: 6px; align-items: center; flex-wrap: wrap; }
+		.btn-buy { background-color: #a6814c; color: white; padding: 15px 30px; border-radius: 8px; font-size: 16px; font-weight: 600; flex: 1; min-width: 180px; }
+		.btn-cart { background-color: #403b30; color: white; padding: 15px 30px; border-radius: 8px; font-size: 16px; font-weight: 600; flex: 1; min-width: 180px; }
+		.btn-buy:disabled, .btn-cart:disabled { opacity: 0.6; cursor: not-allowed; }
+		.btn-heart-counter {
+			background-color: transparent;
+			color: #cc0000;
+			border: 2px solid #cc0000;
+			padding: 12px 20px;
+			border-radius: 8px;
+			font-size: 20px;
+			font-weight: 600;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			transition: all 0.2s;
+		}
+		.btn-heart-counter:hover { background-color: #ffe6e6; }
+		.btn-heart-counter.liked svg { fill: #cc0000; transform: scale(1.1); }
+		.btn-heart-counter.liked { animation: heartPop 0.3s forwards; background-color: #ffe6e6; }
+
+		.description-header { font-size: 28px; font-weight: 700; margin-bottom: 20px; }
+		.desc-block { background-color: #ffffff; padding: 25px; border-radius: 12px; margin-bottom: 15px; }
+		.desc-title { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+		.desc-list { list-style-type: disc; padding-left: 20px; line-height: 1.6; }
+
+		.reviews-top { display: flex; align-items: center; gap: 40px; margin-bottom: 30px; }
+		.overall-rating { display: flex; flex-direction: column; align-items: center; }
+		.overall-rating h2 { font-size: 64px; font-weight: 700; line-height: 1; }
+		.rating-bars { display: flex; flex-direction: column; gap: 5px; flex: 1; max-width: 300px; }
+		.rating-bar-row { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; padding: 2px 5px; border-radius: 4px; transition: background 0.2s; }
+		.rating-bar-row:hover { background-color: #cccccc; }
+		.rating-bar-row.active-filter { background-color: #c0c0c0; outline: 1px solid #a6814c; }
+		.bar-track { flex: 1; height: 12px; background-color: #eaeaea; border: 1px solid #000; border-radius: 2px; overflow: hidden; }
+		.bar-fill { height: 100%; background-color: #ffcc00; }
+		.review-cta { background-color: #ffffff; padding: 20px; border-radius: 12px; display: flex; align-items: center; gap: 20px; flex: 1; justify-content: center; }
+		.btn-send-review { background-color: #a6814c; color: white; border: none; padding: 10px 20px; border-radius: 6px; font-size: 16px; }
+		.review-card { background-color: #ffffff; padding: 20px; border-radius: 12px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
+		.review-header { display: flex; justify-content: space-between; gap: 12px; }
+		.reviewer-name { font-weight: 600; }
+		.review-meta { text-align: right; font-size: 14px; color: #555; }
+		.review-text { font-size: 15px; line-height: 1.5; }
+		.review-interactions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+		.interact-btn { background-color: #bcbcbc; border: none; padding: 5px 12px; border-radius: 4px; display: flex; align-items: center; gap: 6px; font-weight: 600; color: #000; }
+		.interact-btn.like-btn.active { background-color: #00cc66; color: white; }
+		.interact-btn.dislike-btn.active { background-color: #ff3333; color: white; }
+		.flag-btn { padding: 5px 8px; }
+		.pagination-container { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: 20px; font-size: 18px; font-weight: 600; }
+		.pagination-container button { background: none; border: none; font-size: 18px; cursor: pointer; }
+
+		.related-header { font-family: 'Bodoni Moda', serif; font-style: italic; font-size: 42px; text-align: center; margin-bottom: 20px; }
+		.related-grid { display: flex; gap: 30px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 15px; width: 100%; max-width: 1200px; }
+		.product-card { background-color: #dfdbd2; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 15px; box-shadow: 0 6px 12px rgba(0,0,0,0.2); flex: 0 0 calc(25% - 22.5px); min-width: 260px; }
+		.product-link { text-decoration: none; color: inherit; display: flex; flex-direction: column; gap: 15px; }
+		.product-image-placeholder { background-color: #b9b9b9; width: 100%; aspect-ratio: 1 / 1; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #ffffff; overflow: hidden; }
+		.product-image-placeholder img { width: 100%; height: 100%; object-fit: cover; display: block; }
+		.product-info { display: flex; flex-direction: column; gap: 5px; overflow: hidden; }
+		.title-marquee-container { width: 100%; overflow: hidden; white-space: nowrap; }
+		.product-title { font-size: 14px; color: #333; text-transform: uppercase; display: inline-block; white-space: nowrap; animation: marquee 12s linear infinite; }
+		.product-price { font-size: 22px; font-weight: 700; color: #000000; }
+		.card-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: auto; }
+		.add-to-cart-btn { background-color: #a6814c; color: #ffffff; flex-grow: 1; padding: 10px 0; border-radius: 25px; border: none; font-size: 16px; font-weight: 500; }
+		.heart-btn { background: transparent; border: 2px solid #a81c1c; border-radius: 12px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+		.heart-btn svg { width: 24px; height: 24px; fill: transparent; stroke: #a81c1c; stroke-width: 2; transition: fill 0.3s ease, transform 0.3s ease; }
+		.heart-btn.liked { transform: scale(1.1); }
+		.heart-btn.liked svg { fill: #a81c1c; transform: scale(1.1); }
+
+		.site-footer { background-color: #424036; padding: 25px 5%; display: flex; justify-content: space-between; align-items: center; width: 100%; }
+		.site-footer p, .site-footer a { color: #ffffff; font-size: 14px; }
+		.site-footer a { text-decoration: underline; }
+
+		.detail-alert {
+			width: 100%;
+			max-width: 1200px;
+			padding: 14px 18px;
+			border-radius: 14px;
+			background: rgba(255,255,255,0.68);
+			box-shadow: var(--shadow);
+			display: none;
+		}
+		.detail-alert.show { display: block; }
+
+		@keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-150%); } }
+		@keyframes heartPop { 0% { transform: scale(1); } 50% { transform: scale(1.18); } 100% { transform: scale(1.08); } }
+
+		@media (max-width: 900px) {
+			.product-overview { flex-direction: column; }
+			.reviews-top { flex-direction: column; align-items: stretch; }
+			.top-header { grid-template-columns: 1fr; justify-items: center; }
+			.auth-container { justify-content: center; }
+		}
+
+		@media (max-width: 700px) {
+			.main-content { padding: 28px 18px 40px; }
+			.content-container { padding: 22px; }
+			.product-meta { grid-template-columns: 1fr; }
+			.action-row { flex-direction: column; }
+			.btn-buy, .btn-cart { width: 100%; }
+			.site-footer { flex-direction: column; gap: 10px; text-align: center; }
+		}
+	</style>
+</head>
+<body>
+	<header class="top-header">
+		<div class="logo-container">
+			<a href="/home" aria-label="Back to home"><img src="/media/images/prod_pg/LogoWhite.png" alt="HIStore'y" class="header-logo"></a>
+		</div>
+
+		<div class="search-container">
+			<input type="text" placeholder="Search here" class="search-input" aria-label="search">
+			<button class="search-btn" type="button" aria-label="Search">
+				<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+			</button>
+		</div>
+
+		<div class="auth-container" id="authActions"></div>
+	</header>
+
+	<nav class="main-nav" aria-label="Primary">
+		<a href="/home#featuredProducts">PRODUCTS</a>
+		<a href="/home#storySection">HIS STORY</a>
+		<a href="/home#minigameSection">MJ MINIGAME</a>
+	</nav>
+
+	<main class="main-content">
+		<div id="detailAlert" class="detail-alert" role="status" aria-live="polite"></div>
+
+		<section class="content-container product-overview" id="productOverview">
+			<div class="gallery-column">
+				<div class="img-placeholder main-img" id="mainProductImage"></div>
+				<div class="thumb-row" id="thumbRow"></div>
+			</div>
+
+			<div class="details-column">
+				<div class="detail-badge" id="productBadge">Product Detail</div>
+				<h1 class="detail-title" id="detailTitle">Loading product...</h1>
+				<div class="detail-price" id="detailPrice">PHP 0.00</div>
+				<div class="detail-rating" id="detailRating"></div>
+
+				<div class="product-meta">
+					<div class="meta-card"><span>Category</span><strong id="metaCategory">—</strong></div>
+					<div class="meta-card"><span>Condition</span><strong id="metaCondition">—</strong></div>
+					<div class="meta-card"><span>Stock</span><strong id="metaStock">—</strong></div>
+					<div class="meta-card"><span>Year</span><strong id="metaYear">—</strong></div>
+				</div>
+
+				<div class="qty-row">
+					<span>Quantity</span>
+					<div class="qty-controls">
+						<button type="button" id="qty-minus">−</button>
+						<span id="qty-val">1</span>
+						<button type="button" id="qty-plus">+</button>
+					</div>
+				</div>
+
+				<div class="action-row">
+					<button class="btn-buy" type="button" id="buyNowBtn">Buy now</button>
+					<button class="btn-cart" type="button" id="detailAddToCartBtn">Add to Cart</button>
+					<button class="btn-heart-counter" type="button" id="mainHeartBtn" aria-label="Favorite this product"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.53L12 21.35z"></path></svg><span id="mainHeartCount">0</span></button>
+				</div>
+			</div>
+		</section>
+
+		<section class="content-container">
+			<h2 class="description-header">Description</h2>
+			<div class="desc-block">
+				<div class="desc-title">General Information</div>
+				<ul class="desc-list" id="generalInfoList"></ul>
+			</div>
+			<div class="desc-block" style="margin-bottom: 0;">
+				<div class="desc-title">Care instructions</div>
+				<ul class="desc-list" id="careInstructionsList"></ul>
+			</div>
+		</section>
+
+		<section class="content-container" id="reviews-section">
+			<div class="reviews-top">
+				<div class="overall-rating">
+					<h2 id="overallRating">0.0</h2>
+					<span>Overall Rating</span>
+				</div>
+				<div class="rating-bars">
+					<div class="rating-bar-row" data-star="5"><span>5</span><div class="bar-track"><div class="bar-fill" style="width: 95%;"></div></div><strong>95%</strong></div>
+					<div class="rating-bar-row" data-star="4"><span>4</span><div class="bar-track"><div class="bar-fill" style="width: 82%;"></div></div><strong>82%</strong></div>
+					<div class="rating-bar-row" data-star="3"><span>3</span><div class="bar-track"><div class="bar-fill" style="width: 66%;"></div></div><strong>66%</strong></div>
+					<div class="rating-bar-row" data-star="2"><span>2</span><div class="bar-track"><div class="bar-fill" style="width: 38%;"></div></div><strong>38%</strong></div>
+					<div class="rating-bar-row" data-star="1"><span>1</span><div class="bar-track"><div class="bar-fill" style="width: 20%;"></div></div><strong>20%</strong></div>
+				</div>
+				<div class="review-cta">
+					<div>
+						<strong>Share your thoughts</strong>
+						<div style="font-size: 14px; color: #555; margin-top: 4px;">Reviews are shown as a visual preview for this product detail layout.</div>
+					</div>
+					<button class="btn-send-review" type="button">Write Review</button>
+				</div>
+			</div>
+
+			<div class="review-list" id="reviewList"></div>
+		</section>
+
+		<section style="width: 100%; max-width: 1200px;">
+			<h2 class="related-header">Related Products</h2>
+			<div class="related-grid" id="relatedGrid"></div>
+		</section>
+	</main>
+
+	<footer class="site-footer">
+		<p>Copyright 2026 HIStore'y E-commerce</p>
+		<a href="#top">Back to top</a>
+	</footer>
+
+	<script src="/public/js/product-detail.js"></script>
+</body>
+</html>
