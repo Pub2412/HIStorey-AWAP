@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HIStorey | Admin Products</title>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+  <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@700&family=Poppins:wght@400;500;600;700&display=swap');
     :root {
@@ -35,11 +38,23 @@
     .ghost-btn { background: #6b6b6b; color: var(--white); }
     .search-box input { border: 1px solid #bda978; border-radius: 999px; padding: 10px 14px; min-width: 220px; }
     .table-card { background: rgba(217,217,217,0.96); border-radius: 22px; padding: 16px; box-shadow: var(--shadow); overflow: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    table { width: 100%; border-collapse: collapse; min-width: 1080px; }
     th, td { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); text-align: left; }
     .status-pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
     .status-pill.active { background: #2e7d32; color: var(--white); }
     .status-pill.inactive { background: #c0392b; color: var(--white); }
+    .stock-pill { display: inline-block; padding: 6px 10px; border-radius: 999px; background: rgba(99,74,26,0.12); color: var(--accent); font-weight: 700; }
+    .image-stack { display: flex; flex-wrap: wrap; gap: 10px; min-width: 240px; align-items: flex-start; }
+    .image-card { display: grid; gap: 6px; justify-items: center; width: 78px; }
+    .image-trigger { border: 0; padding: 0; background: transparent; cursor: zoom-in; line-height: 0; }
+    .image-thumb { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; background: #efe7d8; display: block; box-shadow: 0 4px 10px rgba(0,0,0,0.12); }
+    .image-badge { display: inline-block; padding: 2px 6px; border-radius: 999px; background: rgba(99,74,26,0.12); color: var(--accent); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .image-badge.primary { background: #2e7d32; color: var(--white); }
+    .image-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+    .mini-btn { border: none; border-radius: 10px; padding: 6px 8px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+    .mini-btn.primary { background: var(--accent); color: var(--white); }
+    .mini-btn.remove { background: #b83c3c; color: var(--white); }
+    .empty-state { color: rgba(0,0,0,0.52); font-style: italic; }
     .actions { display: flex; gap: 8px; flex-wrap: wrap; }
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
     .modal.hidden { display: none; }
@@ -49,6 +64,14 @@
     form input, form select, form textarea, form input[type="file"] { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #d0c7b5; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 12px; }
     .toast { position: fixed; right: 16px; bottom: 16px; background: #2e7d32; color: var(--white); padding: 12px 16px; border-radius: 999px; box-shadow: var(--shadow); z-index: 1100; }
+    .lightbox { position: fixed; inset: 0; background: rgba(10, 10, 10, 0.82); display: grid; place-items: center; padding: 20px; z-index: 1200; }
+    .lightbox.hidden { display: none; }
+    .lightbox-panel { position: relative; width: min(92vw, 960px); max-height: 88vh; display: grid; gap: 12px; justify-items: center; }
+    .lightbox-image { max-width: 100%; max-height: 82vh; width: auto; height: auto; border-radius: 22px; object-fit: contain; box-shadow: 0 24px 80px rgba(0,0,0,0.42); background: rgba(255,255,255,0.04); }
+    .lightbox-caption { color: var(--white); text-align: center; font-weight: 600; }
+    .lightbox-close { position: absolute; top: -10px; right: -10px; width: 40px; height: 40px; border: 0; border-radius: 999px; background: var(--white); color: #111; font-size: 1.2rem; font-weight: 700; cursor: pointer; box-shadow: var(--shadow); }
+    .input-error { border-color: #c0392b !important; }
+    .field-error { color: #c0392b; font-size: 0.82rem; font-weight: 600; margin-top: -4px; }
     @media (max-width: 860px) { .app-shell { flex-direction: column; } .sidebar { width: 100%; flex-direction: row; justify-content: center; } .toolbar { flex-direction: column; align-items: stretch; } .search-box input { min-width: 0; width: 100%; } }
   </style>
 </head>
@@ -77,11 +100,11 @@
       </div>
 
       <div class="table-card">
-        <table>
+        <table id="productsTable">
           <thead>
-            <tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Status</th><th>Actions</th></tr>
+            <tr><th>ID</th><th>Name</th><th>Category</th><th>Stock</th><th>Price</th><th>Images</th><th>Status</th><th>Actions</th></tr>
           </thead>
-          <tbody id="productsBody"></tbody>
+          <tbody></tbody>
         </table>
       </div>
     </main>
@@ -90,25 +113,34 @@
   <div class="modal hidden" id="productModal">
     <div class="modal-card">
       <h3 id="modalTitle">Add Product</h3>
-      <form id="productForm">
-        <input type="hidden" id="productId">
-        <input id="productName" type="text" placeholder="Product name" required>
-        <select id="productCategory">
+      <form id="productForm" novalidate>
+        <input type="hidden" id="productId" name="productId">
+        <input id="productName" name="productName" type="text" placeholder="Product name">
+        <select id="productCategory" name="productCategory">
           <option value="General">General</option>
           <option value="Apparel">Apparel</option>
           <option value="Accessories">Accessories</option>
           <option value="Music">Music</option>
         </select>
-        <input id="productPrice" type="number" step="0.01" placeholder="Price" required>
-        <input id="productStock" type="number" min="0" placeholder="Stock" required>
-        <textarea id="productDescription" rows="3" placeholder="Short description"></textarea>
+        <input id="productPrice" name="productPrice" type="number" step="0.01" placeholder="Price">
+        <input id="productStock" name="productStock" type="number" min="0" placeholder="Stock">
+        <textarea id="productDescription" name="productDescription" rows="3" placeholder="Short description"></textarea>
         <label for="productImages">Product Images</label>
         <input id="productImages" type="file" accept="image/*" multiple>
+        <p class="empty-state">Upload new images here. Existing images, primary selection, and removals are managed directly in the table below.</p>
         <div class="modal-actions">
           <button type="button" class="ghost-btn" id="cancelProduct">Cancel</button>
           <button type="submit" class="secondary-btn">Save Product</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div class="lightbox hidden" id="imageLightbox" aria-hidden="true">
+    <div class="lightbox-panel" role="dialog" aria-modal="true" aria-label="Product image preview">
+      <button type="button" class="lightbox-close" id="closeLightbox" aria-label="Close preview">&times;</button>
+      <img id="lightboxImage" class="lightbox-image" alt="Product preview">
+      <div id="lightboxCaption" class="lightbox-caption"></div>
     </div>
   </div>
 

@@ -40,7 +40,7 @@ $(function() {
 		},
 		confirmPassword: {
 			required: true,
-			equalTo: "#password"
+			equalTo: "#registerForm [name='password']"
 		},
 		terms: {
 			required: true

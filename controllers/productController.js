@@ -75,12 +75,25 @@ function mapReview(instance) {
   }
 }
 
+function normalizeProductPayload(body) {
+  return {
+    name: String(body.name || '').trim(),
+    price: Number(body.price ?? 0),
+    category: String(body.category || 'General').trim() || 'General',
+    description: String(body.description || '').trim(),
+    stock: Number.isFinite(Number(body.stock)) ? Math.max(0, Number(body.stock)) : 0,
+    condition: String(body.condition || 'Good').trim() || 'Good',
+    year: body.year === '' || body.year == null ? null : Number(body.year)
+  }
+}
+
 exports.listProducts = async (req, res) => {
   const q = (req.query.q || '').toLowerCase()
   if (useDb && ProductModel) {
     try {
       const all = await ProductModel.findAll({
-        where: q ? sequelizeWhere(q) : { is_deleted: false },
+        where: q ? sequelizeWhere(q) : {  },
+        order: [['id', 'DESC']],
         include: [{ model: ProductImage, as: 'images', attributes: ['id','file_path','is_primary','uploaded_at'] }]
       })
       const mapped = all.map(mapProduct)
@@ -188,28 +201,48 @@ exports.createProductReview = async (req, res) => {
 }
 
 exports.createProduct = async (req, res) => {
-  const { name, price, category = 'General' } = req.body
+  const payload = normalizeProductPayload(req.body)
   if (useDb && ProductModel) {
     try {
-      const created = await ProductModel.create({ name, price, category })
+      const created = await ProductModel.create(payload)
       return res.status(201).json(created)
     } catch (err) {
       console.error(err)
       return res.status(500).json({ message: 'DB create error' })
     }
   }
-  const p = { id: nextId++, name: name || 'Untitled', price: price || 0 }
+  const p = {
+    id: nextId++,
+    name: payload.name || 'Untitled',
+    price: payload.price || 0,
+    category: payload.category,
+    description: payload.description,
+    stock: payload.stock,
+    condition: payload.condition,
+    year: payload.year,
+    is_deleted: false,
+    images: []
+  }
   products.push(p)
   res.status(201).json(p)
 }
 
 exports.updateProduct = async (req, res) => {
   const id = Number(req.params.id)
+  const payload = normalizeProductPayload(req.body)
   if (useDb && ProductModel) {
     try {
       const p = await ProductModel.findByPk(id)
       if (!p || p.is_deleted) return res.status(404).json({ message: 'Not found' })
-      await p.update(req.body)
+      await p.update({
+        name: payload.name || p.name,
+        price: Number.isFinite(payload.price) ? payload.price : p.price,
+        category: payload.category || p.category,
+        description: payload.description !== '' ? payload.description : p.description,
+        stock: Number.isFinite(payload.stock) ? payload.stock : p.stock,
+        condition: payload.condition || p.condition,
+        year: req.body.year === undefined || req.body.year === '' ? p.year : payload.year
+      })
       const updated = await ProductModel.findByPk(id, {
         include: [{ model: ProductImage, as: 'images', attributes: ['id','file_path','is_primary','uploaded_at'] }]
       })
@@ -221,8 +254,13 @@ exports.updateProduct = async (req, res) => {
   }
   const p = products.find(x => x.id === id)
   if (!p) return res.status(404).json({ message: 'Not found' })
-  p.name = req.body.name ?? p.name
-  p.price = req.body.price ?? p.price
+  p.name = payload.name || p.name
+  p.price = Number.isFinite(payload.price) ? payload.price : p.price
+  p.category = payload.category || p.category
+  p.description = payload.description !== '' ? payload.description : p.description
+  p.stock = Number.isFinite(payload.stock) ? payload.stock : p.stock
+  p.condition = payload.condition || p.condition
+  p.year = req.body.year === undefined || req.body.year === '' ? p.year : payload.year
   res.json(p)
 }
 
@@ -288,7 +326,7 @@ exports.uploadImages = async (req, res) => {
   if (!req.files || req.files.length === 0) return res.status(400).json({ message: 'No files uploaded' })
 
   // attempt DB write if model available
-  if (ProductImage) {
+  if (useDb && ProductModel && ProductImage) {
     try {
       const p = await ProductModel?.findByPk(id)
       if (!p) return res.status(404).json({ message: 'Product not found' })
@@ -327,7 +365,7 @@ exports.deleteImage = async (req, res) => {
   const productId = Number(req.params.id)
   const imageId = Number(req.params.imageId)
 
-  if (ProductImage) {
+  if (useDb && ProductModel && ProductImage) {
     try {
       const img = await ProductImage.findOne({ where: { id: imageId, product_id: productId } })
       if (!img) return res.status(404).json({ message: 'Image not found' })
@@ -339,6 +377,17 @@ exports.deleteImage = async (req, res) => {
       }
 
       await img.destroy()
+
+      if (img.is_primary) {
+        const replacement = await ProductImage.findOne({
+          where: { product_id: productId },
+          order: [['uploaded_at', 'ASC'], ['id', 'ASC']]
+        })
+        if (replacement) {
+          await replacement.update({ is_primary: true })
+        }
+      }
+
       return res.json({ message: 'Deleted' })
     } catch (err) {
       console.error(err)
@@ -383,7 +432,37 @@ exports.setPrimaryImage = async (req, res) => {
   const productId = Number(req.params.id)
   const imageId = Number(req.params.imageId)
 
+  if (!ProductImage || !useDb || !ProductModel) {
+    const product = products.find(x => x.id === productId)
+    if (!product || !Array.isArray(product.images)) {
+      return res.status(404).json({ message: 'Image not found' })
+    }
+
+    const target = product.images.find(image => Number(image.id) === imageId)
+    if (!target) {
+      return res.status(404).json({ message: 'Image not found' })
+    }
+
+    product.images = product.images.map(image => ({
+      ...image,
+      is_primary: Number(image.id) === imageId
+    }))
+
+    return res.json({
+      message: 'Primary image set',
+      image: {
+        id: target.id,
+        file_path: target.file_path,
+        is_primary: true,
+        url: target.url || toImageUrl(target.file_path)
+      }
+    })
+  }
+
   try {
+    const product = await ProductModel.findByPk(productId)
+    if (!product) return res.status(404).json({ message: 'Product not found' })
+
     const img = await ProductImage.findOne({ where: { id: imageId, product_id: productId } })
     if (!img) return res.status(404).json({ message: 'Image not found' })
 

@@ -166,3 +166,10 @@ Replaced HTML5 validation (`required`, `type="email"`) with **jQuery Validation*
 - I put the CRUD functions on the Product Controller
 - Ensured Sequelize is used
 - I added multiple image uploads for products.
+
+### CRUD FIXES
+- Used datatables and sequelize ORM 
+- Added jquery validation
+- Added product images to show on product table and can make one primary and removable one by one
+- Showed stock on product datatable
+
