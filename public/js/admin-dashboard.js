@@ -45,14 +45,18 @@ function buildWeeklyRevenue(transactions) {
 function renderCharts(summary) {
   const revenueCtx = document.getElementById('revenueChart')
   const roleCtx = document.getElementById('roleChart')
+  const salesCtx = document.getElementById('itemSalesChart')
 
-  if (!revenueCtx || !roleCtx) return
+  if (!revenueCtx || !roleCtx || !salesCtx) return
 
   if (window.revenueChart && typeof window.revenueChart.destroy === 'function') {
     window.revenueChart.destroy()
   }
   if (window.roleChart && typeof window.roleChart.destroy === 'function') {
     window.roleChart.destroy()
+  }
+  if (window.itemSalesChart && typeof window.itemSalesChart.destroy === 'function') {
+    window.itemSalesChart.destroy()
   }
 
   const weeklyRevenue = buildWeeklyRevenue(summary.transactions)
@@ -99,6 +103,37 @@ function renderCharts(summary) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: { legend: { position: 'bottom' } }
+    }
+  })
+
+  if (!summary.topItems.length) {
+    $(salesCtx).parent().hide()
+    return
+  }
+
+  $(salesCtx).parent().show()
+  window.itemSalesChart = new Chart(salesCtx, {
+    type: 'bar',
+    data: {
+      labels: summary.topItems.map((item) => item.name),
+      datasets: [{
+        label: 'Units Sold',
+        data: summary.topItems.map((item) => item.units),
+        backgroundColor: '#634a1a',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, precision: 0 }
+        }
+      }
     }
   })
 }

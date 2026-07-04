@@ -28,7 +28,33 @@ async function listTransactionsFromDb() {
     { type: QueryTypes.SELECT }
   )
 
-  return rows.map((row) => ({ ...row, total_amount: Number(row.total_amount || 0) }))
+  const itemsRows = await sequelize.query(
+    `
+      SELECT ti.transaction_id, ti.product_id, p.name AS product_name, ti.quantity, ti.unit_price
+      FROM transaction_items ti
+      LEFT JOIN products p ON p.id = ti.product_id
+    `,
+    { type: QueryTypes.SELECT }
+  )
+
+  const itemsMap = {}
+  itemsRows.forEach((item) => {
+    if (!itemsMap[item.transaction_id]) {
+      itemsMap[item.transaction_id] = []
+    }
+    itemsMap[item.transaction_id].push({
+      product_id: item.product_id,
+      name: item.product_name,
+      quantity: Number(item.quantity || 0),
+      unit_price: Number(item.unit_price || 0)
+    })
+  })
+
+  return rows.map((row) => ({
+    ...row,
+    total_amount: Number(row.total_amount || 0),
+    items: itemsMap[row.id] || []
+  }))
 }
 
 async function getTransactionFromDb(id) {

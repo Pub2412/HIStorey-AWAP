@@ -48,7 +48,7 @@ project contribution 10
 
 
 BAYANI
-1. UT 1: UI/UX Design
+1. UT 1: UI/UX Design ✅
 Landing Page
 Login, Logout, Register
 
@@ -70,25 +70,23 @@ Color Pallete:
 Gold Yellow, Black and White
 Supplementary: Red
 
-2. Quiz 7 : three(3) js charts. bar line and pie charts 
-3. MP1: NODE JS Create Read Update Delete (use soft delete) 
-   FOR ADMIN (WEBSITE)
+2. Quiz 7 : three(3) js charts. bar line and pie charts (BAR CHART LEFT)
+3. MP1: NODE JS Create Read Update Delete (use soft delete)✅
+   FOR ADMIN (WEBSITE) 
+4. CREATE EDIT PROFILE PAGE FOR USERS
 
 HABOC
-1. QUIZ 5: 15pts
+1. QUIZ 5: 15pts ✅
    jquery/api search/autocomplete on homepage. 
-2. MP2: Laravel CRUD api 12pts
-   NodeJS CRUD api 20pts
-3. MP4: CRUD Jquery/datatables frontend for mp2
-4. Term Test Lab: 40pts
+2. MP2: NodeJS CRUD api 20pts ✅
+3. MP4: CRUD Jquery/datatables frontend for mp2 ✅
+4. Term Test Lab: 40pts 
 transactions CRUD api and jquery front end. the sample UI implementation will have lower points. laravel 20pts NodeJS 25pts
 send an email when updating the transaction 5pts
 send an email when updating the transaction. attach the receipt with order details in pdf 10pts
-5. QUIZ 5: 15pts 
-jquery/api search/autocomplete on homepage. 
-6. Quiz 6: 15pts ✅
+5. Quiz 6: 15pts ✅
 route protection. add a middleware to check a user's role. only admin roles can access crud api.   
-7. UT3: App Complexity, added features 10
+6. UT3: App Complexity, added features 10
 functional requirements completeness 10
 app complexity. added features 10
 program execution 10
