@@ -172,4 +172,5 @@ Replaced HTML5 validation (`required`, `type="email"`) with **jQuery Validation*
 - Added jquery validation
 - Added product images to show on product table and can make one primary and removable one by one
 - Showed stock on product datatable
+- Commented out the switchable Login/Register button thing on login.html (If we have that then what's the point of register.html son)
 
