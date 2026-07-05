@@ -208,11 +208,11 @@ $(function() {
 					<div class="product-info"><span class="product-title" style="animation:none;">Check back soon for new database products.</span></div>
 				</div>`
 			)
-			$status.text('No active products found in the database.')
+			$status.text('No featured products found in the database.')
 			return
 		}
 
-		$status.text(`Showing ${products.length} active product${products.length === 1 ? '' : 's'} from the database.`)
+		$status.text(`Showing ${products.length} featured product${products.length === 1 ? '' : 's'}`)
 		$grid.html(products.map((product, index) => {
 			const imageUrl = getPrimaryImage(product)
 			const title = escapeHtml(product.name || 'Untitled product')
@@ -250,7 +250,7 @@ $(function() {
 	}
 
 	function loadProducts(query) {
-		const params = {}
+		const params = { limit: 10 }
 		const search = typeof query === 'string' ? query.trim() : ''
 		if (search) params.q = search
 

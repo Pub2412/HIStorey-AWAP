@@ -67,6 +67,31 @@
     .search-input { width:100%; padding:12px 48px 12px 20px; border-radius:999px; border:none; outline:none; font:inherit; font-size:15px; box-shadow: 0 8px 18px rgba(0,0,0,0.22) }
     .search-btn { position:absolute; right:14px; top:50%; transform: translateY(-50%); background:none; border:none; cursor:pointer; display:grid; place-items:center; color:#000 }
     .auth-container { display:flex; align-items:center; justify-content:flex-end; gap:14px; flex-wrap:wrap }
+    .account-dropdown { position: relative; }
+    .dropdown-content {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 10px);
+      min-width: 170px;
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 12px;
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      display: none;
+      z-index: 1200;
+    }
+    .dropdown-content.show { display: block; }
+    .dropdown-content a {
+      display: block;
+      padding: 11px 14px;
+      color: #111;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      background: transparent;
+    }
+    .dropdown-content a:hover { background: rgba(220, 181, 56, 0.18); }
     .cart-btn,.account-btn,.sign-in-btn,.audio-btn { border:none; cursor:pointer }
     .cart-btn,.account-btn,.sign-in-btn { background: var(--white); color:#000; box-shadow:0 4px 6px rgba(0,0,0,0.2); text-decoration:none }
     .cart-btn { padding:8px 20px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; font-size:16px; font-weight:500 }
@@ -171,6 +196,56 @@
 
     .product-grid { width:100%; display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:28px; justify-items:center }
     .product-card { background: rgba(223, 219, 210, 0.98); border-radius:18px; padding:14px; display:flex; flex-direction:column; gap:12px; box-shadow:var(--shadow); width:100%; max-width:320px; align-items:center; text-align:center }
+    .product-card:not(.skeleton) {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: card-reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes card-reveal {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    /* Skeleton Pulse Styles */
+    @keyframes skeleton-pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+    .product-card.skeleton {
+      pointer-events: none;
+      animation: skeleton-pulse 1.5s infinite ease-in-out;
+    }
+    .product-card.skeleton .product-image-placeholder {
+      background: linear-gradient(135deg, #c1b8a2, #948b75);
+    }
+    .product-card.skeleton .skeleton-title {
+      height: 16px;
+      width: 70%;
+      background: rgba(54, 50, 43, 0.2);
+      border-radius: 4px;
+      margin: 4px auto;
+    }
+    .product-card.skeleton .skeleton-price {
+      height: 22px;
+      width: 50%;
+      background: rgba(54, 50, 43, 0.3);
+      border-radius: 4px;
+      margin: 8px auto 0;
+    }
+    .product-card.skeleton .skeleton-btn {
+      height: 38px;
+      border-radius: 999px;
+      background: rgba(54, 50, 43, 0.25);
+    }
+    .product-card.skeleton .skeleton-heart {
+      width: 42px;
+      margin-right: 8px;
+    }
+    .product-card.skeleton .skeleton-buy {
+      width: 100px;
+    }
+    
     .product-link { text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:14px }
     .product-image-placeholder { width:100%; aspect-ratio:1/1; border-radius:14px; background:linear-gradient(180deg,#c1b8a2,#a99d84); display:flex; align-items:center; justify-content:center; overflow:hidden }
     .product-image-placeholder img { width:100%; height:100%; object-fit:cover; display:block }
@@ -256,6 +331,7 @@
   <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
 
   <script src="/public/js/search-autocomplete.js"></script>
+  <script src="https://unpkg.com/infinite-scroll@4/dist/infinite-scroll.pkgd.min.js"></script>
   <script>
     function readSession() {
       try {
@@ -488,6 +564,9 @@
     const limit = 12
     let loading = false
     let hasMore = true
+    let infiniteScroller = null
+    let currentSearchQuery = ''
+    let searchDebounceTimer = null
 
     function createCard(p) {
       const article = document.createElement('article')
@@ -569,42 +648,209 @@
       items.forEach(p => productGrid.appendChild(createCard(p)))
     }
 
-    async function loadNext() {
-      if (loading || !hasMore) return
-      loading = true
-      loadingEl.style.display = 'block'
-      try {
-        const res = await fetch(`/api/v1/products?page=${page}&limit=${limit}`)
-        if (!res.ok) throw new Error('Network')
-        const data = await res.json()
-        const items = data.items || data
-        if (!items || items.length === 0) {
-          hasMore = false
-          endEl.style.display = 'block'
-          status.textContent = 'No products found.'
+    function showSkeletons() {
+      hideSkeletons()
+      for (let i = 0; i < 4; i++) {
+        const card = document.createElement('article')
+        card.className = 'product-card skeleton'
+        card.innerHTML = `
+          <div class="product-link">
+            <div class="product-image-placeholder"></div>
+            <div class="product-info">
+              <div class="skeleton-title"></div>
+              <div class="skeleton-price"></div>
+            </div>
+          </div>
+          <div class="card-actions">
+            <div class="skeleton-btn skeleton-heart"></div>
+            <div class="skeleton-btn skeleton-buy"></div>
+          </div>
+        `
+        productGrid.appendChild(card)
+      }
+    }
+
+    function hideSkeletons() {
+      const skeletons = productGrid.querySelectorAll('.product-card.skeleton')
+      skeletons.forEach(s => s.remove())
+    }
+
+    function getProductsPath() {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(limit)
+      })
+      if (currentSearchQuery) {
+        params.set('q', currentSearchQuery)
+      }
+      return `/api/v1/products?${params.toString()}`
+    }
+
+    function stopInfiniteScroll() {
+      if (!infiniteScroller) return
+      infiniteScroller.destroy()
+      infiniteScroller = null
+    }
+
+    function applyProductsPayload(payload) {
+      const data = payload || {}
+      const items = Array.isArray(data.items) ? data.items : (Array.isArray(data) ? data : [])
+
+      if (!items.length) {
+        hasMore = false
+        endEl.style.display = 'block'
+        if (page === 1 && currentSearchQuery) {
+          status.textContent = `No products found for "${currentSearchQuery}".`
         } else {
-          renderProducts(items)
-          page++
-          status.textContent = `Showing ${(page-1)*limit > data.total ? data.total : (page-1)*limit} of ${data.total || 'many'}`
-          if (data.total !== undefined && page > data.totalPages) {
-            hasMore = false
-            endEl.style.display = 'block'
-          }
+          status.textContent = page === 1 ? 'No products found.' : 'No more products.'
         }
-      } catch (err) {
+        stopInfiniteScroll()
+        return
+      }
+
+      renderProducts(items)
+      const loadedPage = page
+      page += 1
+
+      const displayedCount = data.total
+        ? Math.min(loadedPage * limit, data.total)
+        : loadedPage * limit
+      status.textContent = `Showing ${displayedCount} of ${data.total || 'many'}`
+
+      if (data.totalPages !== undefined && page > data.totalPages) {
+        hasMore = false
+        endEl.style.display = 'block'
+        stopInfiniteScroll()
+      }
+    }
+
+    function initInfiniteScroll() {
+      if (typeof InfiniteScroll !== 'function') {
+        status.textContent = 'Infinite scroll plugin failed to load.'
+        showToast('Infinite scroll plugin is unavailable.', 'error')
+        return
+      }
+
+      infiniteScroller = new InfiniteScroll(productGrid, {
+        path: getProductsPath,
+        responseBody: 'json',
+        domParseResponse: false,
+        history: false,
+        loadOnScroll: true,
+        prefill: false,
+        checkLastPage: false,
+        scrollThreshold: 100
+      })
+
+      infiniteScroller.on('request', function() {
+        loading = true
+        loadingEl.style.display = 'block'
+        showSkeletons()
+      })
+
+      infiniteScroller.on('load', function(body) {
+        setTimeout(() => {
+          hideSkeletons()
+          applyProductsPayload(body)
+          loading = false
+          loadingEl.style.display = 'none'
+        }, 600)
+      })
+
+      infiniteScroller.on('error', function(err) {
         console.error('Failed to load products', err)
-        status.textContent = 'Failed to load products.'
-        showToast('Unable to load products right now. Please try again later.', 'error')
-      } finally {
-        loading = false
-        loadingEl.style.display = hasMore ? 'none' : 'none'
+        setTimeout(() => {
+          hideSkeletons()
+          status.textContent = 'Failed to load products.'
+          showToast('Unable to load products right now. Please try again later.', 'error')
+          stopInfiniteScroll()
+          loading = false
+          loadingEl.style.display = 'none'
+        }, 600)
+      })
+
+      infiniteScroller.loadNextPage()
+    }
+
+    function reloadProductsForSearch(rawQuery) {
+      const nextQuery = String(rawQuery || '').trim()
+      if (nextQuery === currentSearchQuery && page > 1) return
+
+      currentSearchQuery = nextQuery
+      page = 1
+      hasMore = true
+      loading = false
+      productGrid.innerHTML = ''
+      endEl.style.display = 'none'
+      loadingEl.style.display = 'none'
+      status.textContent = currentSearchQuery
+        ? `Searching for "${currentSearchQuery}"...`
+        : 'Loading products...'
+
+      stopInfiniteScroll()
+      initInfiniteScroll()
+    }
+
+    function setupAuthDropdown() {
+      document.addEventListener('click', function(event) {
+        const menu = document.getElementById('accountDropdownMenu')
+        if (!menu) return
+
+        const toggle = event.target.closest('#accountDropdownBtn')
+        if (toggle) {
+          event.stopPropagation()
+          menu.classList.toggle('show')
+          return
+        }
+
+        const inDropdown = event.target.closest('.account-dropdown')
+        if (!inDropdown) {
+          menu.classList.remove('show')
+        }
+      })
+
+      document.addEventListener('click', function(event) {
+        const signOutLink = event.target.closest('#signOutLink')
+        if (!signOutLink) return
+        event.preventDefault()
+        logoutCustomer()
+      })
+    }
+
+    function setupSearchFiltering() {
+      const input = document.querySelector('.search-input')
+      const button = document.querySelector('.search-btn')
+      if (!input) return
+
+      const runSearch = () => reloadProductsForSearch(input.value)
+
+      input.addEventListener('input', function() {
+        clearTimeout(searchDebounceTimer)
+        searchDebounceTimer = setTimeout(runSearch, 280)
+      })
+
+      input.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          clearTimeout(searchDebounceTimer)
+          runSearch()
+        }
+      })
+
+      if (button) {
+        button.addEventListener('click', function() {
+          clearTimeout(searchDebounceTimer)
+          runSearch()
+        })
       }
     }
 
     loadAuthState()
+    setupAuthDropdown()
+    setupSearchFiltering()
     restoreAudioSettings()
     startRadio()
-    loadNext()
+    initInfiniteScroll()
 
     const radioAudio = document.getElementById('bg-audio')
     if (radioAudio) {
@@ -632,11 +878,6 @@
       })
     }
 
-    window.addEventListener('scroll', () => {
-      if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 700)) {
-        loadNext()
-      }
-    })
   </script>
 </body>
 </html>

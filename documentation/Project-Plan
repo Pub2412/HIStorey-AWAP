@@ -81,11 +81,11 @@ HABOC
 2. MP2: NodeJS CRUD api 20pts ✅
 3. MP4: CRUD Jquery/datatables frontend for mp2 ✅
 4. Term Test Lab: 40pts 
-transactions CRUD api and jquery front end. the sample UI implementation will have lower points. laravel 20pts NodeJS 25pts
+transactions CRUD api and jquery front end. the sample UI implementation will have lower points. NodeJS 25pts
 send an email when updating the transaction 5pts
 send an email when updating the transaction. attach the receipt with order details in pdf 10pts
-5. Quiz 6: 15pts ✅
-route protection. add a middleware to check a user's role. only admin roles can access crud api.   
+5. Quiz 6: 15pts 
+route protection. add a middleware to check a user's role. only admin roles can access crud api.   ✅
 6. UT3: App Complexity, added features 10
 functional requirements completeness 10
 app complexity. added features 10
@@ -98,5 +98,5 @@ PADILLA
 3. QUIZ 4: Jquery validation for mp3 and mp4 15pts ✅
 4. MP7: use Sequelize ORM on CRUD functions 20pts ✅
 5. UT2: 20pts
-   jquery infinite scroll (datatable pagination is not applicable) 20pts
+   jquery infinite scroll (datatable pagination is not applicable) 20pts ✅
 6. MP3: CRUD Jquery/datatables multiple file uploads for mp1 20pts ✅

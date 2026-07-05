@@ -214,3 +214,8 @@ If you'd like, I can now:
 - Added: `/404` route in `app.js` and a dedicated `404` page for missing frontend routes.
 - Added product assets under `media/images/prod_pg/` for the new product detail page.
 - Preserved homepage access for unauthenticated visitors while still requiring login for product review and cart actions.
+
+### 07/05/2026 - Product Page fixes and Infinite Scroll update
+- Made it so that you have to scroll down before it loads first
+- Fixed bug that displays the Account/Signout dropdown on the top right incorrectly
+- Fixed bug that doesn't narrow down the product list below when you are searching in the products page

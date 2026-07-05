@@ -100,6 +100,7 @@ exports.listProducts = async (req, res) => {
         const result = await ProductModel.findAndCountAll({
           where: q ? sequelizeWhere(q) : { is_deleted: false },
           include: [{ model: ProductImage, as: 'images', attributes: ['id','file_path','is_primary','uploaded_at'] }],
+          distinct: true,
           limit,
           offset,
           order: [['created_at', 'DESC']]
@@ -121,7 +122,7 @@ exports.listProducts = async (req, res) => {
 
       // default: return all (backwards compatibility)
       const all = await ProductModel.findAll({
-        where: q ? sequelizeWhere(q) : {  },
+        where: q ? sequelizeWhere(q) : { is_deleted: false },
         order: [['id', 'DESC']],
         include: [{ model: ProductImage, as: 'images', attributes: ['id','file_path','is_primary','uploaded_at'] }]
       })
