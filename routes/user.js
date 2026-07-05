@@ -4,6 +4,7 @@ const { verifyToken } = require('../middlewares/auth')
 const userController = require('../controllers/userController')
 
 const {checkAdmin } = require('../middlewares/auth')
+const upload = require('../utils/multer')
 
 router.get(
     '/users',
@@ -34,9 +35,12 @@ router.patch(
 )
 
 
-router.post('/auth/register', userController.register)
+router.post('/auth/register', upload.userUpload ? upload.userUpload.single('profile_photo') : upload.single('profile_photo'), userController.register)
 router.post('/auth/login', userController.login)
 router.get('/auth/me', verifyToken, userController.getMe)
 router.post('/auth/logout', verifyToken, userController.logout)
+
+// Update current user's profile (phone, address, name, photo)
+router.patch('/auth/me', verifyToken, upload.userUpload ? upload.userUpload.single('profile_photo') : upload.single('profile_photo'), userController.updateMe)
 
 module.exports = router

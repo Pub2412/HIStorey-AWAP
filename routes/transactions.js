@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { checkAdmin, sendReceiptEmail } = require('../middlewares/auth')
+const { checkAdmin, sendReceiptEmail, verifyToken } = require('../middlewares/auth')
 const sequelize = require('../config/database')
 const { QueryTypes } = require('sequelize')
 
@@ -97,6 +97,53 @@ router.get('/transactions', async (req, res) => {
   }
 
   res.json(transactions)
+})
+
+// Authenticated user's transactions
+router.get('/transactions/mine', verifyToken, async (req, res) => {
+  const userId = req.user && req.user.id ? Number(req.user.id) : null
+  if (!userId) return res.status(401).json({ message: 'Authentication required' })
+
+  if (await canUseDatabase()) {
+    try {
+      const rows = await sequelize.query(
+        `
+          SELECT t.id, t.user_id, u.name AS customer_name, t.status, t.total_amount, t.shipping_address, t.created_at, t.updated_at
+          FROM transactions t
+          LEFT JOIN users u ON u.id = t.user_id
+          WHERE t.user_id = :userId
+          ORDER BY t.created_at DESC
+        `,
+        { replacements: { userId }, type: QueryTypes.SELECT }
+      )
+
+      const itemsRows = await sequelize.query(
+        `
+          SELECT ti.transaction_id, ti.product_id, p.name AS product_name, ti.quantity, ti.unit_price
+          FROM transaction_items ti
+          LEFT JOIN products p ON p.id = ti.product_id
+          WHERE ti.transaction_id IN (SELECT id FROM transactions WHERE user_id = :userId)
+        `,
+        { replacements: { userId }, type: QueryTypes.SELECT }
+      )
+
+      const itemsMap = {}
+      itemsRows.forEach((item) => {
+        if (!itemsMap[item.transaction_id]) itemsMap[item.transaction_id] = []
+        itemsMap[item.transaction_id].push({ product_id: item.product_id, name: item.product_name, quantity: Number(item.quantity || 0), unit_price: Number(item.unit_price || 0) })
+      })
+
+      const result = rows.map((row) => ({ ...row, total_amount: Number(row.total_amount || 0), items: itemsMap[row.id] || [] }))
+      return res.json(result)
+    } catch (error) {
+      console.error(error)
+      return res.status(500).json({ message: 'DB error' })
+    }
+  }
+
+  // fallback: filter in-memory transactions
+  const mine = transactions.filter((t) => Number(t.user_id) === Number(userId))
+  return res.json(mine)
 })
 
 router.get('/transactions/:id', async (req, res) => {

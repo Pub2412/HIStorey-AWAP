@@ -49,6 +49,10 @@ app.get('/products', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'products.html'))
 });
 
+app.get('/profile', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'profile.html'))
+});
+
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'admin', 'dashboard.html'))
 });

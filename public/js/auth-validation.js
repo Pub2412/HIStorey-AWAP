@@ -34,6 +34,12 @@ $(function() {
 			required: true,
 			email: true
 		},
+		phone: {
+			required: false
+		},
+		address: {
+			required: false
+		},
 		password: {
 			required: true,
 			minlength: 8

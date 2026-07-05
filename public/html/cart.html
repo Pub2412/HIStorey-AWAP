@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HIStore'y - Cart</title>
+  <link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    :root{ --topbar:#36322b; --nav:#8a0c0c; --nav-border:#dcb538; --panel:#dfdbd2; --accent:#a6814c; --text:#111 }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Poppins',Arial,sans-serif;color:var(--text);background:linear-gradient(180deg,#b59758,#9a8148);min-height:100vh;display:flex;flex-direction:column}
+    .top-header{background:var(--topbar);padding:16px 5%;display:flex;align-items:center;justify-content:space-between;gap:18px;box-shadow:0 12px 28px rgba(0,0,0,0.18)}
+    .logo-container{display:flex;align-items:center}
+    .header-logo{height:40px}
+    .main-nav{background:var(--nav);border-bottom:2px solid var(--nav-border);padding:14px 5%;display:flex;justify-content:center;gap:clamp(28px,5vw,64px)}
+    .main-nav a{color:#fff;text-decoration:none;text-transform:uppercase;font-weight:600}
+
+    .main-content{flex:1;padding:40px 5% 120px;display:flex;flex-direction:column;align-items:center}
+    .cart-shell{width:100%;max-width:1180px;background:var(--panel);border-radius:18px;padding:22px;box-shadow:0 12px 28px rgba(0,0,0,0.18)}
+    .cart-title{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .cart-grid{display:grid;grid-template-columns: 1fr 120px 160px 160px 120px;gap:12px;align-items:center;margin-top:18px}
+    .cart-headers{display:grid;grid-template-columns:inherit;gap:12px;color:#333;font-weight:700;padding:12px 6px}
+    .cart-row{display:grid;grid-template-columns:inherit;gap:12px;padding:14px;border-radius:12px;background:#fff;align-items:center}
+    .product-info{display:flex;gap:12px;align-items:center}
+    .cart-thumb{width:80px;height:80px;border-radius:10px;overflow:hidden;flex-shrink:0}
+    .cart-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+    .product-meta{display:flex;flex-direction:column}
+    .product-title{font-weight:700;text-transform:uppercase}
+    .small{font-size:13px;color:rgba(0,0,0,0.65)}
+    .qty-controls{display:inline-flex;align-items:center;background:#e9e5db;border-radius:8px;overflow:hidden}
+    .qty-controls button{border:0;background:transparent;padding:8px 12px;cursor:pointer}
+    .qty-controls span{padding:6px 10px}
+    .price{font-weight:700}
+    .actions-col{display:flex;gap:8px;justify-content:flex-end}
+    .btn{background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:8px;cursor:pointer}
+
+    .empty-state{padding:40px;text-align:center;color:#333}
+
+    .checkout-bar{position:fixed;left:5%;right:5%;bottom:18px;background:#403b30;border-radius:14px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 12px 30px rgba(0,0,0,0.26)}
+    .checkout-left{display:flex;gap:12px;align-items:center}
+    .checkout-right{text-align:right;color:#fff}
+    .total-label{font-size:14px;color:#ddd}
+    .grand-total{font-size:20px;font-weight:800;color:#fff}
+
+    @media(max-width:900px){ .cart-grid{grid-template-columns:1fr 100px 120px 120px 100px} }
+    @media(max-width:680px){ .cart-grid{grid-template-columns:1fr 100px 100px; } .cart-headers,.cart-row{grid-template-columns:1fr 100px 100px} .checkout-right{display:none} }
+  </style>
+</head>
+<body>
+  <header class="top-header">
+    <div class="logo-container"><a href="/home"><img src="/media/images/cart_pg/LogoWhite.png" class="header-logo" alt="HIStore'y"></a></div>
+    <div id="authActions" style="display:flex;gap:12px;align-items:center"></div>
+  </header>
+  <nav class="main-nav" aria-label="Primary"><a href="/products">PRODUCTS</a><a href="#storySection">HIS STORY</a><a href="#minigameSection">MJ MINIGAME</a></nav>
+
+  <main class="main-content">
+    <section class="cart-shell">
+      <div class="cart-title">
+        <h2 style="margin:0">Your Cart</h2>
+        <div class="small">Manage items and proceed to checkout</div>
+      </div>
+
+      <div class="cart-headers" style="grid-template-columns:1fr 120px 160px 160px 120px;">
+        <div>Product</div>
+        <div>Unit</div>
+        <div>Quantity</div>
+        <div>Total</div>
+        <div>Actions</div>
+      </div>
+
+      <div id="cartItems" style="display:flex;flex-direction:column;gap:12px;margin-top:12px"></div>
+
+      <div id="emptyState" class="empty-state" style="display:none">
+        <img src="/media/images/cart_pg/empty_cart_illustration.png" alt="Empty cart" style="max-width:360px;margin:0 auto 12px;display:block">
+        <h3>There are no items in your cart.</h3>
+        <p class="small">Don't stop 'til you get enough.</p>
+      </div>
+
+    </section>
+  </main>
+
+  <div class="checkout-bar" id="checkoutBar">
+    <div class="checkout-left">
+      <button class="btn" id="continueShopping">Continue shopping</button>
+      <button class="btn" id="saveFavs">Save to favourites</button>
+    </div>
+    <div class="checkout-right">
+      <div class="total-label">Est. total</div>
+      <div class="grand-total" id="grandTotal">PHP 0.00</div>
+      <div style="margin-top:8px"><button class="btn" id="checkoutBtn">Check out</button></div>
+    </div>
+  </div>
+
+  <script src="/public/js/cart-storage.js"></script>
+  <script src="/public/js/cart.js"></script>
+</body>
+</html>

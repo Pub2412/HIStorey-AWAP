@@ -36,14 +36,25 @@ $(function() {
 		const name = $.trim($form.find('[name="name"]').val())
 		const email = $.trim($form.find('[name="email"]').val())
 		const password = $form.find('[name="password"]').val()
+		const phone = $.trim($form.find('[name="phone"]').val())
+		const address = $.trim($form.find('[name="address"]').val())
+		const fileInput = $form.find('[name="profile_photo"]')[0]
+		const formData = new FormData()
+		formData.append('name', name)
+		formData.append('email', email)
+		formData.append('password', password)
+		if (phone) formData.append('phone', phone)
+		if (address) formData.append('address', address)
+		if (fileInput && fileInput.files && fileInput.files[0]) formData.append('profile_photo', fileInput.files[0])
 
 		setSubmitting($form, true)
 
 		$.ajax({
 			url: `${apiBase}/auth/register`,
 			method: 'POST',
-			contentType: 'application/json',
-			data: JSON.stringify({ name, email, password })
+			processData: false,
+			contentType: false,
+			data: formData
 		}).done(function() {
 			$form.trigger('reset')
 			$form.addClass('hidden')

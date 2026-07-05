@@ -173,7 +173,7 @@ $(function() {
 		if (session && session.token) {
 			const name = session.name || session.email || 'Customer'
 			$actions.append(
-				`<div class="account-dropdown"><button class="account-btn" id="accountDropdownBtn" type="button">${escapeHtml(name)}</button><div class="dropdown-content" id="accountDropdownMenu"><a href="/home">Account</a><a href="#" id="signOutLink">Sign Out</a></div></div>`
+				`<div class="account-dropdown"><button class="account-btn" id="accountDropdownBtn" type="button">${escapeHtml(name)}</button><div class="dropdown-content" id="accountDropdownMenu"><a href="/profile">Account</a><a href="#" id="signOutLink">Sign Out</a></div></div>`
 			)
 		} else {
 			$actions.append(`<a class="sign-in-btn" href="/login">Sign In</a>`)
@@ -360,16 +360,7 @@ $(function() {
 		}
 	})
 
-	$(document).on('click', '.add-to-cart-btn', function() {
-		const productId = $(this).data('product-id')
-		const session = readSession()
-		if (!session || !session.token) {
-			window.location.href = '/login'
-			return
-		}
-
-		window.alert(`Add to cart is ready for product ${productId}.`)
-	})
+	// Add-to-cart clicks are handled by /public/js/cart-actions.js
 
 	const mutedPref = localStorage.getItem('landing-muted')
 	if (mutedPref === 'true') {

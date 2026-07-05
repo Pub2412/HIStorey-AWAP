@@ -10,7 +10,10 @@ function publicUser(user) {
 		id: user.id,
 		name: user.name,
 		email: user.email,
-		role: user.role || 'customer'
+		role: user.role || 'customer',
+		phone: user.phone || null,
+		address: user.address || null,
+		profile_photo: user.profile_photo || null
 	}
 }
 
@@ -106,12 +109,24 @@ async function register(req, res) {
 		}
 
 		const password_hash = await bcrypt.hash(password, 10)
+
+		// optional fields
+		const phone = String(req.body.phone || '').trim() || null
+		const address = String(req.body.address || '').trim() || null
+		let profile_photo = null
+		if (req.file && req.file.filename) {
+			profile_photo = `/uploads/users/${req.file.filename}`
+		}
+
 		const user = await UserModel.create({
 			name,
 			email,
 			password_hash,
 			role: roleToSet,
-			is_active: true
+			is_active: true,
+			phone,
+			address,
+			profile_photo
 		})
 
 		const token = signToken(user)
@@ -125,6 +140,31 @@ async function register(req, res) {
 	} catch (err) {
 		console.error(err)
 		return res.status(500).json({ message: 'Could not create account.' })
+	}
+}
+
+async function updateMe(req, res) {
+	if (!requireDatabase(res)) return
+
+	try {
+		const user = await UserModel.findByPk(req.user.id)
+		if (!user) return res.status(404).json({ message: 'User not found' })
+
+		const name = typeof req.body.name === 'string' ? req.body.name.trim() : user.name
+		const phone = typeof req.body.phone === 'string' ? req.body.phone.trim() : user.phone
+		const address = typeof req.body.address === 'string' ? req.body.address.trim() : user.address
+
+		const updates = { name, phone, address }
+		if (req.file && req.file.filename) {
+			updates.profile_photo = `/uploads/users/${req.file.filename}`
+		}
+
+		await user.update(updates)
+
+		return res.json({ message: 'Profile updated', user: publicUser(user) })
+	} catch (err) {
+		console.error(err)
+		return res.status(500).json({ message: 'Could not update profile.' })
 	}
 }
 
@@ -283,6 +323,7 @@ module.exports = {
 	login,
 	getMe,
 	logout,
+	updateMe,
 	updateRole,
     deactivateUser,
 	reactivateUser

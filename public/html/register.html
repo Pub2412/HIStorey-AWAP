@@ -223,7 +223,7 @@
 <body>
 	<div class="auth-layout">
 		<section class="visual-panel">
-			<a href="/" class="brand-link" aria-label="Back to home">
+			<a href="/home" class="brand-link" aria-label="Back to home">
 				<img src="/media/images/logreg_pg/LogoWhite.png" alt="HIStore'y" class="brand-logo">
 			</a>
 			<div class="visual-copy">
@@ -253,7 +253,7 @@
 
 						<div id="registerAlert" class="alert" aria-live="polite">Fill out the form below to create your account.</div>
 
-						<form id="registerForm" class="auth-form active" autocomplete="on" novalidate>
+						<form id="registerForm" class="auth-form active" autocomplete="on" novalidate enctype="multipart/form-data">
 							<label>
 								<span>Full name</span>
 								<input type="text" name="name" placeholder="Ava Johnson">
@@ -261,6 +261,18 @@
 							<label>
 								<span>Email address</span>
 								<input type="text" name="email" placeholder="ava@historey.com">
+							</label>
+							<label>
+								<span>Phone</span>
+								<input type="text" name="phone" placeholder="(555) 555-5555">
+							</label>
+							<label>
+								<span>Address</span>
+								<input type="text" name="address" placeholder="123 Main St, City, Country">
+							</label>
+							<label>
+								<span>Profile photo</span>
+								<input type="file" name="profile_photo" accept="image/*">
 							</label>
 							<label>
 								<span>Password</span>

@@ -56,7 +56,7 @@
 
 		$actions.append(`<button type="button" class="cart-btn" id="cartButton" aria-label="Cart"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>0</span></button>`)
 		if (sessionName) {
-			$actions.append(`<div class="account-dropdown"><button class="account-btn" id="accountDropdownBtn" type="button">${escapeHtml(sessionName)}</button><div class="dropdown-content" id="accountDropdownMenu"><a href="/home">Account</a><a href="#" id="signOutLink">Sign Out</a></div></div>`)
+			$actions.append(`<div class="account-dropdown"><button class="account-btn" id="accountDropdownBtn" type="button">${escapeHtml(sessionName)}</button><div class="dropdown-content" id="accountDropdownMenu"><a href="/profile">Account</a><a href="#" id="signOutLink">Sign Out</a></div></div>`)
 		} else {
 			$actions.append(`<a class="sign-in-btn" href="/login">Sign In</a>`)
 		}
@@ -227,14 +227,7 @@
 			$('#mainHeartCount').text(isLiked ? count + 1 : Math.max(0, count - 1))
 		})
 
-		$('#detailAddToCartBtn').on('click', function() {
-			const session = readSession()
-			if (!session || !session.token) {
-				window.location.href = '/login'
-				return
-			}
-			setDetailAlert(`Added ${currentQty} item${currentQty > 1 ? 's' : ''} to cart for ${currentProduct.name}.`)
-		})
+		// Detail add-to-cart is handled by /public/js/cart-actions.js (stores cart in cookies)
 
 		$('#buyNowBtn').on('click', function() {
 			const session = readSession()
@@ -245,16 +238,7 @@
 			setDetailAlert(`Ready to purchase ${currentProduct.name} in quantity ${currentQty}.`)
 		})
 
-		$(document).on('click', '.related-add-to-cart', function(event) {
-			event.stopPropagation()
-			const session = readSession()
-			if (!session || !session.token) {
-				window.location.href = '/login'
-				return
-			}
-			const productId = $(this).data('product-id')
-			setDetailAlert(`Added related product ${productId} to cart.`)
-		})
+		// Related product add-to-cart handled by /public/js/cart-actions.js
 
 		$(document).on('click', '.rating-bar-row', function() {
 			const starVal = $(this).data('star')

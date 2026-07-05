@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIStore'y - User Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- Global Styles --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #a68c53; /* Global golden-brown */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- Header & Nav Section (Reused) --- */
+        .top-header {
+            background-color: #36322b;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo-container { flex: 1; }
+        .header-logo { height: 40px; width: auto; }
+        .search-container {
+            flex-grow: 1; max-width: 500px; margin: 0 20px;
+            position: relative; display: flex; align-items: center;
+        }
+        .search-input {
+            width: 100%; padding: 10px 45px 10px 20px; border-radius: 50px; 
+            border: none; outline: none; font-family: 'Poppins', sans-serif; font-size: 16px;
+        }
+        .search-btn {
+            position: absolute; right: 15px; background: none; border: none; cursor: pointer; color: #000; display: flex; align-items: center;
+        }
+        .auth-container {
+            display: flex; align-items: center; justify-content: flex-end; gap: 15px; flex: 1; 
+        }
+        .account-btn {
+            background-color: #ffffff; color: #000000; padding: 10px 20px; border-radius: 50px; border: none; font-weight: 500; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .audio-btn {
+            background-color: #ffffff; color: #000000; width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .main-nav {
+            background-color: #8a0c0c; border-bottom: 2px solid #dcb538; padding: 15px 0; display: flex; justify-content: center; gap: 5%;
+        }
+        .main-nav a {
+            color: #ffffff; text-decoration: none; text-transform: uppercase; font-weight: 600; font-size: 15px; letter-spacing: 0.5px;
+        }
+
+        /* --- Main Layout --- */
+        .profile-container {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 0 5%;
+            display: flex;
+            align-items: flex-start;
+            gap: 30px;
+        }
+
+        /* --- Left Sidebar --- */
+        .left-sidebar {
+            width: 320px;
+            background-color: #dbdada;
+            border-radius: 20px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .profile-pic {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background-color: #fff; /* Fallback */
+        }
+
+        /* Hover Edit Overlay */
+        .avatar-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+            pointer-events: none; /* Disabled by default */
+        }
+
+        /* Only enable hover overlay when body has .edit-mode */
+        body.edit-mode .avatar-overlay {
+            pointer-events: auto;
+        }
+        body.edit-mode .avatar-wrapper:hover .avatar-overlay {
+            opacity: 1;
+        }
+
+        .avatar-overlay img { width: 40px; height: 40px; }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #000;
+            text-align: center;
+            line-height: 1.2;
+            margin-bottom: 5px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-email {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            background-color: #888; /* Inactive dark gray */
+        }
+        
+        .nav-btn img { width: 24px; height: 24px; object-fit: contain; }
+        
+        .nav-btn.active { background-color: #a6814c; /* Brownish-gold */ }
+        .nav-btn:hover { filter: brightness(1.1); }
+        .nav-btn.signout-btn { background-color: #8a0c0c; /* Always dark red */ }
+
+        /* --- Right Content Area --- */
+        .right-content {
+            flex-grow: 1;
+            background-color: #dbdada;
+            border-radius: 20px;
+            padding: 40px 50px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            min-height: 600px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 30px;
+            color: #000;
+        }
+
+        /* View 1 & 2: Account Details Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 30px;
+        }
+        .form-full-width { grid-column: span 2; }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative; /* For absolute error text positioning */
+        }
+        .form-group label {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+        .form-control {
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        /* Read-Only State */
+        .form-control:read-only, .form-control:disabled {
+            background-color: #bcbcbc;
+            color: #444;
+            pointer-events: none;
+        }
+
+        /* Editable State */
+        body.edit-mode .form-control:not(:disabled) {
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            pointer-events: auto;
+        }
+        body.edit-mode .form-control:focus { border-color: #a6814c; }
+
+        .italic-note {
+            font-style: italic;
+            font-size: 14px;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.9; }
+        .btn-gold { background-color: #a6814c; color: white; }
+        .btn-dark { background-color: #403b30; color: white; }
+
+        /* Toggle Buttons */
+        #editModeActions { display: none; }
+        body.edit-mode #readOnlyActions { display: none; }
+        body.edit-mode #editModeActions { display: flex; }
+
+        /* Error States & Animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        .input-error {
+            border: 1px solid #cc0000 !important;
+            background-color: #ffe6e6 !important;
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .error-text {
+            color: #cc0000;
+            font-size: 12px;
+            margin-top: 4px;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .input-error + .error-text {
+            display: block;
+            opacity: 1;
+        }
+
+
+        /* --- View 3: Transactions --- */
+        #view-transactions {
+            display: none;
+            height: 100%;
+        }
+        .transactions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-height: 550px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        /* Custom Scrollbar */
+        .transactions-list::-webkit-scrollbar { width: 8px; }
+        .transactions-list::-webkit-scrollbar-track { background: #e0e0e0; border-radius: 4px; }
+        .transactions-list::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+
+        .trans-card {
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .trans-card:hover { transform: translateY(-2px); }
+        
+        .trans-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Status Colors */
+        .status-processing .trans-header { background-color: #fff3cd; }
+        .status-processing .status-text { color: #856404; font-weight: 700; }
+        
+        .status-completed .trans-header { background-color: #d4edda; }
+        .status-completed .status-text { color: #155724; font-weight: 700; }
+        
+        .status-failed .trans-header { background-color: #f8d7da; }
+        .status-failed .status-text { color: #721c24; font-weight: 700; }
+
+        .trans-info-left { display: flex; flex-direction: column; gap: 3px; font-size: 14px; color: #333; }
+        .trans-info-right { display: flex; align-items: center; gap: 20px; text-align: right; }
+        .trans-price-block { display: flex; flex-direction: column; }
+        .trans-total { font-size: 20px; font-weight: 700; color: #000; }
+        
+        .btn-export {
+            background-color: #403b30;
+            border: none;
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .btn-export:hover { background-color: #2b271f; }
+        .btn-export img { width: 20px; height: 20px; }
+
+        /* Accordion Sub-container */
+        .trans-items-wrapper {
+            background-color: #eaeaea;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+        }
+        .trans-card.expanded .trans-items-wrapper {
+            /* Max height applied via JS for smooth animation */
+        }
+        
+        .item-row {
+            padding: 15px 20px;
+            border-top: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .item-row:hover { background-color: #e0e0e0; }
+        .item-info { display: flex; align-items: center; gap: 15px; }
+        .item-img { width: 50px; height: 50px; background-color: #bcbcbc; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white;}
+        .item-details { display: flex; flex-direction: column; font-size: 14px; }
+        .item-name { font-weight: 700; color: #000; }
+        .item-price-qty { text-align: right; font-size: 14px; font-weight: 500; }
+
+
+        /* --- Edit Profile Modal --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        
+        .modal-content {
+            background-color: #dbdada;
+            width: 90%; max-width: 450px;
+            border-radius: 20px;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal-close {
+            position: absolute; top: 15px; right: 20px;
+            font-size: 24px; cursor: pointer; color: #000; font-weight: bold; line-height: 1;
+        }
+        .modal-header { font-size: 22px; font-weight: 700; margin-bottom: 25px; color: #000; }
+
+        /* Modal View A: Initial */
+        #modalViewInit { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .modal-large-avatar { width: 200px; height: 200px; border-radius: 50%; object-fit: cover; }
+        .modal-actions-row { display: flex; gap: 10px; width: 100%; justify-content: center; }
+        .modal-actions-col { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 250px; }
+        .btn-full { width: 100%; }
+
+        /* Modal View B: Crop */
+        #modalViewCrop { display: none; flex-direction: column; align-items: center; gap: 20px; }
+        .crop-container {
+            width: 300px; height: 300px; background-color: #000; border-radius: 12px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center;
+        }
+        .crop-img { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .crop-circle-overlay {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 250px; height: 250px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 9999px rgba(0,0,0,0.5); pointer-events: none;
+        }
+        .zoom-slider-container { display: flex; align-items: center; gap: 15px; width: 100%; max-width: 300px; font-weight: bold; font-size: 20px;}
+        .zoom-slider { flex-grow: 1; cursor: pointer; accent-color: #a6814c; }
+
+        /* Responsive Breakpoints */
+        @media (max-width: 950px) {
+            .profile-container { flex-direction: column; align-items: stretch; }
+            .left-sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; justify-content: space-between; padding: 30px; }
+            .profile-name { text-align: left; flex-direction: row; gap: 5px;}
+            .profile-email { text-align: left; margin-bottom: 0;}
+            .nav-buttons { width: auto; }
+            .form-grid { grid-template-columns: 1fr; }
+            .form-full-width { grid-column: span 1; }
+        }
+        @media (max-width: 600px) {
+            .left-sidebar { flex-direction: column; align-items: center; text-align: center; gap: 15px; }
+            .profile-name, .profile-email { text-align: center; justify-content: center; }
+            .trans-header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .trans-info-right { width: 100%; justify-content: space-between; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-header">
+        <div class="logo-container">
+            <img src="LogoWhite.png" alt="HIStore'y" class="header-logo">
+        </div>
+        <div class="search-container">
+            <input type="text" placeholder="Search here" class="search-input">
+            <button class="search-btn">
+                <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+        </div>
+        <div class="auth-container">
+            <button class="account-btn" id="accountDropdownBtn">Tala LastName</button>
+            <button class="audio-btn" id="audioToggleBtn">
+                <svg id="icon-vol-on" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <nav class="main-nav">
+        <a href="#">PRODUCTS</a>
+        <a href="#">HIS STORY</a>
+        <a href="#">MJ MINIGAME</a>
+    </nav>
+
+    <main class="profile-container">
+        
+        <aside class="left-sidebar">
+            <div class="avatar-wrapper">
+                <img src="placeholder_pfp.png" alt="Profile Picture" class="profile-pic" id="sidebarAvatar">
+                <div class="avatar-overlay" id="editAvatarBtn">
+                    <img src="prof_pencil.png" alt="Edit">
+                </div>
+            </div>
+            
+            <div class="profile-info">
+                <div class="profile-name">
+                    <span>Tala</span>
+                    <span>LastName</span>
+                </div>
+                <div class="profile-email">talaishere@email.com</div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn active" id="navAccountDetails" title="Account Details">
+                    <img src="prof_ad_icon.png" alt="Account Details">
+                </button>
+                <button class="nav-btn" id="navTransactions" title="Transactions">
+                    <img src="prof_tr_icon.png" alt="Transactions">
+                </button>
+                <button class="nav-btn signout-btn" id="navSignOut" title="Sign Out">
+                    <img src="prof_signout_icon.png" alt="Sign Out">
+                </button>
+            </div>
+        </aside>
+
+        <section class="right-content">
+            
+            <div id="view-account-details">
+                <h2 class="section-title">Account Details</h2>
+                
+                <form id="profileForm" onsubmit="return false;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>First Name</label>
+                            <input type="text" class="form-control editable-field" value="Tala" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" class="form-control editable-field" value="LastName" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control editable-field" value="talaishere@gmail.com" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" class="form-control editable-field" id="currentPassword" readonly>
+                            <div class="error-text">Incorrect Password.</div>
+                        </div>
+                        <div class="form-group form-full-width">
+                            <label>Shipping Address</label>
+                            <input type="text" class="form-control editable-field" value="" readonly>
+                        </div>
+                        
+                        <div class="form-group form-full-width">
+                            <div class="italic-note">To change password, type your current password first.</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" class="form-control editable-field new-pass-field" disabled>
+                            <div class="error-text">Password doesn't match.</div>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" class="form-control editable-field new-pass-field" disabled>
+                        </div>
+                    </div>
+
+                    <div class="form-actions" id="readOnlyActions">
+                        <button type="button" class="btn btn-gold" id="btnEditInfo">Edit Information</button>
+                    </div>
+                    
+                    <div class="form-actions" id="editModeActions">
+                        <button type="button" class="btn btn-dark" id="btnDiscard">Discard Changes</button>
+                        <button type="button" class="btn btn-gold" id="btnSave">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="view-transactions">
+                <h2 class="section-title">Transactions</h2>
+                
+                <div class="transactions-list">
+                    
+                    <div class="trans-card status-processing">
+                        <div class="trans-header">
+                            <div class="trans-info-left">
+                                <div>[OrderID]</div>
+                                <div>DD/MMM/YYYY</div>
+                                <div class="status-text">Processing</div>
+                                <div>BN, LN, Street, Barangay, City, Philippines, CODE</div>
+                            </div>
+                            <div class="trans-info-right">
+                                <div class="trans-price-block">
+                                    <span>2 Item(s)</span>
+                                    <span class="trans-total">PHP 00.00</span>
+                                </div>
+                                <button class="btn-export" title="Export PDF">
+                                    <img src="prof_export_icon.png" alt="Export">
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="trans-items-wrapper">
+                            <div class="item-row clickable-item">
+                                <div class="item-info">
+                                    <div class="item-img"><svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
+                                    <div class="item-details">
+                                        <span class="item-name">PLACEHOLDER-ITEM</span>
+                                        <span>Type 1</span>
+                                    </div>
+                                </div>
+                                <div class="item-price-qty">QTY: 1<br>PHP 00.00</div>
+                            </div>
+                            <div class="item-row clickable-item">
+                                <div class="item-info">
+                                    <div class="item-img"><svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
+                                    <div class="item-details">
+                                        <span class="item-name">PLACEHOLDER-ITEM</span>
+                                        <span>Type 1</span>
+                                    </div>
+                                </div>
+                                <div class="item-price-qty">QTY: 1<br>PHP 00.00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="trans-card status-completed">
+                        <div class="trans-header">
+                            <div class="trans-info-left">
+                                <div>[OrderID]</div>
+                                <div>DD/MMM/YYYY</div>
+                                <div class="status-text">Completed</div>
+                                <div>BN, LN, Street, Barangay, City, Philippines, CODE</div>
+                            </div>
+                            <div class="trans-info-right">
+                                <div class="trans-price-block">
+                                    <span>1 Item(s)</span>
+                                    <span class="trans-total">PHP 00.00</span>
+                                </div>
+                                <button class="btn-export" title="Export PDF">
+                                    <img src="prof_export_icon.png" alt="Export">
+                                </button>
+                            </div>
+                        </div>
+                        <div class="trans-items-wrapper">
+                            <div class="item-row clickable-item">
+                                <div class="item-info">
+                                    <div class="item-img"><svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
+                                    <div class="item-details">
+                                        <span class="item-name">PLACEHOLDER-ITEM</span>
+                                        <span>Type 1</span>
+                                    </div>
+                                </div>
+                                <div class="item-price-qty">QTY: 1<br>PHP 00.00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="trans-card status-failed">
+                        <div class="trans-header">
+                            <div class="trans-info-left">
+                                <div>[OrderID]</div>
+                                <div>DD/MMM/YYYY</div>
+                                <div class="status-text">Failed</div>
+                                <div>BN, LN, Street, Barangay, City, Philippines, CODE</div>
+                            </div>
+                            <div class="trans-info-right">
+                                <div class="trans-price-block">
+                                    <span>1 Item(s)</span>
+                                    <span class="trans-total">PHP 00.00</span>
+                                </div>
+                                <button class="btn-export" title="Export PDF">
+                                    <img src="prof_export_icon.png" alt="Export">
+                                </button>
+                            </div>
+                        </div>
+                        <div class="trans-items-wrapper">
+                            <div class="item-row clickable-item">
+                                <div class="item-info">
+                                    <div class="item-img"><svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" fill="none"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg></div>
+                                    <div class="item-details">
+                                        <span class="item-name">PLACEHOLDER-ITEM</span>
+                                        <span>Type 1</span>
+                                    </div>
+                                </div>
+                                <div class="item-price-qty">QTY: 1<br>PHP 00.00</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <div class="modal-overlay" id="avatarModal">
+        <div class="modal-content">
+            <div class="modal-close" id="closeModal">&times;</div>
+            <h3 class="modal-header">Edit Profile</h3>
+            
+            <input type="file" id="filePicker" accept="image/*" style="display: none;">
+
+            <div id="modalViewInit">
+                <img src="placeholder_pfp.png" class="modal-large-avatar" id="modalPreviewInit">
+                <div class="modal-actions-col">
+                    <div class="modal-actions-row">
+                        <button class="btn btn-gold btn-full" id="btnTriggerFile">Change</button>
+                        <button class="btn btn-gold btn-full" id="btnGoToCrop">Crop</button>
+                    </div>
+                    <button class="btn btn-dark btn-full" id="btnCancelModal">Cancel</button>
+                </div>
+            </div>
+
+            <div id="modalViewCrop">
+                <div class="crop-container">
+                    <img src="placeholder_pfp.png" class="crop-img" id="modalPreviewCrop">
+                    <div class="crop-circle-overlay"></div>
+                </div>
+                
+                <div class="zoom-slider-container">
+                    <span>-</span>
+                    <input type="range" class="zoom-slider" min="100" max="250" value="100" id="zoomSlider">
+                    <span>+</span>
+                </div>
+
+                <div class="modal-actions-row" style="width: 100%; max-width: 300px;">
+                    <button class="btn btn-dark btn-full" id="btnDiscardCrop">Discard</button>
+                    <button class="btn btn-gold btn-full" id="btnConfirmCrop">Confirm</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Navigation & View Switching ---
+            const btnAccount = document.getElementById('navAccountDetails');
+            const btnTrans = document.getElementById('navTransactions');
+            const btnSignOut = document.getElementById('navSignOut');
+            
+            const viewAccount = document.getElementById('view-account-details');
+            const viewTrans = document.getElementById('view-transactions');
+
+            btnAccount.addEventListener('click', () => {
+                btnAccount.classList.add('active');
+                btnTrans.classList.remove('active');
+                viewAccount.style.display = 'block';
+                viewTrans.style.display = 'none';
+            });
+
+            btnTrans.addEventListener('click', () => {
+                btnTrans.classList.add('active');
+                btnAccount.classList.remove('active');
+                viewTrans.style.display = 'block';
+                viewAccount.style.display = 'none';
+            });
+
+            btnSignOut.addEventListener('click', () => {
+                const confirmLogout = confirm("Are you sure you want to sign out?");
+                if (confirmLogout) {
+                    // TODO: Handle session termination if confirmed
+                    console.log("User signed out.");
+                }
+            });
+
+
+            // --- Edit Profile Form Logic ---
+            const btnEditInfo = document.getElementById('btnEditInfo');
+            const btnDiscard = document.getElementById('btnDiscard');
+            const btnSave = document.getElementById('btnSave');
+            
+            const editableFields = document.querySelectorAll('.editable-field');
+            const currentPass = document.getElementById('currentPassword');
+            const newPassFields = document.querySelectorAll('.new-pass-field');
+            
+            let originalData = {};
+
+            // Enter Edit Mode
+            btnEditInfo.addEventListener('click', () => {
+                document.body.classList.add('edit-mode');
+                
+                editableFields.forEach((field, index) => {
+                    // Save original value to restore later
+                    originalData[index] = field.value;
+                    
+                    if (!field.classList.contains('new-pass-field')) {
+                        field.removeAttribute('readonly');
+                    }
+                });
+                // Ensure new password fields stay disabled initially
+                newPassFields.forEach(f => f.setAttribute('disabled', 'true'));
+            });
+
+            // Discard Changes
+            btnDiscard.addEventListener('click', () => {
+                document.body.classList.remove('edit-mode');
+                
+                editableFields.forEach((field, index) => {
+                    // Restore original value
+                    field.value = originalData[index];
+                    
+                    // Clear error states if any
+                    field.classList.remove('input-error');
+                    
+                    field.setAttribute('readonly', 'true');
+                    if (field.classList.contains('new-pass-field')) {
+                        field.setAttribute('disabled', 'true');
+                    }
+                });
+            });
+
+            // Password Dependency Logic
+            currentPass.addEventListener('input', (e) => {
+                if (e.target.value.length > 0) {
+                    newPassFields.forEach(f => f.removeAttribute('disabled'));
+                    newPassFields.forEach(f => f.removeAttribute('readonly'));
+                } else {
+                    newPassFields.forEach(f => {
+                        f.setAttribute('disabled', 'true');
+                        f.value = ''; // clear if they empty current pass
+                        f.classList.remove('input-error');
+                    });
+                }
+            });
+
+            // Remove error state on typing
+            editableFields.forEach(field => {
+                field.addEventListener('input', () => {
+                    field.classList.remove('input-error');
+                });
+            });
+
+            // Mock Error on Save
+            btnSave.addEventListener('click', () => {
+                // Simulating an error specifically on password fields for the mockup requirement
+                if (currentPass.value !== '') {
+                    currentPass.classList.add('input-error');
+                    newPassFields[0].classList.add('input-error');
+                } else {
+                    // If no password typed, just "save" and exit edit mode
+                    document.body.classList.remove('edit-mode');
+                    editableFields.forEach(f => {
+                        if(!f.classList.contains('new-pass-field')) f.setAttribute('readonly', 'true');
+                        else f.setAttribute('disabled', 'true');
+                    });
+                }
+            });
+
+
+            // --- Transactions Accordion Logic ---
+            const transCards = document.querySelectorAll('.trans-card');
+            
+            transCards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    // Don't expand if clicking the export button or a specific item
+                    if (e.target.closest('.btn-export') || e.target.closest('.clickable-item')) return;
+                    
+                    const isExpanded = card.classList.contains('expanded');
+                    const wrapper = card.querySelector('.trans-items-wrapper');
+                    
+                    if (isExpanded) {
+                        wrapper.style.maxHeight = null;
+                        card.classList.remove('expanded');
+                    } else {
+                        card.classList.add('expanded');
+                        wrapper.style.maxHeight = wrapper.scrollHeight + "px";
+                    }
+                });
+            });
+
+            // Export Button Click
+            const exportBtns = document.querySelectorAll('.btn-export');
+            exportBtns.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    // TODO: Export PDF
+                    console.log("Trigger PDF Export");
+                });
+            });
+
+            // Clickable Item Redirect
+            const clickableItems = document.querySelectorAll('.clickable-item');
+            clickableItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    // TODO: Redirect to product page
+                    console.log("Redirect to product page");
+                });
+            });
+
+
+            // --- Edit Profile Picture Modal Logic ---
+            const avatarOverlayBtn = document.getElementById('editAvatarBtn');
+            const avatarModal = document.getElementById('avatarModal');
+            const closeModal = document.getElementById('closeModal');
+            const btnCancelModal = document.getElementById('btnCancelModal');
+            
+            const viewInit = document.getElementById('modalViewInit');
+            const viewCrop = document.getElementById('modalViewCrop');
+            
+            const btnTriggerFile = document.getElementById('btnTriggerFile');
+            const filePicker = document.getElementById('filePicker');
+            const btnGoToCrop = document.getElementById('btnGoToCrop');
+            
+            const btnDiscardCrop = document.getElementById('btnDiscardCrop');
+            const btnConfirmCrop = document.getElementById('btnConfirmCrop');
+            const zoomSlider = document.getElementById('zoomSlider');
+            const cropImg = document.getElementById('modalPreviewCrop');
+
+            const openModal = () => {
+                avatarModal.classList.add('active');
+                viewInit.style.display = 'flex';
+                viewCrop.style.display = 'none';
+            };
+
+            const hideModal = () => {
+                avatarModal.classList.remove('active');
+            };
+
+            // Open Modal
+            avatarOverlayBtn.addEventListener('click', openModal);
+            
+            // Close Handlers
+            closeModal.addEventListener('click', hideModal);
+            btnCancelModal.addEventListener('click', hideModal);
+            avatarModal.addEventListener('click', (e) => {
+                if (e.target === avatarModal) hideModal();
+            });
+
+            // Change Picture -> OS File Picker
+            btnTriggerFile.addEventListener('click', () => {
+                filePicker.click();
+            });
+
+            // Once file is selected, jump to crop
+            filePicker.addEventListener('change', () => {
+                if (filePicker.files && filePicker.files[0]) {
+                    // Standard logic would update img src here using FileReader
+                    viewInit.style.display = 'none';
+                    viewCrop.style.display = 'flex';
+                    zoomSlider.value = 100;
+                    cropImg.style.transform = `scale(1)`;
+                }
+            });
+
+            // Crop Button
+            btnGoToCrop.addEventListener('click', () => {
+                viewInit.style.display = 'none';
+                viewCrop.style.display = 'flex';
+                zoomSlider.value = 100;
+                cropImg.style.transform = `scale(1)`;
+            });
+
+            // Discard Crop -> Back to View A
+            btnDiscardCrop.addEventListener('click', () => {
+                viewInit.style.display = 'flex';
+                viewCrop.style.display = 'none';
+                filePicker.value = ""; // reset file input
+            });
+
+            // Confirm Crop
+            btnConfirmCrop.addEventListener('click', () => {
+                // TODO: Process image crop and save
+                console.log("Image crop confirmed and ready to save.");
+                hideModal();
+            });
+
+            // Zoom Slider logic
+            zoomSlider.addEventListener('input', (e) => {
+                const scaleValue = e.target.value / 100;
+                cropImg.style.transform = `scale(${scaleValue})`;
+            });
+
+        });
+    </script>
+</body>
+</html>

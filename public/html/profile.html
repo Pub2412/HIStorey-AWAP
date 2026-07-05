@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HIStore'y - Profile</title>
+  <link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    :root {
+      --topbar: #36322b;
+      --nav: #8a0c0c;
+      --nav-border: #dcb538;
+      --panel: #dfdbd2;
+      --card: #e9e5db;
+      --accent: #a6814c;
+      --text: #111111;
+      --white: #ffffff;
+      --shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+    }
+    * { box-sizing: border-box }
+    body { margin:0; font-family: 'Poppins', Arial, sans-serif; color:var(--text); background: linear-gradient(180deg, #b59758, #9a8148); min-height:100vh; display:flex; flex-direction:column }
+    .top-header { background: var(--topbar); padding:16px 5%; display:flex; align-items:center; justify-content:space-between; gap:18px; box-shadow: var(--shadow); }
+    .logo-container { display:flex; align-items:center }
+    .header-logo { height:40px }
+    .main-nav { background: var(--nav); border-bottom:2px solid var(--nav-border); padding:14px 5%; display:flex; justify-content:center; gap:clamp(28px,5vw,64px) }
+    .main-nav a { color:var(--white); text-decoration:none; text-transform:uppercase; font-weight:600 }
+
+    .main-content { flex:1; padding:40px 5% 52px; display:flex; justify-content:center }
+    .profile-shell { width:100%; max-width:1024px; background: var(--panel); border-radius:18px; padding:22px; box-shadow:var(--shadow); }
+    .profile-header { display:flex; gap:20px; align-items:center }
+    .avatar { width:112px; height:112px; border-radius:999px; overflow:hidden; background:#ddd; display:flex; align-items:center; justify-content:center }
+    .avatar img { width:100%; height:100%; object-fit:cover }
+    .profile-meta h2 { margin:0 0 6px 0; font-size:20px }
+    .profile-meta .email { color:rgba(0,0,0,0.6); margin-bottom:6px }
+
+    .profile-body { margin-top:18px; display:grid; grid-template-columns: 1fr; gap:18px }
+    .profile-card { background: #fff; padding:16px; border-radius:12px }
+    .file-input { display:flex; align-items:center; gap:10px }
+    .file-input input[type=file] { position:absolute; left:-9999px }
+    .file-btn { padding:8px 12px; font-size:14px }
+    label { display:block; margin-bottom:8px }
+    input[type=text], textarea { width:100%; padding:10px; border-radius:8px; border:1px solid #ddd }
+    .btn { display:inline-block; padding:10px 14px; background:var(--accent); color:#fff; border-radius:8px; border:0; cursor:pointer }
+    .small { font-size:13px; color:rgba(0,0,0,0.6) }
+    @media (max-width:900px) { .profile-body { grid-template-columns: 1fr } }
+    /* Transactions */
+    .tx-card { background: #fff; border-radius: 12px; padding: 12px; margin-top: 16px }
+    .tx-list { display:flex; flex-direction:column; gap:10px; max-height:360px; overflow:auto }
+    .tx-header { display:flex; justify-content:space-between; align-items:center; gap:12px }
+    .tx-items { margin-top:8px; padding-top:8px; border-top:1px dashed #eee }
+    .tx-badge { padding:6px 10px; border-radius:12px; font-weight:700; font-size:13px }
+    .status-processing { background:#fff3cd; color:#856404 }
+    .status-completed { background:#d4edda; color:#155724 }
+    .status-cancelled { background:#f8d7da; color:#721c24 }
+    .no-orders { text-align:center; padding:28px; color:#333 }
+  </style>
+</head>
+<body>
+  <header class="top-header">
+    <div class="logo-container">
+      <a href="/home" aria-label="Home"><img src="/media/images/home_pg/LogoWhite.png" alt="HIStore'y" class="header-logo"></a>
+    </div>
+    <div id="authActions" style="display:flex; gap:12px; align-items:center"></div>
+  </header>
+
+  <nav class="main-nav" aria-label="Primary">
+    <a href="/products">PRODUCTS</a>
+    <a href="#storySection">HIS STORY</a>
+    <a href="#minigameSection">MJ MINIGAME</a>
+  </nav>
+
+  <main class="main-content">
+    <section class="profile-shell">
+      <div class="profile-header">
+        <div class="avatar" id="avatarBlock"><img id="avatarImg" src="/media/images/profile_pg/placeholder_pfp.png" alt="avatar"></div>
+        <div class="profile-meta">
+          <h2 id="profileName">User</h2>
+          <div id="profileEmail" class="email">email@domain.com</div>
+          <div class="small">Manage your account details and view order history.</div>
+        </div>
+      </div>
+
+      <div class="profile-body">
+        <div class="profile-card">
+          <form id="profileForm" enctype="multipart/form-data">
+            <label>Full name<input type="text" name="name" id="nameInput"></label>
+            <label>Phone<input type="text" name="phone" id="phoneInput"></label>
+            <label>Address<textarea name="address" id="addressInput" rows="4"></textarea></label>
+            <label>Profile photo
+              <div class="file-input">
+                <button type="button" class="btn file-btn" id="chooseFileBtn">Choose file</button>
+                <span id="fileName" class="small">No file chosen</span>
+                <input type="file" name="profile_photo" id="photoInput" accept="image/*">
+              </div>
+            </label>
+            <div style="margin-top:12px"><button type="submit" class="btn">Save profile</button></div>
+          </form>
+        </div>
+
+        <!-- sidebar removed; sign-out moved below order history -->
+      </div>
+      <div class="profile-card tx-card">
+        <h3 style="margin:0 0 8px 0">Order history</h3>
+        <div id="txList" class="tx-list">
+          <div class="no-orders">Loading orders...</div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-start; margin-top:14px">
+        <button id="signOutBtn" class="btn">Sign out</button>
+      </div>
+    </section>
+  </main>
+
+  <footer style="background:#424036;color:#fff;padding:22px 5%;text-align:center">Copyright 2026 HIStore'y E-commerce</footer>
+
+  <script src="/public/js/profile.js"></script>
+  <script>
+    // sign-out button below orders
+    document.getElementById('signOutBtn')?.addEventListener('click', function(e){
+      e.preventDefault();
+      const raw = localStorage.getItem('historey.session')
+      if (raw) {
+        try {
+          const s = JSON.parse(raw);
+          if (s && s.token) {
+            fetch('/api/v1/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${s.token}` } })
+              .finally(() => {
+                localStorage.removeItem('historey.session');
+                window.location.href = '/login?logout=1'
+              })
+            return;
+          }
+        } catch (e) {
+          // fallthrough to local redirect
+        }
+        localStorage.removeItem('historey.session');
+        window.location.href = '/login?logout=1'
+      } else {
+        window.location.href = '/login?logout=1'
+      }
+    })
+  </script>
+</body>
+</html>
