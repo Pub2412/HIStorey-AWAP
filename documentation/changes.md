@@ -167,10 +167,50 @@ Replaced HTML5 validation (`required`, `type="email"`) with **jQuery Validation*
 - Ensured Sequelize is used
 - I added multiple image uploads for products.
 
-### CRUD FIXES
-- Used datatables and sequelize ORM 
-- Added jquery validation
-- Added product images to show on product table and can make one primary and removable one by one
-- Showed stock on product datatable
-- Commented out the switchable Login/Register button thing on login.html (If we have that then what's the point of register.html son)
+---
 
+## 07/05/2026 — Products list (infinite scroll) and API pagination
+
+### Backend
+- **Modified:** `controllers/productController.js` — `listProducts` now supports pagination query params `page` and `limit`. When both are provided the controller uses `findAndCountAll` and returns a paginated shape: `{ items, total, page, limit, totalPages }`. Falls back to in-memory pagination when the DB is unavailable.
+
+### Routes / App
+- **Modified:** `app.js` — added route to serve the storefront products page at `/products`.
+
+### Frontend
+- **Added / Modified:** `public/html/products.html` — a homepage-styled products listing page with:
+  - Infinite scrolling client that requests `/api/v1/products?page=&limit=` and appends results.
+  - Responsive, symmetrical product grid and card styling to match the home/landing aesthetic.
+  - A prominent `Buy Now` button shown when the user is signed in. Sign-in detection uses the existing `localStorage` key `historey.session`. If signed out the button reads `Sign in to buy` and redirects to `/login`.
+  - Fallback throwback image for products that have no images: `/media/images/prod_pg/landingmerch.png`. The image is also used as an `onerror` fallback for corrupted/missing image URLs.
+
+### Other
+- **Modified:** `public/html/landing.html` and `public/html/home.html` — the `PRODUCTS` navigation link now points to `/products`.
+
+### Verification
+- Started the local server and confirmed the paginated API returns the expected shape and `/products` serves the new page. The front-end requests `/api/v1/products?page=1&limit=6` successfully in smoke tests.
+
+If you'd like, I can now:
+- Wire the Buy button into an Add-to-Cart API call instead of redirecting.
+- Add client-side search/filter/sort controls wired to the paginated API.
+- Add loading skeletons and hover interactions for the product cards.
+
+---
+
+## 07/05/2026 — Product detail page, DB-backed product details, and review enforcement
+
+- Added: `public/html/product.html` as the dedicated storefront product detail page served at `/product/:id`.
+- Added: `public/js/product-detail.js` to load product details, render an image gallery and related products, and gate add-to-cart / buy interactions for unauthenticated users.
+- Modified: `public/js/home.js` so product cards now link to `/product/:id` and non-authenticated visitors see sign-in prompts before cart actions.
+- Added: `models/review.js` as the Sequelize `reviews` model with a unique constraint on `user_id` + `product_id`.
+- Added: review endpoints in `routes/products.js`:
+  - `GET /products/:id/reviews`
+  - `POST /products/:id/reviews`
+- Modified: `controllers/productController.js` to support review listing and creation with the following rules:
+  - only database-backed reviews when the DB is available
+  - only authenticated users may create reviews
+  - only users with `role === 'customer'` may submit reviews
+  - only one review per customer per product
+- Added: `/404` route in `app.js` and a dedicated `404` page for missing frontend routes.
+- Added product assets under `media/images/prod_pg/` for the new product detail page.
+- Preserved homepage access for unauthenticated visitors while still requiring login for product review and cart actions.

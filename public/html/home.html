@@ -6,6 +6,7 @@
 	<title>HIStore'y - Home</title>
 	<link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
 	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="/public/css/search-autocomplete.css">
 	<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 	<style>
 		:root {
@@ -38,11 +39,25 @@
 		.top-header {
 			background: var(--topbar);
 			padding: 16px 5%;
-			display: grid;
-			grid-template-columns: 1fr minmax(0, 1.3fr) 1fr;
+			display: flex;
 			align-items: center;
+			justify-content: space-between;
 			gap: 18px;
+			flex-wrap: wrap;
 			box-shadow: var(--shadow);
+		}
+
+		.search-container {
+			flex: 1 1 560px;
+			min-width: 280px;
+		}
+
+		.header-right {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+			flex-wrap: wrap;
+			justify-content: flex-end;
 		}
 
 		.logo-container {
@@ -141,6 +156,34 @@
 			background: var(--white);
 			color: #000;
 			box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+		}
+
+		.radio-panel {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.volume-control {
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			background: rgba(255,255,255,0.95);
+			border-radius: 999px;
+			padding: 8px 10px;
+		}
+
+		.volume-control input[type='range'] {
+			width: 120px;
+		}
+
+		.volume-value {
+			font-size: 13px;
+			min-width: 38px;
+			text-align: right;
+			color: #111;
 		}
 
 		.audio-btn:hover,
@@ -548,11 +591,22 @@
 			</button>
 		</div>
 
-		<div class="auth-container" id="authActions"></div>
+		<div class="header-right">
+			<div class="auth-container" id="authActions"></div>
+			<div class="radio-panel" id="radioPanel">
+				<button class="audio-btn" id="audioToggleBtn" type="button" aria-label="Toggle audio" aria-pressed="false">
+				<svg id="icon-vol-on" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+				<svg id="icon-vol-off" style="display:none;" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="1" x2="1" y2="23"></line></svg>
+			</button>
+			<div class="volume-control">
+				<input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.65" aria-label="Radio volume">
+				<span class="volume-value" id="volumeValue">65%</span>
+			</div>
+		</div>
 	</header>
 
 	<nav class="main-nav" aria-label="Primary">
-		<a href="#featuredProducts">PRODUCTS</a>
+		<a href="/products">PRODUCTS</a>
 		<a href="#storySection">HIS STORY</a>
 		<a href="#minigameSection">MJ MINIGAME</a>
 	</nav>
@@ -595,6 +649,7 @@
 	</div>
 
 	<audio id="bg-audio" autoplay playsinline preload="auto"></audio>
+	<script src="/public/js/search-autocomplete.js"></script>
 	<script src="/public/js/home.js"></script>
 </body>
 </html>

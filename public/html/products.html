@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HIStore'y - Products</title>
+  <link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/public/css/search-autocomplete.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    /* Copy of homepage styles (keeps products page visually consistent) */
+    :root {
+      --topbar: #36322b;
+      --nav: #8a0c0c;
+      --nav-border: #dcb538;
+      --bg-start: #b59758;
+      --bg-end: #9a8148;
+      --panel: #dfdbd2;
+      --card: #e9e5db;
+      --accent: #a6814c;
+      --text: #111111;
+      --white: #ffffff;
+      --shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Poppins', Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .top-header {
+      background: var(--topbar);
+      padding: 16px 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow);
+    }
+
+    .search-container {
+      flex: 1 1 560px;
+      min-width: 280px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .logo-container { display:flex; align-items:center }
+    .header-logo { height: 40px; width: auto; display:block }
+    .search-container { max-width: 560px; width: 100%; margin:0 auto; position:relative }
+    .search-input { width:100%; padding:12px 48px 12px 20px; border-radius:999px; border:none; outline:none; font:inherit; font-size:15px; box-shadow: 0 8px 18px rgba(0,0,0,0.22) }
+    .search-btn { position:absolute; right:14px; top:50%; transform: translateY(-50%); background:none; border:none; cursor:pointer; display:grid; place-items:center; color:#000 }
+    .auth-container { display:flex; align-items:center; justify-content:flex-end; gap:14px; flex-wrap:wrap }
+    .cart-btn,.account-btn,.sign-in-btn,.audio-btn { border:none; cursor:pointer }
+    .cart-btn,.account-btn,.sign-in-btn { background: var(--white); color:#000; box-shadow:0 4px 6px rgba(0,0,0,0.2); text-decoration:none }
+    .cart-btn { padding:8px 20px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; font-size:16px; font-weight:500 }
+    .account-btn,.sign-in-btn { padding:10px 20px; border-radius:999px; font-size:15px; font-weight:500 }
+    .audio-btn { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--white); color:#000; box-shadow:0 4px 6px rgba(0,0,0,0.2) }
+    .radio-panel { display:flex; align-items:center; gap:10px; }
+    .radio-panel .track-label { color: #fff; font-size: 13px; white-space: nowrap; }
+    .volume-control { display:flex; align-items:center; gap:8px; background: rgba(255,255,255,0.95); border-radius: 999px; padding: 8px 10px; }
+    .volume-control input[type='range'] { width:120px; }
+    .volume-value { font-size: 13px; min-width: 38px; text-align: right; color:#111; }
+
+    .toast-container {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 2000;
+      pointer-events: none;
+    }
+
+    .toast {
+      pointer-events: none;
+      min-width: 280px;
+      max-width: min(360px, calc(100vw - 40px));
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(17, 17, 17, 0.92);
+      color: #fff;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.success { border-left: 4px solid #57b846; }
+    .toast.warning { border-left: 4px solid #f0c419; }
+    .toast.error { border-left: 4px solid #d14444; }
+    .toast.info { border-left: 4px solid #4a8ccb; }
+
+    .radio-alert {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 2000;
+      min-width: 280px;
+      max-width: min(360px, calc(100vw - 40px));
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(17, 17, 17, 0.92);
+      color: #fff;
+      box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
+      opacity: 0;
+      transform: translateY(18px);
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .radio-alert.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .radio-alert .eyebrow {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #dcb538;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .radio-alert .track-title {
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .radio-alert .track-meta {
+      font-size: 0.88rem;
+      margin-top: 4px;
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .main-nav { background: var(--nav); border-bottom: 2px solid var(--nav-border); padding: 14px 5%; display:flex; justify-content:center; gap:clamp(28px,5vw,64px); flex-wrap:wrap }
+    .main-nav a { color: var(--white); text-decoration:none; text-transform:uppercase; font-weight:600; font-size:15px; letter-spacing:0.5px }
+
+    .main-content { flex:1; padding: 40px 5% 52px; display:flex; flex-direction:column; align-items:center; gap:34px; width:100%; max-width:1320px; margin:0 auto }
+
+    .hero-banner { width:100%; border-radius:24px; background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.18), transparent 36%), linear-gradient(135deg, #3f3427, #2b2117); box-shadow:var(--shadow); padding:34px; display:grid; grid-template-columns: minmax(0,0.95fr) minmax(0,1.05fr); align-items:center; gap:28px }
+    .hero-copy { display:flex; flex-direction:column; align-items:center; gap:18px; color:var(--white); max-width:720px; text-align:center }
+    .hero-logo { width:min(100%,420px); height:auto; display:block; filter: drop-shadow(0 0 14px rgba(255,255,255,0.52)) }
+    .cta-btn { display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:0 28px; border-radius:999px; background:var(--white); color:#111; text-decoration:none; font-weight:600; box-shadow:0 10px 22px rgba(0,0,0,0.24) }
+
+    .product-grid { width:100%; display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:28px; justify-items:center }
+    .product-card { background: rgba(223, 219, 210, 0.98); border-radius:18px; padding:14px; display:flex; flex-direction:column; gap:12px; box-shadow:var(--shadow); width:100%; max-width:320px; align-items:center; text-align:center }
+    .product-link { text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:14px }
+    .product-image-placeholder { width:100%; aspect-ratio:1/1; border-radius:14px; background:linear-gradient(180deg,#c1b8a2,#a99d84); display:flex; align-items:center; justify-content:center; overflow:hidden }
+    .product-image-placeholder img { width:100%; height:100%; object-fit:cover; display:block }
+    .product-title { font-size:14px; font-weight:700; color:#333; text-transform:uppercase }
+    .product-price { font-size:21px; font-weight:700; color:#000 }
+    .card-actions { width:100%; display:flex; justify-content:center; margin-top:8px }
+    .buy-btn { background: var(--accent); color: #fff; border: none; padding: 10px 18px; border-radius: 999px; font-weight:700; cursor:pointer }
+    .buy-btn:hover { transform: translateY(-2px) }
+    .heart-btn { background: transparent; border: 1px solid rgba(0,0,0,0.14); width: 42px; height: 42px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; color: #9b1f49; cursor: pointer; transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease; }
+    .heart-btn:hover { transform: translateY(-1px); background: rgba(155,31,73,0.1); border-color: rgba(155,31,73,0.4); }
+    .heart-btn.liked { background: rgba(232,67,147,0.14); border-color: #e84393; color: #e84393; }
+    .heart-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
+    .heart-btn.liked svg { fill: currentColor; }
+
+    .site-footer { margin-top:auto; background: #424036; padding:24px 5%; display:flex; justify-content:center; align-items:center; color:#fff; font-size:14px }
+
+    @media (max-width: 1200px) { .product-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+    @media (max-width: 900px) { .top-header { grid-template-columns: 1fr; justify-items:center } .product-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 600px) { .product-grid { grid-template-columns: 1fr; padding: 0 12px } .hero-copy { max-width: 360px } }
+  </style>
+</head>
+<body>
+  <header class="top-header">
+    <div class="logo-container">
+      <img src="/media/images/home_pg/LogoWhite.png" alt="HIStore'y" class="header-logo">
+    </div>
+    <div class="search-container">
+      <input type="text" placeholder="Search here" class="search-input" aria-label="search">
+      <button class="search-btn" type="button" aria-label="Search">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+    </div>
+    <div class="header-right">
+      <div class="auth-container" id="authActions"></div>
+      <div class="radio-panel" id="radioPanel">
+      <button class="audio-btn" id="audioToggleBtn" type="button" aria-label="Toggle audio" aria-pressed="false">
+        <svg id="icon-vol-on" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <svg id="icon-vol-off" style="display:none;" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="1" x2="1" y2="23"></line></svg>
+      </button>
+      <div class="volume-control">
+        <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.65" aria-label="Radio volume">
+        <span class="volume-value" id="volumeValue">65%</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="main-nav" aria-label="Primary">
+    <a href="/products">PRODUCTS</a>
+    <a href="#storySection">HIS STORY</a>
+    <a href="#minigameSection">MJ MINIGAME</a>
+  </nav>
+
+  <main class="main-content">
+    <section class="hero-banner">
+      <div class="hero-copy">
+        <img src="/media/images/home_pg/LogoWhite.png" alt="HIStore'y" class="hero-logo">
+        <h1>Products</h1>
+        <p>Browse the full catalog — infinite scrolling for an uninterrupted experience.</p>
+        <a href="/products" class="cta-btn">Browse All</a>
+      </div>
+      <div class="hero-image-wrap">
+        <img src="/media/images/home_pg/landingmerch.png" alt="Featured merchandise" class="hero-image">
+      </div>
+    </section>
+
+    <section class="section-title">All Products</section>
+    <div id="productStatus" style="width:100%;max-width:1320px;color:rgba(255,255,255,0.9);font-size:14px;">Loading products...</div>
+    <section class="product-grid" id="productGrid" aria-label="Products list"></section>
+    <div id="loading" style="text-align:center;padding:18px;color:#fff;display:none">Loading...</div>
+    <div id="end" style="text-align:center;padding:18px;color:#fff;display:none">No more products</div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Copyright 2026 HIStore'y E-commerce</p>
+  </footer>
+
+  <audio id="bg-audio" autoplay playsinline preload="auto"></audio>
+  <div class="radio-alert" id="radioAlert" aria-live="polite" aria-atomic="true">
+    <div class="eyebrow" id="radioAlertLabel">Now Playing</div>
+    <div class="track-title" id="radioAlertTitle">Loading radio...</div>
+    <div class="track-meta" id="radioAlertMeta"></div>
+  </div>
+  <div class="toast-container" id="toastContainer" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="/public/js/search-autocomplete.js"></script>
+  <script>
+    function readSession() {
+      try {
+        const raw = localStorage.getItem('historey.session')
+        if (!raw) return null
+        return JSON.parse(raw)
+      } catch (e) { return null }
+    }
+
+    function formatPrice(value) {
+      const numeric = Number(value)
+      if (Number.isNaN(numeric)) return 'PHP 0.00'
+      return `PHP ${numeric.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    }
+
+    const radioTracks = [
+      { file: 'ABC.mp3', title: 'ABC', album: 'Jackson 5' },
+      { file: 'Bad.mp3', title: 'Bad', album: 'Bad' },
+      { file: 'Beat It.mp3', title: 'Beat It', album: 'Thriller' },
+      { file: 'Billie Jean.mp3', title: 'Billie Jean', album: 'Thriller' },
+      { file: 'Black or White.mp3', title: 'Black or White', album: 'Dangerous' },
+      { file: 'Chicago.mp3', title: 'Chicago', album: 'Michael Jackson' },
+      { file: 'Dirty Diana.mp3', title: 'Dirty Diana', album: 'Bad' },
+      { file: "Don't Stop 'Til You Get Enough.mp3", title: "Don't Stop 'Til You Get Enough", album: 'Off the Wall' },
+      { file: 'Earth Song.mp3', title: 'Earth Song', album: 'HIStory' },
+      { file: 'Heal the World.mp3', title: 'Heal the World', album: 'Dangerous' },
+      { file: 'Human Nature.mp3', title: 'Human Nature', album: 'Thriller' },
+      { file: "I'll Be There.mp3", title: "I'll Be There", album: 'Jackson 5' },
+      { file: 'Jam.mp3', title: 'Jam', album: 'Dangerous' },
+      { file: 'Man in the Mirror.mp3', title: 'Man in the Mirror', album: 'Bad' },
+      { file: 'Remember the Time.mp3', title: 'Remember the Time', album: 'Dangerous' },
+      { file: 'Smooth Criminal.mp3', title: 'Smooth Criminal', album: 'Bad' },
+      { file: 'The Way You Make Me Feel.mp3', title: 'The Way You Make Me Feel', album: 'Bad' },
+      { file: "They Don't Care About Us.mp3", title: "They Don't Care About Us", album: 'HIStory' },
+      { file: 'Thriller.mp3', title: 'Thriller', album: 'Thriller' },
+      { file: "Wanna Be Startin' Somethin'.mp3", title: "Wanna Be Startin' Somethin'", album: 'Thriller' },
+      { file: 'You Are Not Alone.mp3', title: 'You Are Not Alone', album: 'HIStory' }
+    ]
+    let currentRadioIndex = -1
+
+    function encodeRadioFile(fileName) {
+      return `/media/songs/radio/${encodeURIComponent(fileName)}`
+    }
+
+    function getRandomRadioIndex(excludeIndex) {
+      if (!radioTracks.length) return -1
+      if (radioTracks.length === 1) return 0
+
+      let nextIndex = Math.floor(Math.random() * radioTracks.length)
+      while (nextIndex === excludeIndex) {
+        nextIndex = Math.floor(Math.random() * radioTracks.length)
+      }
+      return nextIndex
+    }
+
+    function showRadioAlert(track) {
+      const alert = document.getElementById('radioAlert')
+      const label = document.getElementById('radioAlertLabel')
+      const title = document.getElementById('radioAlertTitle')
+      const meta = document.getElementById('radioAlertMeta')
+      if (!alert || !label || !title || !meta || !track) return
+      label.textContent = 'Now Playing'
+      title.textContent = track.title
+      meta.textContent = track.album
+      alert.classList.add('show')
+      clearTimeout(showRadioAlert.timer)
+      showRadioAlert.timer = setTimeout(() => alert.classList.remove('show'), 4200)
+    }
+
+    function playRadioTrack(nextIndex) {
+      const audio = document.getElementById('bg-audio')
+      if (!audio || nextIndex < 0 || !radioTracks[nextIndex]) return
+      currentRadioIndex = nextIndex
+      const track = radioTracks[currentRadioIndex]
+      audio.src = encodeRadioFile(track.file)
+      audio.loop = false
+      audio.load()
+      audio.play().catch(() => {})
+      showRadioAlert(track)
+    }
+
+    function startRadio() {
+      const nextIndex = getRandomRadioIndex(-1)
+      playRadioTrack(nextIndex)
+    }
+
+    function playNextRadioTrack() {
+      const nextIndex = getRandomRadioIndex(currentRadioIndex)
+      playRadioTrack(nextIndex)
+    }
+
+    function setAudioVolume(value) {
+      const audio = document.getElementById('bg-audio')
+      const volumeValue = document.getElementById('volumeValue')
+      if (!audio || !volumeValue) return
+      const normalized = Number(value)
+      audio.volume = Number.isFinite(normalized) ? Math.min(1, Math.max(0, normalized)) : 0.65
+      volumeValue.textContent = `${Math.round(audio.volume * 100)}%`
+      localStorage.setItem('products-radio-volume', audio.volume.toString())
+    }
+
+    function showToast(message, type = 'info', duration = 4200) {
+      const container = document.getElementById('toastContainer')
+      if (!container || !message) return
+      const toast = document.createElement('div')
+      toast.className = `toast ${type}`
+      toast.textContent = message
+      container.appendChild(toast)
+      requestAnimationFrame(() => toast.classList.add('show'))
+      setTimeout(() => {
+        toast.classList.remove('show')
+        setTimeout(() => toast.remove(), 240)
+      }, duration)
+    }
+
+    function getSavedFavorites() {
+      const raw = localStorage.getItem('productFavorites')
+      if (!raw) return []
+      try {
+        const parsed = JSON.parse(raw)
+        return Array.isArray(parsed) ? parsed.map(Number) : []
+      } catch (e) {
+        return []
+      }
+    }
+
+    function saveFavorites(list) {
+      localStorage.setItem('productFavorites', JSON.stringify(Array.from(new Set(list.map(Number)))))
+    }
+
+    function isFavorite(productId) {
+      return getSavedFavorites().includes(Number(productId))
+    }
+
+    function toggleFavorite(productId) {
+      const favorites = getSavedFavorites()
+      const id = Number(productId)
+      const index = favorites.indexOf(id)
+      if (index === -1) {
+        favorites.push(id)
+        saveFavorites(favorites)
+        showToast('Added to favorites', 'success')
+        return true
+      }
+      favorites.splice(index, 1)
+      saveFavorites(favorites)
+      showToast('Removed from favorites', 'info')
+      return false
+    }
+
+    function updateFavoriteButton(button, isFavorited) {
+      if (!button) return
+      button.classList.toggle('liked', isFavorited)
+      button.setAttribute('aria-label', isFavorited ? 'Remove from favorites' : 'Add to favorites')
+    }
+
+    function setMuteState(muted) {
+      const audio = document.getElementById('bg-audio')
+      const iconOn = document.getElementById('icon-vol-on')
+      const iconOff = document.getElementById('icon-vol-off')
+      const button = document.getElementById('audioToggleBtn')
+      if (!audio || !button || !iconOn || !iconOff) return
+      audio.muted = muted
+      button.setAttribute('aria-pressed', muted ? 'true' : 'false')
+      iconOn.style.display = muted ? 'none' : 'block'
+      iconOff.style.display = muted ? 'block' : 'none'
+      localStorage.setItem('products-radio-muted', muted ? 'true' : 'false')
+    }
+
+    function renderAuthActions(session) {
+      const actions = document.getElementById('authActions')
+      if (!actions) return
+      actions.innerHTML = ''
+
+      const cartButton = document.createElement('button')
+      cartButton.type = 'button'
+      cartButton.className = 'cart-btn'
+      cartButton.id = 'cartButton'
+      cartButton.setAttribute('aria-label', 'Cart')
+      cartButton.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>0</span>`
+      actions.appendChild(cartButton)
+
+      if (session && session.token) {
+        const accountDropdown = document.createElement('div')
+        accountDropdown.className = 'account-dropdown'
+        accountDropdown.innerHTML = `<button class="account-btn" id="accountDropdownBtn" type="button">${session.name ? session.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : session.email || 'Customer'}</button><div class="dropdown-content" id="accountDropdownMenu"><a href="/home">Account</a><a href="#" id="signOutLink">Sign Out</a></div>`
+        actions.appendChild(accountDropdown)
+      } else {
+        const signIn = document.createElement('a')
+        signIn.className = 'sign-in-btn'
+        signIn.href = '/login'
+        signIn.textContent = 'Sign In'
+        actions.appendChild(signIn)
+      }
+    }
+
+    function logoutCustomer() {
+      localStorage.removeItem('historey.session')
+      window.location.href = '/'
+    }
+
+    function loadAuthState() {
+      const raw = localStorage.getItem('historey.session')
+      let session = null
+      try {
+        session = raw ? JSON.parse(raw) : null
+      } catch (e) {
+        session = null
+      }
+      renderAuthActions(session)
+    }
+
+    function restoreAudioSettings() {
+      const savedVolume = localStorage.getItem('products-radio-volume')
+      if (savedVolume !== null) {
+        setAudioVolume(savedVolume)
+        document.getElementById('volumeSlider').value = savedVolume
+      }
+
+      const savedMuted = localStorage.getItem('products-radio-muted') === 'true'
+      setMuteState(savedMuted)
+    }
+
+    const productGrid = document.getElementById('productGrid')
+    const status = document.getElementById('productStatus')
+    const loadingEl = document.getElementById('loading')
+    const endEl = document.getElementById('end')
+
+    let page = 1
+    const limit = 12
+    let loading = false
+    let hasMore = true
+
+    function createCard(p) {
+      const article = document.createElement('article')
+      article.className = 'product-card'
+      article.dataset.productId = p.id
+
+      const link = document.createElement('a')
+      link.href = `/product/${p.id}`
+      link.className = 'product-link'
+
+      const imgWrap = document.createElement('div')
+      imgWrap.className = 'product-image-placeholder'
+      const img = document.createElement('img')
+      img.src = (p.images && p.images.length) ? p.images[0].url : '/media/images/prod_pg/landingmerch.png'
+      img.alt = p.name || 'Product image'
+      img.loading = 'lazy'
+      img.onerror = function() { this.onerror = null; this.src = '/media/images/prod_pg/landingmerch.png' }
+      imgWrap.appendChild(img)
+
+      const info = document.createElement('div')
+      info.className = 'product-info'
+      const title = document.createElement('div')
+      title.className = 'product-title'
+      title.textContent = p.name || 'Untitled'
+      const price = document.createElement('div')
+      price.className = 'product-price'
+      price.textContent = formatPrice(p.price)
+
+      info.appendChild(title)
+      info.appendChild(price)
+
+      link.appendChild(imgWrap)
+      link.appendChild(info)
+      article.appendChild(link)
+
+      const actions = document.createElement('div')
+      actions.className = 'card-actions'
+
+      const session = readSession()
+      const buyBtn = document.createElement('button')
+      buyBtn.type = 'button'
+      buyBtn.className = 'add-to-cart-btn buy-btn'
+      buyBtn.dataset.productId = p.id
+      if (session && session.token) {
+        buyBtn.textContent = 'Buy Now'
+        buyBtn.addEventListener('click', () => {
+          showToast('Opening product detail for checkout', 'info')
+          window.location.href = `/product/${p.id}?buy=1`
+        })
+      } else {
+        buyBtn.textContent = 'Sign in to buy'
+        buyBtn.addEventListener('click', () => {
+          showToast('Sign in to add this item to your cart.', 'warning')
+          window.location.href = '/login'
+        })
+      }
+
+      const favBtn = document.createElement('button')
+      favBtn.type = 'button'
+      favBtn.className = `heart-btn${isFavorite(p.id) ? ' liked' : ''}`
+      favBtn.dataset.productId = p.id
+      favBtn.setAttribute('aria-label', isFavorite(p.id) ? 'Remove from favorites' : 'Add to favorites')
+      favBtn.innerHTML = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67 11.06 4.61a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>'
+      favBtn.addEventListener('click', function(event) {
+        event.stopPropagation()
+        event.preventDefault()
+        const favorited = toggleFavorite(p.id)
+        updateFavoriteButton(favBtn, favorited)
+      })
+
+      actions.appendChild(favBtn)
+      actions.appendChild(buyBtn)
+      article.appendChild(actions)
+
+      return article
+    }
+
+    function renderProducts(items) {
+      items.forEach(p => productGrid.appendChild(createCard(p)))
+    }
+
+    async function loadNext() {
+      if (loading || !hasMore) return
+      loading = true
+      loadingEl.style.display = 'block'
+      try {
+        const res = await fetch(`/api/v1/products?page=${page}&limit=${limit}`)
+        if (!res.ok) throw new Error('Network')
+        const data = await res.json()
+        const items = data.items || data
+        if (!items || items.length === 0) {
+          hasMore = false
+          endEl.style.display = 'block'
+          status.textContent = 'No products found.'
+        } else {
+          renderProducts(items)
+          page++
+          status.textContent = `Showing ${(page-1)*limit > data.total ? data.total : (page-1)*limit} of ${data.total || 'many'}`
+          if (data.total !== undefined && page > data.totalPages) {
+            hasMore = false
+            endEl.style.display = 'block'
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load products', err)
+        status.textContent = 'Failed to load products.'
+        showToast('Unable to load products right now. Please try again later.', 'error')
+      } finally {
+        loading = false
+        loadingEl.style.display = hasMore ? 'none' : 'none'
+      }
+    }
+
+    loadAuthState()
+    restoreAudioSettings()
+    startRadio()
+    loadNext()
+
+    const radioAudio = document.getElementById('bg-audio')
+    if (radioAudio) {
+      radioAudio.addEventListener('ended', playNextRadioTrack)
+    }
+
+    const audioToggleBtn = document.getElementById('audioToggleBtn')
+    if (audioToggleBtn) {
+      audioToggleBtn.addEventListener('click', function() {
+        const audio = document.getElementById('bg-audio')
+        if (!audio) return
+        const muted = !audio.muted
+        setMuteState(muted)
+        if (!muted) audio.play().catch(() => {})
+      })
+    }
+
+    const volumeSlider = document.getElementById('volumeSlider')
+    if (volumeSlider) {
+      volumeSlider.addEventListener('input', function(event) {
+        setAudioVolume(event.target.value)
+        if (document.getElementById('bg-audio').muted) {
+          setMuteState(false)
+        }
+      })
+    }
+
+    window.addEventListener('scroll', () => {
+      if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 700)) {
+        loadNext()
+      }
+    })
+  </script>
+</body>
+</html>

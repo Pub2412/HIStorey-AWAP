@@ -89,8 +89,37 @@ function normalizeProductPayload(body) {
 
 exports.listProducts = async (req, res) => {
   const q = (req.query.q || '').toLowerCase()
+  const page = Number(req.query.page) || null
+  const limit = Number(req.query.limit) || null
+
+  // If DB available, prefer paginated response when page or limit provided
   if (useDb && ProductModel) {
     try {
+      if (page && limit) {
+        const offset = (page - 1) * limit
+        const result = await ProductModel.findAndCountAll({
+          where: q ? sequelizeWhere(q) : { is_deleted: false },
+          include: [{ model: ProductImage, as: 'images', attributes: ['id','file_path','is_primary','uploaded_at'] }],
+          limit,
+          offset,
+          order: [['created_at', 'DESC']]
+        })
+        const items = result.rows.map(mapProduct)
+        return res.json({ items, total: result.count, page, limit, totalPages: Math.ceil(result.count / limit) })
+      }
+
+      // Support limit-only suggestions without pagination
+      if (limit && !page) {
+        const all = await ProductModel.findAll({
+          where: q ? sequelizeWhere(q) : { is_deleted: false },
+          include: [{ model: ProductImage, as: 'images', attributes: ['id','file_path','is_primary','uploaded_at'] }],
+          limit,
+          order: [['created_at', 'DESC']]
+        })
+        return res.json(all.map(mapProduct))
+      }
+
+      // default: return all (backwards compatibility)
       const all = await ProductModel.findAll({
         where: q ? sequelizeWhere(q) : {  },
         order: [['id', 'DESC']],
@@ -103,8 +132,20 @@ exports.listProducts = async (req, res) => {
       return res.status(500).json({ message: 'DB error' })
     }
   }
-  if (q) return res.json(products.filter(p => p.name.toLowerCase().includes(q) && !p.is_deleted))
-  res.json(products.filter(p => !p.is_deleted))
+
+  // In-memory fallback with optional pagination
+  const filtered = q ? products.filter(p => p.name.toLowerCase().includes(q) && !p.is_deleted) : products.filter(p => !p.is_deleted)
+  if (page && limit) {
+    const offset = (page - 1) * limit
+    const items = filtered.slice(offset, offset + limit)
+    return res.json({ items, total: filtered.length, page, limit, totalPages: Math.ceil(filtered.length / limit) })
+  }
+
+  if (limit && !page) {
+    return res.json(filtered.slice(0, limit))
+  }
+
+  res.json(filtered)
 }
 
 exports.getProduct = async (req, res) => {

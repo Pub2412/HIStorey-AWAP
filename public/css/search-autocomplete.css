@@ -1,0 +1,48 @@
+.autocomplete-dropdown {
+  position: absolute;
+  z-index: 9999;
+  display: none;
+  width: 100%;
+  max-width: 360px;
+  background: rgba(17, 17, 17, 0.96);
+  color: #fff;
+  border-radius: 18px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+  overflow: hidden;
+  margin-top: 8px;
+  font-family: 'Poppins', Arial, sans-serif;
+}
+
+.autocomplete-item {
+  padding: 14px 16px;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.autocomplete-item:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-item:hover,
+.autocomplete-item.active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.autocomplete-item .suggestion-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.autocomplete-item .suggestion-meta {
+  font-size: 0.82rem;
+  opacity: 0.82;
+  line-height: 1.35;
+}
+
+.autocomplete-item .suggestion-price {
+  font-size: 0.82rem;
+  opacity: 0.75;
+}

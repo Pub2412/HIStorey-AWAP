@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HIStore'y - Products</title>
+  <link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    /* Copy of homepage styles (keeps products page visually consistent) */
+    :root {
+      --topbar: #36322b;
+      --nav: #8a0c0c;
+      --nav-border: #dcb538;
+      --bg-start: #b59758;
+      --bg-end: #9a8148;
+      --panel: #dfdbd2;
+      --card: #e9e5db;
+      --accent: #a6814c;
+      --text: #111111;
+      --white: #ffffff;
+      --shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Poppins', Arial, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .top-header {
+      background: var(--topbar);
+      padding: 16px 5%;
+      display: grid;
+      grid-template-columns: 1fr minmax(0, 1.3fr) 1fr;
+      align-items: center;
+      gap: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .logo-container { display:flex; align-items:center }
+    .header-logo { height: 40px; width: auto; display:block }
+    .search-container { max-width: 560px; width: 100%; margin:0 auto; position:relative }
+    .search-input { width:100%; padding:12px 48px 12px 20px; border-radius:999px; border:none; outline:none; font:inherit; font-size:15px; box-shadow: 0 8px 18px rgba(0,0,0,0.22) }
+    .search-btn { position:absolute; right:14px; top:50%; transform: translateY(-50%); background:none; border:none; cursor:pointer; display:grid; place-items:center; color:#000 }
+    .auth-container { display:flex; align-items:center; justify-content:flex-end; gap:14px; flex-wrap:wrap }
+    .cart-btn,.account-btn,.sign-in-btn,.audio-btn { border:none; cursor:pointer }
+    .cart-btn,.account-btn,.sign-in-btn { background: var(--white); color:#000; box-shadow:0 4px 6px rgba(0,0,0,0.2); text-decoration:none }
+    .cart-btn { padding:8px 20px; border-radius:999px; display:inline-flex; align-items:center; gap:8px; font-size:16px; font-weight:500 }
+    .account-btn,.sign-in-btn { padding:10px 20px; border-radius:999px; font-size:15px; font-weight:500 }
+    .audio-btn { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--white); color:#000; box-shadow:0 4px 6px rgba(0,0,0,0.2) }
+
+    .main-nav { background: var(--nav); border-bottom: 2px solid var(--nav-border); padding: 14px 5%; display:flex; justify-content:center; gap:clamp(28px,5vw,64px); flex-wrap:wrap }
+    .main-nav a { color: var(--white); text-decoration:none; text-transform:uppercase; font-weight:600; font-size:15px; letter-spacing:0.5px }
+
+    .main-content { flex:1; padding: 40px 5% 52px; display:flex; flex-direction:column; align-items:center; gap:34px; width:100%; max-width:1320px; margin:0 auto }
+
+    .hero-banner { width:100%; border-radius:24px; background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.18), transparent 36%), linear-gradient(135deg, #3f3427, #2b2117); box-shadow:var(--shadow); padding:34px; display:grid; grid-template-columns: minmax(0,0.95fr) minmax(0,1.05fr); align-items:center; gap:28px }
+    .hero-copy { display:flex; flex-direction:column; align-items:center; gap:18px; color:var(--white); max-width:720px; text-align:center }
+    .hero-logo { width:min(100%,420px); height:auto; display:block; filter: drop-shadow(0 0 14px rgba(255,255,255,0.52)) }
+    .cta-btn { display:inline-flex; align-items:center; justify-content:center; min-height:46px; padding:0 28px; border-radius:999px; background:var(--white); color:#111; text-decoration:none; font-weight:600; box-shadow:0 10px 22px rgba(0,0,0,0.24) }
+
+    .product-grid { width:100%; display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:28px; justify-items:center }
+    .product-card { background: rgba(223, 219, 210, 0.98); border-radius:18px; padding:14px; display:flex; flex-direction:column; gap:12px; box-shadow:var(--shadow); width:100%; max-width:320px; align-items:center; text-align:center }
+    .product-link { text-decoration:none; color:inherit; display:flex; flex-direction:column; gap:14px }
+    .product-image-placeholder { width:100%; aspect-ratio:1/1; border-radius:14px; background:linear-gradient(180deg,#c1b8a2,#a99d84); display:flex; align-items:center; justify-content:center; overflow:hidden }
+    .product-image-placeholder img { width:100%; height:100%; object-fit:cover; display:block }
+    .product-title { font-size:14px; font-weight:700; color:#333; text-transform:uppercase }
+    .product-price { font-size:21px; font-weight:700; color:#000 }
+    .card-actions { width:100%; display:flex; justify-content:center; margin-top:8px }
+    .buy-btn { background: var(--accent); color: #fff; border: none; padding: 10px 18px; border-radius: 999px; font-weight:700; cursor:pointer }
+    .buy-btn:hover { transform: translateY(-2px) }
+
+    .site-footer { margin-top:auto; background: #424036; padding:24px 5%; display:flex; justify-content:center; align-items:center; color:#fff; font-size:14px }
+
+    @media (max-width: 1200px) { .product-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
+    @media (max-width: 900px) { .top-header { grid-template-columns: 1fr; justify-items:center } .product-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    @media (max-width: 600px) { .product-grid { grid-template-columns: 1fr; padding: 0 12px } .hero-copy { max-width: 360px } }
+  </style>
+</head>
+<body>
+  <header class="top-header">
+    <div class="logo-container">
+      <img src="/media/images/home_pg/LogoWhite.png" alt="HIStore'y" class="header-logo">
+    </div>
+    <div class="search-container">
+      <input type="text" placeholder="Search here" class="search-input" aria-label="search">
+      <button class="search-btn" type="button" aria-label="Search">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+    </div>
+    <div class="auth-container" id="authActions"></div>
+  </header>
+
+  <nav class="main-nav" aria-label="Primary">
+    <a href="/products">PRODUCTS</a>
+    <a href="#storySection">HIS STORY</a>
+    <a href="#minigameSection">MJ MINIGAME</a>
+  </nav>
+
+  <main class="main-content">
+    <section class="hero-banner">
+      <div class="hero-copy">
+        <img src="/media/images/home_pg/LogoWhite.png" alt="HIStore'y" class="hero-logo">
+        <h1>Products</h1>
+        <p>Browse the full catalog — infinite scrolling for an uninterrupted experience.</p>
+        <a href="/products" class="cta-btn">Browse All</a>
+      </div>
+      <div class="hero-image-wrap">
+        <img src="/media/images/home_pg/landingmerch.png" alt="Featured merchandise" class="hero-image">
+      </div>
+    </section>
+
+    <section class="section-title">All Products</section>
+    <div id="productStatus" style="width:100%;max-width:1320px;color:rgba(255,255,255,0.9);font-size:14px;">Loading products...</div>
+    <section class="product-grid" id="productGrid" aria-label="Products list"></section>
+    <div id="loading" style="text-align:center;padding:18px;color:#fff;display:none">Loading...</div>
+    <div id="end" style="text-align:center;padding:18px;color:#fff;display:none">No more products</div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Copyright 2026 HIStore'y E-commerce</p>
+  </footer>
+
+  <audio id="bg-audio" autoplay playsinline preload="auto"></audio>
+
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script>
+    function readSession() {
+      try {
+        const raw = localStorage.getItem('historey.session')
+        if (!raw) return null
+        return JSON.parse(raw)
+      } catch (e) { return null }
+    }
+
+    function formatPrice(value) {
+      const numeric = Number(value)
+      if (Number.isNaN(numeric)) return 'PHP 0.00'
+      return `PHP ${numeric.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    }
+
+    const productGrid = document.getElementById('productGrid')
+    const status = document.getElementById('productStatus')
+    const loadingEl = document.getElementById('loading')
+    const endEl = document.getElementById('end')
+
+    let page = 1
+    const limit = 12
+    let loading = false
+    let hasMore = true
+
+    function createCard(p) {
+      const article = document.createElement('article')
+      article.className = 'product-card'
+      article.dataset.productId = p.id
+
+      const link = document.createElement('a')
+      link.href = `/product/${p.id}`
+      link.className = 'product-link'
+
+      const imgWrap = document.createElement('div')
+      imgWrap.className = 'product-image-placeholder'
+      const img = document.createElement('img')
+      img.src = (p.images && p.images.length) ? p.images[0].url : '/media/images/prod_pg/landingmerch.png'
+      img.alt = p.name || 'Product image'
+      img.loading = 'lazy'
+      img.onerror = function() { this.onerror = null; this.src = '/media/images/prod_pg/landingmerch.png' }
+      imgWrap.appendChild(img)
+
+      const info = document.createElement('div')
+      info.className = 'product-info'
+      const title = document.createElement('div')
+      title.className = 'product-title'
+      title.textContent = p.name || 'Untitled'
+      const price = document.createElement('div')
+      price.className = 'product-price'
+      price.textContent = formatPrice(p.price)
+
+      info.appendChild(title)
+      info.appendChild(price)
+
+      link.appendChild(imgWrap)
+      link.appendChild(info)
+      article.appendChild(link)
+
+      const actions = document.createElement('div')
+      actions.className = 'card-actions'
+
+      const session = readSession()
+      const buyBtn = document.createElement('button')
+      buyBtn.type = 'button'
+      buyBtn.className = 'add-to-cart-btn buy-btn'
+      buyBtn.dataset.productId = p.id
+      if (session && session.token) {
+        buyBtn.textContent = 'Buy Now'
+        buyBtn.addEventListener('click', () => { window.location.href = `/product/${p.id}?buy=1` })
+      } else {
+        buyBtn.textContent = 'Sign in to buy'
+        buyBtn.addEventListener('click', () => { window.location.href = '/login' })
+      }
+
+      actions.appendChild(buyBtn)
+      article.appendChild(actions)
+
+      return article
+    }
+
+    function renderProducts(items) {
+      items.forEach(p => productGrid.appendChild(createCard(p)))
+    }
+
+    async function loadNext() {
+      if (loading || !hasMore) return
+      loading = true
+      loadingEl.style.display = 'block'
+      try {
+        const res = await fetch(`/api/v1/products?page=${page}&limit=${limit}`)
+        if (!res.ok) throw new Error('Network')
+        const data = await res.json()
+        const items = data.items || data
+        if (!items || items.length === 0) {
+          hasMore = false
+          endEl.style.display = 'block'
+          status.textContent = 'No products found.'
+        } else {
+          renderProducts(items)
+          page++
+          status.textContent = `Showing ${(page-1)*limit > data.total ? data.total : (page-1)*limit} of ${data.total || 'many'}`
+          if (data.total !== undefined && page > data.totalPages) {
+            hasMore = false
+            endEl.style.display = 'block'
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load products', err)
+        status.textContent = 'Failed to load products.'
+      } finally {
+        loading = false
+        loadingEl.style.display = hasMore ? 'none' : 'none'
+      }
+    }
+
+    // initial load
+    loadNext()
+
+    window.addEventListener('scroll', () => {
+      if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 700)) {
+        loadNext()
+      }
+    })
+  </script>
+</body>
+</html>

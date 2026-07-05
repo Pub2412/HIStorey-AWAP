@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Products - HIStore'y</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <style>
+    .products-container { max-width:1100px; margin:24px auto; padding:0 16px; }
+    .product-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; }
+    .product-card { background:#fff; border-radius:8px; padding:12px; box-shadow:0 2px 6px rgba(0,0,0,0.08); }
+    .product-card img { width:100%; height:160px; object-fit:cover; border-radius:6px; }
+    .product-title { font-weight:600; margin-top:8px; font-size:15px }
+    .product-price { color:#b12704; font-weight:700; margin-top:6px }
+    .loading { text-align:center; padding:18px; color:#444 }
+    .end-msg { text-align:center; padding:18px; color:#666 }
+  </style>
+</head>
+<body>
+  <div class="products-container">
+    <h1>Products</h1>
+    <div id="grid" class="product-grid"></div>
+    <div id="loading" class="loading">Loading...</div>
+    <div id="end" class="end-msg" style="display:none">No more products</div>
+  </div>
+
+  <script>
+    const grid = document.getElementById('grid')
+    const loadingEl = document.getElementById('loading')
+    const endEl = document.getElementById('end')
+
+    let page = 1
+    const limit = 12
+    let loading = false
+    let hasMore = true
+
+    function renderProducts(items) {
+      items.forEach(p => {
+        const imgUrl = (p.images && p.images.length) ? p.images[0].url : '/public/images/prds/placeholder.png'
+        const div = document.createElement('div')
+        div.className = 'product-card'
+        div.innerHTML = `
+          <a href="/product/${p.id}"><img src="${imgUrl}" alt="${p.name}"></a>
+          <div class="product-title">${p.name}</div>
+          <div class="product-price">₱${Number(p.price).toFixed(2)}</div>
+        `
+        grid.appendChild(div)
+      })
+    }
+
+    async function loadNext() {
+      if (loading || !hasMore) return
+      loading = true
+      loadingEl.style.display = 'block'
+      try {
+        const res = await fetch(`/api/v1/products?page=${page}&limit=${limit}`)
+        if (!res.ok) throw new Error('Network')
+        const data = await res.json()
+        const items = data.items || data
+        if (!items || items.length === 0) {
+          hasMore = false
+          endEl.style.display = 'block'
+        } else {
+          renderProducts(items)
+          page++
+          if (data.total !== undefined && page > data.totalPages) {
+            hasMore = false
+            endEl.style.display = 'block'
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load products', err)
+      } finally {
+        loading = false
+        loadingEl.style.display = hasMore ? 'none' : 'none'
+      }
+    }
+
+    // initial load
+    loadNext()
+
+    window.addEventListener('scroll', () => {
+      if ((window.innerHeight + window.scrollY) >= (document.body.offsetHeight - 600)) {
+        loadNext()
+      }
+    })
+  </script>
+</body>
+</html>

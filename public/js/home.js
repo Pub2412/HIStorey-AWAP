@@ -137,6 +137,29 @@ $(function() {
 		muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false')
 		if (iconVolOn) iconVolOn.style.display = muted ? 'none' : 'block'
 		if (iconVolOff) iconVolOff.style.display = muted ? 'block' : 'none'
+		localStorage.setItem('home-radio-muted', muted ? 'true' : 'false')
+	}
+
+	function setAudioVolume(value) {
+		const audio = document.getElementById('bg-audio')
+		const volumeValue = document.getElementById('volumeValue')
+		if (!audio || !volumeValue) return
+		const normalized = Number(value)
+		audio.volume = Number.isFinite(normalized) ? Math.min(1, Math.max(0, normalized)) : 0.65
+		volumeValue.textContent = `${Math.round(audio.volume * 100)}%`
+		localStorage.setItem('home-radio-volume', audio.volume.toString())
+	}
+
+	function restoreAudioSettings() {
+		const savedVolume = localStorage.getItem('home-radio-volume')
+		if (savedVolume !== null) {
+			setAudioVolume(savedVolume)
+			const slider = document.getElementById('volumeSlider')
+			if (slider) slider.value = savedVolume
+		}
+
+		const savedMuted = localStorage.getItem('home-radio-muted') === 'true'
+		setMuteState(savedMuted)
 	}
 
 	function renderAuthActions(session) {
@@ -156,9 +179,6 @@ $(function() {
 			$actions.append(`<a class="sign-in-btn" href="/login">Sign In</a>`)
 		}
 
-		$actions.append(
-			`<button class="audio-btn" id="audioToggleBtn" type="button" aria-label="Toggle audio" aria-pressed="false"><svg id="icon-vol-on" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg><svg id="icon-vol-off" style="display:none;" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="1" x2="1" y2="23"></line></svg></button>`
-		)
 	}
 
 	function logoutCustomer() {
@@ -276,6 +296,7 @@ $(function() {
 	}
 
 	loadAuthState()
+	restoreAudioSettings()
 	startRadio()
 	loadProducts()
 
@@ -297,7 +318,13 @@ $(function() {
 		if (!muted && audio.paused) {
 			audio.play().catch(() => {})
 		}
-		localStorage.setItem('landing-muted', muted ? 'true' : 'false')
+	})
+
+	$(document).on('input', '#volumeSlider', function() {
+		setAudioVolume($(this).val())
+		if (document.getElementById('bg-audio')?.muted) {
+			setMuteState(false)
+		}
 	})
 
 	$(document).on('input', '.search-input', function() {
