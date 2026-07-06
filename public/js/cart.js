@@ -74,14 +74,20 @@
   document.getElementById('checkoutBtn')?.addEventListener('click', ()=>{ window.location.href='/checkout' })
   document.getElementById('saveFavs')?.addEventListener('click', ()=>{ alert('Saved to favourites (demo)') })
 
-    // seed sample if empty for demo purposes only (use CartStore)
-    try {
-      const existing = getCart()
-      if (!existing || !existing.length) {
-        const sample = [ { id: 101, name: 'Sample Tee', price: 599.00, qty: 1, img: '/media/images/cart_pg/cart_placeholder.png', description: 'Classic tee' } ]
-        saveCart(sample)
-      }
-    } catch (e) {}
+  function updateHeaderCartCount(){
+    try{
+      const c = (window.CartStore && window.CartStore.getCart()) || []
+      const el = document.querySelector('#authActions .cart-btn span')
+      if (el) el.textContent = String(c.reduce((s,i)=>s+Number(i.qty||1),0) || c.length || 0)
+    }catch(e){}
+  }
+
+  // initialize header count on load
+  if (document.readyState === 'complete' || document.readyState === 'interactive') updateHeaderCartCount()
+  else window.addEventListener('DOMContentLoaded', updateHeaderCartCount)
+
+  // update header when cart.updated event fires
+  window.addEventListener('cart.updated', updateHeaderCartCount)
 
   render()
 })()

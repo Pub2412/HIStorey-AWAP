@@ -1,8 +1,11 @@
 const express = require('express')
 const router = express.Router()
-const { checkAdmin, sendReceiptEmail, verifyToken } = require('../middlewares/auth')
+const { checkAdmin, verifyToken } = require('../middlewares/auth')
+const { sendReceiptEmail } = require('../utils/nodemailer')
+const { generateReceiptPDF } = require('../utils/pdfGenerator')
 const sequelize = require('../config/database')
 const { QueryTypes } = require('sequelize')
+
 
 // In-memory fallback transactions
 const transactions = []
@@ -166,7 +169,7 @@ router.get('/transactions/:id', async (req, res) => {
 
 router.post('/transactions', async (req, res) => {
   if (await canUseDatabase()) {
-    const { user_id = null, status = 'Pending', total_amount = 0, shipping_address = '', items = [] } = req.body
+    const { user_id = null, status = 'Pending', total_amount = 0, shipping_address = '', items = [], email } = req.body
     try {
       const [result] = await sequelize.query(
         'INSERT INTO transactions (user_id, status, total_amount, shipping_address) VALUES (:user_id, :status, :total_amount, :shipping_address)',
@@ -194,6 +197,25 @@ router.post('/transactions', async (req, res) => {
         }
       }
 
+      // Send email if email is provided
+      if (email && transactionId) {
+        try {
+          const transactionData = {
+            id: transactionId,
+            status,
+            total: total_amount,
+            email,
+            createdAt: new Date(),
+            items: items || []
+          }
+          const pdfBuffer = await generateReceiptPDF(transactionData)
+          await sendReceiptEmail(transactionData, pdfBuffer)
+        } catch (emailError) {
+          console.error('Email sending failed:', emailError)
+          // Continue with response even if email fails
+        }
+      }
+
       return res.status(201).json({ id: transactionId, status, total_amount, shipping_address })
     } catch (error) {
       console.error(error)
@@ -204,25 +226,54 @@ router.post('/transactions', async (req, res) => {
   const { items = [], total = 0, email } = req.body
   const t = { id: nextTx++, items, total, email, status: 'created', updatedAt: new Date() }
   transactions.push(t)
+  
+  // Send email for in-memory transactions if email provided
+  if (email) {
+    try {
+      const pdfBuffer = await generateReceiptPDF(t)
+      await sendReceiptEmail(t, pdfBuffer)
+    } catch (emailError) {
+      console.error('Email sending failed:', emailError)
+    }
+  }
+  
   res.status(201).json(t)
 })
 
-// Update transaction; notify by email and attach receipt PDF when email provided
+// Update transaction; automatically send email with PDF receipt when email is available
 router.put('/transactions/:id', checkAdmin, async (req, res) => {
   if (await canUseDatabase()) {
     try {
       const transaction = await getTransactionFromDb(req.params.id)
       if (!transaction) return res.status(404).json({ message: 'Not found' })
 
+      const items = await getItemsForTransaction(req.params.id)
       const status = req.body.status ?? transaction.status
+      const email = req.body.email || transaction.email
+      
       await sequelize.query('UPDATE transactions SET status = :status, updated_at = CURRENT_TIMESTAMP WHERE id = :id', {
         replacements: { id: req.params.id, status },
         type: QueryTypes.UPDATE
       })
 
-      if (req.body.sendEmail && req.body.email) {
-        const info = await sendReceiptEmail({ id: transaction.id, status, total: transaction.total_amount, updatedAt: new Date(), items: [] })
-        return res.json({ transaction: { ...transaction, status }, emailInfo: info })
+      // Automatically send email if email is available
+      if (email) {
+        try {
+          const transactionData = {
+            id: transaction.id,
+            status,
+            total: transaction.total_amount,
+            email,
+            updatedAt: new Date(),
+            items: items || []
+          }
+          const pdfBuffer = await generateReceiptPDF(transactionData)
+          const info = await sendReceiptEmail(transactionData, pdfBuffer)
+          return res.json({ transaction: { ...transaction, status }, emailInfo: info })
+        } catch (emailError) {
+          console.error('Email sending failed:', emailError)
+          // Continue with response even if email fails
+        }
       }
 
       return res.json({ transaction: { ...transaction, status } })
@@ -236,14 +287,19 @@ router.put('/transactions/:id', checkAdmin, async (req, res) => {
   if (!t) return res.status(404).json({ message: 'Not found' })
   t.status = req.body.status ?? t.status
   t.updatedAt = new Date()
-  if (req.body.sendEmail && t.email) {
+  
+  // Automatically send email if email is available
+  if (t.email) {
     try {
-      const info = await sendReceiptEmail(t)
+      const pdfBuffer = await generateReceiptPDF(t)
+      const info = await sendReceiptEmail(t, pdfBuffer)
       return res.json({ transaction: t, emailInfo: info })
     } catch (err) {
-      return res.status(500).json({ message: 'Email failed', error: err.message })
+      console.error('Email sending failed:', err)
+      // Continue with response even if email fails
     }
   }
+  
   res.json(t)
 })
 

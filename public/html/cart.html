@@ -95,5 +95,99 @@
 
   <script src="/public/js/cart-storage.js"></script>
   <script src="/public/js/cart.js"></script>
+  <script>
+    // Render cart button in header
+    function renderAuthActions() {
+      const actions = document.getElementById('authActions')
+      if (!actions) return
+      actions.innerHTML = ''
+
+      const cartButton = document.createElement('a')
+      cartButton.href = '/cart'
+      cartButton.className = 'cart-btn'
+      cartButton.id = 'cartButton'
+      cartButton.setAttribute('aria-label', 'Cart')
+      cartButton.style.cssText = 'padding:8px 20px;border-radius:999px;display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:500;background:#fff;color:#000;text-decoration:none;box-shadow:0 4px 6px rgba(0,0,0,0.2);'
+      cartButton.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span id="cartCount">0</span>`
+      actions.appendChild(cartButton)
+
+      // Check if user is logged in
+      const raw = localStorage.getItem('historey.session')
+      let session = null
+      try {
+        session = raw ? JSON.parse(raw) : null
+      } catch (e) {
+        session = null
+      }
+
+      if (session && session.token) {
+        const accountDropdown = document.createElement('div')
+        accountDropdown.className = 'account-dropdown'
+        accountDropdown.style.cssText = 'position:relative;display:inline-block;'
+        accountDropdown.innerHTML = `<button class="account-btn" id="accountDropdownBtn" type="button" style="padding:10px 20px;border-radius:999px;font-size:15px;font-weight:500;background:#fff;color:#000;text-decoration:none;box-shadow:0 4px 6px rgba(0,0,0,0.2);border:none;cursor:pointer;">${session.name || session.email || 'Customer'}</button><div class="dropdown-content" id="accountDropdownMenu" style="visibility:hidden;opacity:0;transform:translateY(-10px);transition:all 0.25s ease;position:absolute;right:0;top:120%;background:#fff;min-width:160px;border-radius:14px;box-shadow:0 10px 22px rgba(0,0,0,0.24);overflow:hidden;z-index:10;"><a href="/profile" style="display:block;padding:12px 16px;color:#111;text-decoration:none;font-size:14px;">Account</a><a href="#" id="signOutLink" style="display:block;padding:12px 16px;color:#111;text-decoration:none;font-size:14px;">Sign Out</a></div>`
+        actions.appendChild(accountDropdown)
+      } else {
+        const signIn = document.createElement('a')
+        signIn.className = 'sign-in-btn'
+        signIn.href = '/login'
+        signIn.textContent = 'Sign In'
+        signIn.style.cssText = 'padding:10px 20px;border-radius:999px;font-size:15px;font-weight:500;background:#fff;color:#000;text-decoration:none;box-shadow:0 4px 6px rgba(0,0,0,0.2);'
+        actions.appendChild(signIn)
+      }
+
+      updateHeaderCartCount()
+    }
+
+    function updateHeaderCartCount(){
+      try{
+        const c = (window.CartStore && window.CartStore.getCart()) || []
+        const el = document.querySelector('#authActions .cart-btn span')
+        if (el) el.textContent = String(c.reduce((s,i)=>s+Number(i.qty||1),0) || c.length || 0)
+      }catch(e){}
+    }
+
+    // initialize header count on load
+    if (document.readyState === 'complete' || document.readyState === 'interactive') updateHeaderCartCount()
+    else window.addEventListener('DOMContentLoaded', updateHeaderCartCount)
+
+    // update header when cart.updated event fires
+    window.addEventListener('cart.updated', updateHeaderCartCount)
+
+    // Sign out handler
+    document.addEventListener('click', function(e) {
+      if (e.target.id === 'signOutLink') {
+        e.preventDefault()
+        localStorage.removeItem('historey.session')
+        window.location.href = '/login?logout=1'
+      }
+    })
+
+    // Account dropdown toggle
+    document.addEventListener('click', function(e) {
+      if (e.target.id === 'accountDropdownBtn') {
+        e.stopPropagation()
+        const menu = document.getElementById('accountDropdownMenu')
+        if (menu) {
+          menu.style.visibility = menu.style.visibility === 'visible' ? 'hidden' : 'visible'
+          menu.style.opacity = menu.style.opacity === '1' ? '0' : '1'
+          menu.style.transform = menu.style.transform === 'translateY(0)' ? 'translateY(-10px)' : 'translateY(0)'
+        }
+      }
+    })
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.account-dropdown')) {
+        const menu = document.getElementById('accountDropdownMenu')
+        if (menu) {
+          menu.style.visibility = 'hidden'
+          menu.style.opacity = '0'
+          menu.style.transform = 'translateY(-10px)'
+        }
+      }
+    })
+
+    renderAuthActions()
+  </script>
 </body>
 </html>

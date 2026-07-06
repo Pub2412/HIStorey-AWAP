@@ -53,6 +53,14 @@ app.get('/profile', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'profile.html'))
 });
 
+app.get('/cart', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'cart.html'))
+});
+
+app.get('/checkout', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'checkout.html'))
+});
+
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'admin', 'dashboard.html'))
 });
@@ -81,7 +89,9 @@ app.get('/404', (req, res) => {
 const products = require('./routes/products')
 const transactions = require('./routes/transactions')
 const userRoutes = require('./routes/user')
+const cartRoutes = require('./routes/cart');
 
+app.use('/api/v1', cartRoutes);
 app.use('/api/v1', products)
 app.use('/api/v1', transactions)
 app.use('/api/v1', userRoutes)

@@ -529,8 +529,8 @@
       if (!actions) return
       actions.innerHTML = ''
 
-      const cartButton = document.createElement('button')
-      cartButton.type = 'button'
+      const cartButton = document.createElement('a')
+      cartButton.href = '/cart'
       cartButton.className = 'cart-btn'
       cartButton.id = 'cartButton'
       cartButton.setAttribute('aria-label', 'Cart')

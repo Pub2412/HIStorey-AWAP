@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HIStore'y - Checkout</title>
+  <link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <style>
+    :root{ --topbar:#36322b; --nav:#8a0c0c; --nav-border:#dcb538; --panel:#dfdbd2; --accent:#a6814c; --text:#111 }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:'Poppins',Arial,sans-serif;color:var(--text);background:linear-gradient(180deg,#b59758,#9a8148);min-height:100vh;display:flex;flex-direction:column}
+    .top-header{background:var(--topbar);padding:16px 5%;display:flex;align-items:center;justify-content:space-between;gap:18px;box-shadow:0 12px 28px rgba(0,0,0,0.18)}
+    .logo-container{display:flex;align-items:center}
+    .header-logo{height:40px}
+    .main-nav{background:var(--nav);border-bottom:2px solid var(--nav-border);padding:14px 5%;display:flex;justify-content:center;gap:clamp(28px,5vw,64px)}
+    .main-nav a{color:#fff;text-decoration:none;text-transform:uppercase;font-weight:600}
+
+    .main-content{flex:1;padding:40px 5% 52px;display:flex;justify-content:center}
+    .checkout-shell{width:100%;max-width:1180px;background:var(--panel);border-radius:18px;padding:22px;box-shadow:0 12px 28px rgba(0,0,0,0.18)}
+    .checkout-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}
+    .checkout-grid{display:grid;grid-template-columns: 1fr 1fr;gap:24px}
+    
+    .checkout-section{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px}
+    .section-title{font-size:18px;font-weight:700;margin:0 0 16px 0;color:#333}
+    
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;margin-bottom:6px;font-weight:500;font-size:14px;color:#333}
+    .form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit}
+    .form-group input:focus,.form-group textarea:focus,.form-group select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(166,129,76,0.1)}
+    
+    .order-summary{background:#fff;border-radius:12px;padding:20px}
+    .summary-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}
+    .summary-row:last-child{border-bottom:none}
+    .summary-row.total{font-weight:700;font-size:18px;padding-top:12px;border-top:2px solid #ddd;margin-top:8px}
+    
+    .cart-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid #eee}
+    .cart-item:last-child{border-bottom:none}
+    .item-thumb{width:60px;height:60px;border-radius:8px;overflow:hidden;flex-shrink:0}
+    .item-thumb img{width:100%;height:100%;object-fit:cover}
+    .item-details{flex:1}
+    .item-name{font-weight:600;font-size:14px}
+    .item-qty{font-size:13px;color:#666}
+    .item-price{font-weight:700}
+    
+    .btn{background:var(--accent);color:#fff;border:0;padding:12px 24px;border-radius:8px;cursor:pointer;font-size:15px;font-weight:600;width:100%;transition:background 0.2s}
+    .btn:hover{background:#8b6b3b}
+    .btn:disabled{background:#ccc;cursor:not-allowed}
+    
+    .alert{padding:12px 16px;border-radius:8px;margin-bottom:16px;font-size:14px}
+    .alert-error{background:#fee;border:1px solid #fcc;color:#c33}
+    .alert-success{background:#efe;border:1px solid #cfc;color:#3c3}
+    
+    @media(max-width:768px){ .checkout-grid{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <header class="top-header">
+    <div class="logo-container"><a href="/home"><img src="/media/images/cart_pg/LogoWhite.png" class="header-logo" alt="HIStore'y"></a></div>
+    <div id="authActions" style="display:flex;gap:12px;align-items:center"></div>
+  </header>
+  <nav class="main-nav" aria-label="Primary"><a href="/products">PRODUCTS</a><a href="#storySection">HIS STORY</a><a href="#minigameSection">MJ MINIGAME</a></nav>
+
+  <main class="main-content">
+    <section class="checkout-shell">
+      <div class="checkout-title">
+        <h2 style="margin:0">Checkout</h2>
+        <div style="font-size:14px;color:#666">Complete your order</div>
+      </div>
+
+      <div id="checkoutAlert" class="alert" style="display:none"></div>
+
+      <div class="checkout-grid">
+        <div class="checkout-left">
+          <div class="checkout-section">
+            <h3 class="section-title">Shipping Information</h3>
+            <form id="checkoutForm">
+              <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="your@email.com" required>
+              </div>
+              <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" name="fullName" placeholder="John Doe" required>
+              </div>
+              <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" placeholder="(555) 555-5555">
+              </div>
+              <div class="form-group">
+                <label for="address">Shipping Address</label>
+                <textarea id="address" name="address" rows="3" placeholder="123 Main St, City, Country" required></textarea>
+              </div>
+            </form>
+          </div>
+
+          <div class="checkout-section">
+            <h3 class="section-title">Payment Method</h3>
+            <div class="form-group">
+              <label for="paymentMethod">Select Payment Method</label>
+              <select id="paymentMethod" name="paymentMethod">
+                <option value="cod">Cash on Delivery</option>
+                <option value="gcash">GCash</option>
+                <option value="maya">Maya</option>
+                <option value="card">Credit/Debit Card</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="checkout-right">
+          <div class="order-summary">
+            <h3 class="section-title">Order Summary</h3>
+            <div id="orderItems"></div>
+            <div class="summary-row">
+              <span>Subtotal</span>
+              <span id="subtotal">PHP 0.00</span>
+            </div>
+            <div class="summary-row">
+              <span>Shipping</span>
+              <span>PHP 0.00</span>
+            </div>
+            <div class="summary-row total">
+              <span>Total</span>
+              <span id="grandTotal">PHP 0.00</span>
+            </div>
+            <button type="button" class="btn" id="placeOrderBtn" style="margin-top:16px">Place Order</button>
+            <button type="button" id="backToCart" style="background:transparent;color:#666;border:1px solid #ddd;margin-top:12px;padding:10px 24px;border-radius:8px;cursor:pointer;font-size:14px;width:100%">← Back to Cart</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="background:#424036;color:#fff;padding:22px 5%;text-align:center">Copyright 2026 HIStore'y E-commerce</footer>
+
+  <script src="/public/js/cart-storage.js"></script>
+  <script src="/public/js/checkout.js"></script>
+</body>
+</html>

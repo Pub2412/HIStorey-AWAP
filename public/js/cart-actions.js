@@ -46,7 +46,7 @@
       CartStore.addItem({ id, name, price, qty, img })
       try { window.dispatchEvent(new CustomEvent('cart.updated')) } catch(e){}
       updateHeaderCartCount()
-      if (window.setDetailAlert) window.setDetailAlert(`Added ${qty} item${qty>1?'s':''} to cart for ${name}.`)
+      if (window.setDetailAlert) window.setDetailAlert('Item added to cart')
     } catch(err) {
       console.error(err); alert('Unable to add to cart')
     }

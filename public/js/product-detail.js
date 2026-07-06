@@ -54,7 +54,7 @@
 		const sessionName = getSessionName()
 		$actions.empty()
 
-		$actions.append(`<button type="button" class="cart-btn" id="cartButton" aria-label="Cart"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>0</span></button>`)
+		$actions.append(`<a href="/cart" class="cart-btn" id="cartButton" aria-label="Cart"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>0</span></a>`)
 		if (sessionName) {
 			$actions.append(`<div class="account-dropdown"><button class="account-btn" id="accountDropdownBtn" type="button">${escapeHtml(sessionName)}</button><div class="dropdown-content" id="accountDropdownMenu"><a href="/profile">Account</a><a href="#" id="signOutLink">Sign Out</a></div></div>`)
 		} else {
@@ -228,14 +228,52 @@
 		})
 
 		// Detail add-to-cart is handled by /public/js/cart-actions.js (stores cart in cookies)
-
-		$('#buyNowBtn').on('click', function() {
+		$('#detailAddToCartBtn').on('click', function(e) {
+			e.preventDefault()
 			const session = readSession()
 			if (!session || !session.token) {
 				window.location.href = '/login'
 				return
 			}
-			setDetailAlert(`Ready to purchase ${currentProduct.name} in quantity ${currentQty}.`)
+			
+			// Add to cart with selected quantity
+			if (currentProduct) {
+				const img = document.getElementById('mainProductPhoto')?.getAttribute('src') || null
+				CartStore.addItem({ 
+					id: currentProduct.id, 
+					name: currentProduct.name, 
+					price: Number(currentProduct.price || 0), 
+					qty: currentQty, 
+					img: img 
+				})
+				try { window.dispatchEvent(new CustomEvent('cart.updated')) } catch(e){}
+				updateHeaderCartCount()
+				setDetailAlert('Item added to cart')
+			}
+		})
+
+		$('#buyNowBtn').on('click', function(e) {
+			e.preventDefault()
+			const session = readSession()
+			if (!session || !session.token) {
+				window.location.href = '/login'
+				return
+			}
+			
+			// Add to cart and redirect to checkout
+			if (currentProduct) {
+				const img = document.getElementById('mainProductPhoto')?.getAttribute('src') || null
+				CartStore.addItem({ 
+					id: currentProduct.id, 
+					name: currentProduct.name, 
+					price: Number(currentProduct.price || 0), 
+					qty: currentQty, 
+					img: img 
+				})
+				try { window.dispatchEvent(new CustomEvent('cart.updated')) } catch(e){}
+				updateHeaderCartCount()
+				window.location.href = '/checkout'
+			}
 		})
 
 		// Related product add-to-cart handled by /public/js/cart-actions.js
