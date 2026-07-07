@@ -240,9 +240,13 @@ $(function() {
 						${(function() {
 							const isOutOfStock = Number(product.stock || 0) <= 0;
 							if (product.is_deleted || isOutOfStock) {
-								return `<button class="buy-btn" type="button" data-product-id="${product.id}" disabled style="background: #888; color: #ccc; cursor: not-allowed;">${isOutOfStock ? 'Out of Stock' : 'Buy Now'}</button>`;
+								return `<button class="buy-btn" type="button" data-product-id="${product.id}" disabled style="background: #888; color: #ccc; cursor: not-allowed;">Out of Stock</button>`;
 							}
-							return `<button class="buy-btn" type="button" data-product-id="${product.id}">Buy Now</button>`;
+							const session = typeof readSession === 'function' ? readSession() : null;
+							if (session && session.token) {
+								return `<button class="add-to-cart-btn buy-btn" type="button" data-product-id="${product.id}">Add to Cart</button>`;
+							}
+							return `<button class="buy-btn" type="button" data-product-id="${product.id}">Sign in to buy</button>`;
 						})()}
 						<button class="heart-btn" type="button" aria-label="Favorite item" data-product-id="${product.id}">
 							<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
@@ -363,9 +367,13 @@ $(function() {
 		}
 	})
 
-	$(document).on('click', '.buy-btn', function(e) {
+	$(document).on('click', '.buy-btn:not(.add-to-cart-btn)', function(e) {
 		e.preventDefault()
 		const id = $(this).data('product-id')
+		if ($(this).text().trim() === 'Sign in to buy') {
+			window.location.href = '/login'
+			return
+		}
 		if (id) {
 			window.location.href = `/product/${id}`
 		}

@@ -332,6 +332,25 @@
 			display: block;
 			filter: drop-shadow(16px 24px 30px rgba(0, 0, 0, 0.55));
 		}
+		
+		.hero-carousel {
+			display: grid;
+			place-items: center;
+		}
+		
+		.hero-carousel .carousel-slide {
+			grid-area: 1 / 1;
+			opacity: 0;
+			transition: opacity 1s ease-in-out;
+			border-radius: 16px;
+			max-height: 400px;
+			object-fit: cover;
+		}
+		
+		.hero-carousel .carousel-slide.active {
+			opacity: 1;
+			z-index: 2;
+		}
 
 		.section-title {
 			width: 100%;
@@ -610,8 +629,8 @@
 
 	<nav class="main-nav" aria-label="Primary">
 		<a href="/products">PRODUCTS</a>
-		<a href="#storySection">HIS STORY</a>
-		<a href="#minigameSection">MJ MINIGAME</a>
+		<a href="/history">HIS STORY</a>
+		<a href="/minigame">EO's Alien Run</a>
 	</nav>
 
 	<main class="main-content">
@@ -622,21 +641,19 @@
 				<p>Exclusive Michael Jackson memorabilia curated for collectors, with featured drops, quick shopping, and a clean customer-first browsing flow.</p>
 				<a href="#featuredProducts" class="cta-btn">Start Shopping</a>
 			</div>
-			<div class="hero-image-wrap">
-				<img src="/media/images/home_pg/landingmerch.png" alt="Featured merchandise" class="hero-image">
+			<div class="hero-image-wrap hero-carousel">
+				<img src="/media/images/history_pg/mj_jackson5.jpg" alt="Michael Jackson 1970s" class="hero-image carousel-slide active">
+				<img src="/media/images/history_pg/mj_thriller.jpg" alt="Michael Jackson 1980s" class="hero-image carousel-slide">
+				<img src="/media/images/history_pg/mj_king_of_pop.jpg" alt="Michael Jackson 1990s" class="hero-image carousel-slide">
 			</div>
 		</section>
 
 			<section class="section-title" id="featuredProducts">Featured Picks</section>
 			<div id="productStatus" style="width:100%;max-width:1320px;color:rgba(255,255,255,0.9);font-size:14px;">Loading products from the database...</div>
 
-			<section id="storySection" aria-label="His Story" style="width:100%;max-width:1320px;color:#fff;line-height:1.6;font-size:16px;opacity:0.92;">
-				Discover the story behind the collection, curated for fans who want a cleaner way to browse memorabilia, apparel, and limited drops.
-			</section>
 
-			<section id="minigameSection" aria-label="MJ Minigame" style="width:100%;max-width:1320px;color:#fff;line-height:1.6;font-size:16px;opacity:0.92;">
-				Take a break with the MJ minigame section, built as part of the customer experience.
-			</section>
+
+
 
 		<section class="product-grid" id="productGrid" aria-label="Featured products"></section>
 	</main>
@@ -655,6 +672,7 @@
 	<script src="/public/js/search-autocomplete.js"></script>
 	<script src="/public/js/cart-storage.js"></script>
 	<script src="/public/js/cart-actions.js"></script>
+	<script src="/public/js/carousel.js"></script>
 	<script src="/public/js/home.js"></script>
 </body>
 </html>

@@ -41,6 +41,14 @@ app.get('/home', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'home.html'))
 });
 
+app.get('/history', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'history.html'))
+});
+
+app.get('/minigame', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'html', 'minigame.html'))
+});
+
 app.get('/product/:id', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'html', 'product.html'))
 });

@@ -283,6 +283,32 @@
 
     .site-footer { margin-top:auto; background: #424036; padding:24px 5%; display:flex; justify-content:center; align-items:center; color:#fff; font-size:14px }
 
+    .hero-image {
+      width: min(100%, 640px);
+      height: auto;
+      display: block;
+      filter: drop-shadow(16px 24px 30px rgba(0, 0, 0, 0.55));
+    }
+    
+    .hero-carousel {
+      display: grid;
+      place-items: center;
+    }
+    
+    .hero-carousel .carousel-slide {
+      grid-area: 1 / 1;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+      border-radius: 16px;
+      max-height: 400px;
+      object-fit: cover;
+    }
+    
+    .hero-carousel .carousel-slide.active {
+      opacity: 1;
+      z-index: 2;
+    }
+
     @media (max-width: 1200px) { .product-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
     @media (max-width: 900px) { .top-header { grid-template-columns: 1fr; justify-items:center } .product-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
     @media (max-width: 600px) { .product-grid { grid-template-columns: 1fr; padding: 0 12px } .hero-copy { max-width: 360px } }
@@ -315,8 +341,8 @@
 
   <nav class="main-nav" aria-label="Primary">
     <a href="/products">PRODUCTS</a>
-    <a href="#storySection">HIS STORY</a>
-    <a href="#minigameSection">MJ MINIGAME</a>
+    <a href="/history">HIS STORY</a>
+    <a href="/minigame">EO's Alien Run</a>
   </nav>
 
   <main class="main-content">
@@ -327,8 +353,10 @@
         <p>Browse the full catalog — infinite scrolling for an uninterrupted experience.</p>
         <a href="/products" class="cta-btn">Browse All</a>
       </div>
-      <div class="hero-image-wrap">
-        <img src="/media/images/home_pg/landingmerch.png" alt="Featured merchandise" class="hero-image">
+      <div class="hero-image-wrap hero-carousel">
+        <img src="/media/images/history_pg/mj_jackson5.jpg" alt="Michael Jackson 1970s" class="hero-image carousel-slide active">
+        <img src="/media/images/history_pg/mj_thriller.jpg" alt="Michael Jackson 1980s" class="hero-image carousel-slide">
+        <img src="/media/images/history_pg/mj_king_of_pop.jpg" alt="Michael Jackson 1990s" class="hero-image carousel-slide">
       </div>
     </section>
 
@@ -638,7 +666,7 @@
       const session = readSession()
       const buyBtn = document.createElement('button')
       buyBtn.type = 'button'
-      buyBtn.className = 'add-to-cart-btn buy-btn'
+      buyBtn.className = 'buy-btn'
       buyBtn.dataset.productId = p.id
       if (isOutOfStock) {
         buyBtn.textContent = 'Out of Stock'
@@ -647,11 +675,8 @@
         buyBtn.style.color = '#ccc'
         buyBtn.style.cursor = 'not-allowed'
       } else if (session && session.token) {
-        buyBtn.textContent = 'Buy Now'
-        buyBtn.addEventListener('click', () => {
-          showToast('Opening product detail for checkout', 'info')
-          window.location.href = `/product/${p.id}?buy=1`
-        })
+        buyBtn.textContent = 'Add to Cart'
+        buyBtn.className = 'add-to-cart-btn buy-btn'
       } else {
         buyBtn.textContent = 'Sign in to buy'
         buyBtn.addEventListener('click', () => {
@@ -916,5 +941,6 @@
     }
 
   </script>
+  <script src="/public/js/carousel.js"></script>
 </body>
 </html>

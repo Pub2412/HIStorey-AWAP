@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HIStore'y - EO's Alien Run</title>
+    <link rel="icon" href="/media/images/apmfam.ico" type="image/x-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/public/css/minigame.css">
+</head>
+
+<body>
+    <header class="minigame-header">
+        <div class="score-display">Score: <span id="scoreVal">0</span></div>
+        <a href="/home" class="back-btn">Back to Shop</a>
+    </header>
+
+    <main class="game-container">
+        <div id="gameWrapper"
+            style="position: relative; width: 800px; height: 400px; overflow: hidden; box-shadow: 0 0 40px rgba(0, 0, 0, 0.8); border-radius: 8px;">
+            <canvas id="gameCanvas" style="box-shadow: none; display: block;"></canvas>
+            <img src="/media/images/mj_minigame/mj.gif" id="playerSprite" alt="MJ"
+                style="position: absolute; display: none; width: 60px; height: 60px; object-fit: contain; pointer-events: none;">
+        </div>
+        <audio id="bgMusic" src="/media/songs/gbg.mp3" loop preload="auto"></audio>
+    </main>
+
+    <section class="inspiration-section">
+        <div class="inspiration-content">
+            <img src="/media/images/mj_minigame/Captain_EO_poster.jpg" alt="Captain EO Poster"
+                class="inspiration-poster">
+            <div class="inspiration-text">
+                <h2>Inspired by Captain EO</h2>
+                <p><strong>Captain EO</strong> is a 1986 American 3D science fiction film starring Michael Jackson,
+                    directed by Francis Ford Coppola and executive produced by George Lucas. It tells the story of
+                    Captain EO and his ragtag crew on a mission to deliver a musical gift to a wicked alien queen. The
+                    innovative visual effects and unforgettable original songs cemented it as a beloved classic.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Start Overlay -->
+    <div class="overlay show" id="startOverlay">
+        <div class="modal">
+            <h2>EO's Alien Run</h2>
+            <p>Press <kbd>Space</kbd>, <kbd>Up Arrow</kbd>, or tap the screen to jump.<br>Dodge the Aliens and
+                Obstacles!
+            </p>
+            <button class="play-btn" id="startBtn">Start Game</button>
+        </div>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div class="overlay" id="gameOverOverlay">
+        <div class="modal">
+            <h2>Game Over</h2>
+            <p>You survived for <strong id="finalScore">0</strong> meters.</p>
+            <button class="play-btn" id="playAgainBtn">Try Again</button>
+        </div>
+    </div>
+
+    <script src="/public/js/minigame.js"></script>
+</body>
+
+</html>
