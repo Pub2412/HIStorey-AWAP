@@ -89,6 +89,13 @@ function initProductsTable() {
       { data: 'id' },
       { data: 'name' },
       { data: 'category' },
+      { data: 'condition' },
+      {
+        data: 'year',
+        render: function(data) {
+          return data ? data : '<span class="empty-state">N/A</span>';
+        }
+      },
       {
         data: 'stock',
         render: function(data, type) {
@@ -165,8 +172,11 @@ function openProductModal(id = null) {
   $('#productForm').find('.input-error').removeClass('input-error')
   $('#productId').val('')
   $('#productCategory').val('General')
+  $('#productCondition').val('New')
+  $('#productYear').val(new Date().getFullYear())
   $('#productStock').val('0')
   $('#productImages').val('')
+  $('#productImagesPreview').empty()
   $('#modalTitle').text(id ? 'Edit Product' : 'Add Product')
 
   if (id) {
@@ -176,6 +186,8 @@ function openProductModal(id = null) {
       $('#productId').val(product.id)
       $('#productName').val(product.name)
       $('#productCategory').val(product.category || 'General')
+      $('#productCondition').val(product.condition || 'New')
+      $('#productYear').val(product.year || new Date().getFullYear())
       $('#productPrice').val(product.price)
       $('#productStock').val(product.stock || 0)
       $('#productDescription').val(product.description || '')
@@ -192,6 +204,7 @@ function closeProductModal() {
     $('#productForm').validate().resetForm()
   }
   $('#productForm').find('.input-error').removeClass('input-error')
+  $('#productImagesPreview').empty()
 }
 
 function loadProducts() {
@@ -237,6 +250,15 @@ function initProductValidator() {
       productCategory: {
         required: true
       },
+      productCondition: {
+        required: true
+      },
+      productYear: {
+        required: true,
+        digits: true,
+        min: 1900,
+        max: new Date().getFullYear() + 5
+      },
       productPrice: {
         required: true,
         number: true,
@@ -255,6 +277,15 @@ function initProductValidator() {
       },
       productCategory: {
         required: 'Choose a category.'
+      },
+      productCondition: {
+        required: 'Choose the product condition.'
+      },
+      productYear: {
+        required: 'Enter the year of creation.',
+        digits: 'Year must be a whole number.',
+        min: 'Year must be 1900 or greater.',
+        max: 'Year is too far in the future.'
       },
       productPrice: {
         required: 'Enter a price.',
@@ -297,6 +328,18 @@ $(function () {
   initProductValidator()
   initProductsTable()
   loadProducts()
+
+  $('#productImages').on('change', function () {
+    const $preview = $('#productImagesPreview')
+    $preview.empty()
+    const files = this.files
+    if (files) {
+      Array.from(files).forEach((file) => {
+        const imgUrl = URL.createObjectURL(file)
+        $preview.append(`<img src="${imgUrl}" style="width: 78px; height: 78px; object-fit: cover; border-radius: 12px; border: 1px solid #d0c7b5; box-shadow: 0 4px 10px rgba(0,0,0,0.12);" alt="Selected preview">`)
+      })
+    }
+  })
 
   $('#openProductForm').on('click', () => openProductModal())
   $('#cancelProduct').on('click', closeProductModal)
@@ -383,13 +426,11 @@ $(function () {
     const payload = {
       name: $('#productName').val().trim(),
       category: $('#productCategory').val(),
+      condition: $('#productCondition').val(),
+      year: Number($('#productYear').val()),
       price: Number($('#productPrice').val()),
       stock: Number($('#productStock').val()),
       description: $('#productDescription').val().trim()
-    }
-
-    if (!id) {
-      payload.condition = 'Good'
     }
 
     const request = id

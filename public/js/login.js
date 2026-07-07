@@ -72,6 +72,7 @@ $(function() {
 			name: response.user.name,
 			email: response.user.email,
 			role: response.user.role,
+			profile_photo: response.user.profile_photo || null,
 			token: response.token,
 			mode,
 			loggedInAt: new Date().toISOString()

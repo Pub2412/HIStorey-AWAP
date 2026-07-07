@@ -26,7 +26,7 @@ async function generateReceiptPDF(transaction) {
       // Header
       doc.fontSize(24).font('Helvetica-Bold').text('HIStorey', { align: 'center' });
       doc.fontSize(12).font('Helvetica').text('Michael Jackson Memorabilia Store', { align: 'center' });
-      doc.fontSize(10).fillColor('#999').text('Receipt', { align: 'center' });
+      doc.fontSize(10).fillColor('#999').text(transaction.isUpdate ? `Receipt Updated for Order #${transaction.id} - HIStorey` : 'Receipt', { align: 'center' });
       doc.moveDown(0.5);
 
       // Horizontal line
@@ -77,16 +77,17 @@ async function generateReceiptPDF(transaction) {
       doc.font('Helvetica').fillColor('#000');
       let yPosition = doc.y;
 
-      transaction.items.forEach((item, index) => {
-        const quantity = item.quantity || 1;
-        const price = parseFloat(item.price) || 0;
+      const items = transaction.items || [];
+      items.forEach((item, index) => {
+        const quantity = item.qty || item.quantity || 1;
+        const price = parseFloat(item.price || item.unit_price) || 0;
         const subtotal = price * quantity;
 
         doc.fontSize(9);
-        doc.text(item.name || 'Product', 40, yPosition, { width: 300 });
+        doc.text(item.name || item.product_name || 'Product', 40, yPosition, { width: 300 });
         doc.text(quantity.toString(), 350, yPosition - 9, { width: 50, align: 'center' });
-        doc.text(`$${price.toFixed(2)}`, 410, yPosition - 9, { width: 70, align: 'right' });
-        doc.text(`$${subtotal.toFixed(2)}`, 480, yPosition - 9, { width: 70, align: 'right' });
+        doc.text(`PHP ${price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`, 410, yPosition - 9, { width: 70, align: 'right' });
+        doc.text(`PHP ${subtotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`, 480, yPosition - 9, { width: 70, align: 'right' });
 
         yPosition = doc.y;
         doc.moveDown(0.3);
@@ -99,13 +100,14 @@ async function generateReceiptPDF(transaction) {
       // Summary section
       doc.fontSize(10);
       const summaryX = 350;
+      const totalAmount = Number(transaction.total || transaction.total_amount || 0);
 
       doc.font('Helvetica').text('Subtotal:', summaryX, doc.y);
-      doc.text(`$${(transaction.total || 0).toFixed(2)}`, 480, doc.y - 9, { width: 70, align: 'right' });
+      doc.text(`PHP ${totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`, 410, doc.y - 9, { width: 140, align: 'right' });
 
       doc.moveDown(0.5);
       doc.text('Shipping:', summaryX, doc.y);
-      doc.text('FREE', 480, doc.y - 9, { width: 70, align: 'right' });
+      doc.text('FREE', 410, doc.y - 9, { width: 140, align: 'right' });
 
       doc.moveDown(0.5);
 
@@ -115,7 +117,7 @@ async function generateReceiptPDF(transaction) {
 
       // Total
       doc.font('Helvetica-Bold').fontSize(12).text('Total:', summaryX, doc.y);
-      doc.text(`$${(transaction.total || 0).toFixed(2)}`, 480, doc.y - 12, { width: 70, align: 'right' });
+      doc.text(`PHP ${totalAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`, 410, doc.y - 12, { width: 140, align: 'right' });
 
       doc.moveDown(1.5);
 

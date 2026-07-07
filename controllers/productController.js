@@ -525,3 +525,164 @@ exports.setPrimaryImage = async (req, res) => {
     return res.status(500).json({ message: 'Could not set primary image' })
   }
 }
+
+// In-memory reviews fallback
+const reviews = []
+
+exports.listProductReviews = async (req, res) => {
+  const productId = Number(req.params.id)
+  if (useDb) {
+    try {
+      const { QueryTypes } = require('sequelize')
+      const rows = await sequelize.query(
+        `
+          SELECT r.id, r.user_id, u.name AS reviewer_name, r.rating, r.comment, r.created_at
+          FROM reviews r
+          JOIN users u ON u.id = r.user_id
+          WHERE r.product_id = :productId
+          ORDER BY r.created_at DESC
+        `,
+        {
+          replacements: { productId },
+          type: QueryTypes.SELECT
+        }
+      )
+      return res.json(rows)
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({ message: 'Error retrieving reviews' })
+    }
+  }
+  
+  const filtered = reviews.filter(r => r.product_id === productId)
+  return res.json(filtered)
+}
+
+exports.createProductReview = async (req, res) => {
+  const productId = Number(req.params.id)
+  const userId = req.user.id
+  const { rating, comment } = req.body
+
+  if (!rating || rating < 1 || rating > 5) {
+    return res.status(400).json({ message: 'Rating must be between 1 and 5' })
+  }
+
+  if (useDb) {
+    try {
+      const { QueryTypes } = require('sequelize')
+      // 1. Check if the user has purchased the product
+      const [purchaseCheck] = await sequelize.query(
+        `
+          SELECT COUNT(*) AS count
+          FROM transactions t
+          JOIN transaction_items ti ON ti.transaction_id = t.id
+          WHERE t.user_id = :userId AND ti.product_id = :productId
+        `,
+        {
+          replacements: { userId, productId },
+          type: QueryTypes.SELECT
+        }
+      )
+
+      if (!purchaseCheck || purchaseCheck.count === 0) {
+        return res.status(403).json({ message: 'Only users who have purchased this product can leave a review.' })
+      }
+
+      // 2. Check if a review already exists
+      const [existingReview] = await sequelize.query(
+        `SELECT id FROM reviews WHERE user_id = :userId AND product_id = :productId`,
+        {
+          replacements: { userId, productId },
+          type: QueryTypes.SELECT
+        }
+      )
+
+      if (existingReview) {
+        await sequelize.query(
+          `UPDATE reviews SET rating = :rating, comment = :comment, created_at = CURRENT_TIMESTAMP WHERE id = :reviewId`,
+          {
+            replacements: { rating, comment: comment || null, reviewId: existingReview.id },
+            type: QueryTypes.UPDATE
+          }
+        )
+      } else {
+        await sequelize.query(
+          `INSERT INTO reviews (user_id, product_id, rating, comment) VALUES (:userId, :productId, :rating, :comment)`,
+          {
+            replacements: { userId, productId, rating, comment: comment || null },
+            type: QueryTypes.INSERT
+          }
+        )
+      }
+
+      return res.status(201).json({ message: 'Review saved successfully.' })
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({ message: 'Error saving review.' })
+    }
+  }
+
+  const existingIndex = reviews.findIndex(r => r.user_id === userId && r.product_id === productId)
+  if (existingIndex !== -1) {
+    reviews[existingIndex].rating = rating
+    reviews[existingIndex].comment = comment
+    reviews[existingIndex].created_at = new Date()
+  } else {
+    reviews.push({
+      id: Date.now(),
+      user_id: userId,
+      product_id: productId,
+      reviewer_name: req.user.name || 'Anonymous',
+      rating,
+      comment,
+      created_at: new Date()
+    })
+  }
+  return res.status(201).json({ message: 'Review saved successfully.' })
+}
+
+exports.checkProductPurchase = async (req, res) => {
+  const productId = Number(req.params.id)
+  const userId = req.user.id
+
+  if (useDb) {
+    try {
+      const { QueryTypes } = require('sequelize')
+      const [purchaseCheck] = await sequelize.query(
+        `
+          SELECT COUNT(*) AS count
+          FROM transactions t
+          JOIN transaction_items ti ON ti.transaction_id = t.id
+          WHERE t.user_id = :userId AND ti.product_id = :productId
+        `,
+        {
+          replacements: { userId, productId },
+          type: QueryTypes.SELECT
+        }
+      )
+      
+      const hasPurchased = purchaseCheck && purchaseCheck.count > 0
+      
+      let existingReview = null
+      if (hasPurchased) {
+        const [reviewRow] = await sequelize.query(
+          `SELECT rating, comment FROM reviews WHERE user_id = :userId AND product_id = :productId`,
+          {
+            replacements: { userId, productId },
+            type: QueryTypes.SELECT
+          }
+        )
+        if (reviewRow) {
+          existingReview = reviewRow
+        }
+      }
+
+      return res.json({ hasPurchased, existingReview })
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({ message: 'Error checking purchase status' })
+    }
+  }
+
+  return res.json({ hasPurchased: true, existingReview: null })
+}

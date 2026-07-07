@@ -30,15 +30,15 @@
           </a>
         </div>
         <div class="price">${formatPrice(it.price)}</div>
-        <div>
-          <div class="qty-controls">
-            <button class="qty-dec">-</button>
-            <span class="qty-val">${it.qty}</span>
-            <button class="qty-inc">+</button>
-          </div>
-        </div>
+        <div style="text-align: center; font-weight: 500; font-size: 15px;">${it.qty}</div>
         <div class="price">${formatPrice(subtotal)}</div>
-        <div class="actions-col"><button class="btn remove-btn">Remove</button></div>
+        <div class="actions-col" style="display: flex; gap: 12px; align-items: center; justify-content: flex-end;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <button class="qty-inc-arrow" style="background: none; border: none; cursor: pointer; padding: 2px 6px; font-size: 14px; line-height: 1; color: var(--accent); font-weight: 700;">▲</button>
+            <button class="qty-dec-arrow" style="background: none; border: none; cursor: pointer; padding: 2px 6px; font-size: 14px; line-height: 1; color: var(--accent); font-weight: 700;">▼</button>
+          </div>
+          <button class="btn remove-btn" style="background: #b83c3c; padding: 8px 12px; font-size: 13px;">Remove</button>
+        </div>
       `
 
       wrap.appendChild(row)
@@ -47,10 +47,10 @@
     document.getElementById('grandTotal').textContent = formatPrice(total)
 
     // wire actions
-    wrap.querySelectorAll('.qty-inc').forEach(b=>b.addEventListener('click', function(){
+    wrap.querySelectorAll('.qty-inc-arrow').forEach(b=>b.addEventListener('click', function(){
       const row = this.closest('.cart-row'); const id = row.dataset.productId; changeQty(id,1)
     }))
-    wrap.querySelectorAll('.qty-dec').forEach(b=>b.addEventListener('click', function(){
+    wrap.querySelectorAll('.qty-dec-arrow').forEach(b=>b.addEventListener('click', function(){
       const row = this.closest('.cart-row'); const id = row.dataset.productId; changeQty(id,-1)
     }))
     wrap.querySelectorAll('.remove-btn').forEach(b=>b.addEventListener('click', function(){

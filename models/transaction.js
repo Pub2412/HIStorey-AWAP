@@ -17,22 +17,18 @@ const Transaction = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
-    total: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      defaultValue: 0,
-    },
     status: {
       type: DataTypes.ENUM('created', 'processing', 'shipped', 'completed', 'cancelled'),
       allowNull: false,
       defaultValue: 'created',
     },
+    payment_status: {
+      type: DataTypes.ENUM('Pending', 'Paid', 'Cancelled'),
+      allowNull: false,
+      defaultValue: 'Pending',
+    },
     payment_method: {
       type: DataTypes.STRING(100),
-      allowNull: true,
-    },
-    shipping_address: {
-      type: DataTypes.TEXT,
       allowNull: true,
     },
     notes: {

@@ -172,13 +172,17 @@ $(function() {
 
 		if (session && session.token) {
 			const name = session.name || session.email || 'Customer'
+			const avatar = session.profile_photo || '/media/images/profile_pg/placeholder_pfp.png'
 			$actions.append(
-				`<div class="account-dropdown"><button class="account-btn" id="accountDropdownBtn" type="button">${escapeHtml(name)}</button><div class="dropdown-content" id="accountDropdownMenu"><a href="/profile">Account</a><a href="#" id="signOutLink">Sign Out</a></div></div>`
+				`<div class="account-dropdown"><button class="account-btn" id="accountDropdownBtn" type="button" style="display: inline-flex; align-items: center; gap: 8px;"><img src="${escapeHtml(avatar)}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" alt="avatar"><span>${escapeHtml(name)}</span></button><div class="dropdown-content" id="accountDropdownMenu"><a href="/profile">Account</a><a href="#" id="signOutLink">Sign Out</a></div></div>`
 			)
 		} else {
 			$actions.append(`<a class="sign-in-btn" href="/login">Sign In</a>`)
 		}
 
+		if (window.updateHeaderCartCount) {
+			window.updateHeaderCartCount()
+		}
 	}
 
 	function logoutCustomer() {
@@ -233,20 +237,19 @@ $(function() {
 						</div>
 					</a>
 					<div class="card-actions">
-						<button class="add-to-cart-btn" type="button" data-product-id="${product.id}" ${product.is_deleted ? 'disabled' : ''}>Add to Cart</button>
+						${(function() {
+							const isOutOfStock = Number(product.stock || 0) <= 0;
+							if (product.is_deleted || isOutOfStock) {
+								return `<button class="buy-btn" type="button" data-product-id="${product.id}" disabled style="background: #888; color: #ccc; cursor: not-allowed;">${isOutOfStock ? 'Out of Stock' : 'Buy Now'}</button>`;
+							}
+							return `<button class="buy-btn" type="button" data-product-id="${product.id}">Buy Now</button>`;
+						})()}
 						<button class="heart-btn" type="button" aria-label="Favorite item" data-product-id="${product.id}">
 							<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
 						</button>
 					</div>
 				</article>`
 		}).join(''))
-
-		const session = readSession()
-		if (!session || !session.token) {
-			$grid.find('.add-to-cart-btn').each(function() {
-				$(this).text('Sign in to buy')
-			})
-		}
 	}
 
 	function loadProducts(query) {
@@ -357,6 +360,14 @@ $(function() {
 		const href = $(this).attr('href')
 		if (!href || href === '#') {
 			e.preventDefault()
+		}
+	})
+
+	$(document).on('click', '.buy-btn', function(e) {
+		e.preventDefault()
+		const id = $(this).data('product-id')
+		if (id) {
+			window.location.href = `/product/${id}`
 		}
 	})
 

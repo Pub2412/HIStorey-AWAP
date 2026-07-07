@@ -1,8 +1,7 @@
 (function(){
   function formatPriceValue(text){
     if (!text) return 0
-    const num = String(text).replace(/[^
-0-9.-]+/g,'')
+    const num = String(text).replace(/[^0-9.-]+/g,'')
     return Number(num) || 0
   }
 
@@ -31,27 +30,6 @@
     else window.alert('Added to cart')
   }, true)
 
-  // product detail add to cart
-  document.addEventListener('click', function(e){
-    const target = e.target.closest && e.target.closest('#detailAddToCartBtn')
-    if (!target) return
-    e.preventDefault()
-    try {
-      const qty = Number(document.getElementById('qty-val')?.textContent || '1') || 1
-      const id = window.currentProduct && window.currentProduct.id
-      const name = window.currentProduct && window.currentProduct.name
-      const price = window.currentProduct && Number(window.currentProduct.price || 0)
-      const img = document.getElementById('mainProductPhoto')?.getAttribute('src') || null
-      if (!id) { alert('Product not loaded'); return }
-      CartStore.addItem({ id, name, price, qty, img })
-      try { window.dispatchEvent(new CustomEvent('cart.updated')) } catch(e){}
-      updateHeaderCartCount()
-      if (window.setDetailAlert) window.setDetailAlert('Item added to cart')
-    } catch(err) {
-      console.error(err); alert('Unable to add to cart')
-    }
-  }, true)
-
   // related products add-to-cart
   document.addEventListener('click', function(e){
     const target = e.target.closest && e.target.closest('.related-add-to-cart')
@@ -72,8 +50,11 @@
   function updateHeaderCartCount(){
     try{
       const c = (window.CartStore && window.CartStore.getCart()) || []
-      const el = document.querySelector('#authActions .cart-btn span')
-      if (el) el.textContent = String(c.reduce((s,i)=>s+Number(i.qty||1),0) || c.length || 0)
+      const count = String(c.reduce((s,i)=>s+Number(i.qty||1),0) || c.length || 0)
+      const elements = document.querySelectorAll('#authActions .cart-btn span, #cartButton span, #cartCount')
+      elements.forEach(el => {
+        el.textContent = count
+      })
     }catch(e){}
   }
 
@@ -83,5 +64,7 @@
 
   // update header when cart.updated event fires
   window.addEventListener('cart.updated', updateHeaderCartCount)
+
+  window.updateHeaderCartCount = updateHeaderCartCount;
 
 })()

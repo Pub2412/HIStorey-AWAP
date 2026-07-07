@@ -24,8 +24,13 @@ function renderUsers(filter = '') {
 }
 
 function renderUserActions(user) {
+  const session = JSON.parse(localStorage.getItem('historey.session') || 'null')
+  const currentUserId = session ? Number(session.id) : null
+  const isSelf = currentUserId && Number(user.id) === currentUserId
+
   return `
     <div class="actions">
+      ${isSelf ? '' : `<button class="action-btn edit-role" data-id="${user.id}" style="background-color: #2980b9; color: #fff;">Edit Role</button>`}
       <button class="action-btn toggle toggle-user" data-id="${user.id}">${user.is_active !== false ? 'Deactivate' : 'Activate'}</button>
     </div>
   `
@@ -212,6 +217,47 @@ $(function () {
       })
       .fail(() => {
         showToast('Could not update user status.')
+      })
+  })
+
+  let currentEditUserId = null
+
+  $('#usersTable tbody').on('click', '.edit-role', function () {
+    const id = Number($(this).data('id'))
+    const user = users.find((item) => Number(item.id) === id)
+    if (!user) return
+
+    currentEditUserId = id
+
+    $('#roleModalTitle').text(`Edit Role for ${user.name}`)
+    $('#userRoleSelect').val(String(user.role).toLowerCase())
+    $('#roleModal').removeClass('hidden')
+  })
+
+  $('#cancelRoleModal').on('click', function () {
+    $('#roleModal').addClass('hidden')
+  })
+
+  $('#editRoleForm').on('submit', function (e) {
+    e.preventDefault()
+    if (!currentEditUserId) return
+
+    const updatedRole = $('#userRoleSelect').val()
+
+    $.ajax({
+      url: `/api/v1/users/${currentEditUserId}/role`,
+      method: 'PATCH',
+      contentType: 'application/json',
+      headers: getSessionHeaders(),
+      data: JSON.stringify({ role: updatedRole })
+    })
+      .done(() => {
+        showToast('Role updated successfully')
+        $('#roleModal').addClass('hidden')
+        loadUsers()
+      })
+      .fail((xhr) => {
+        showToast(xhr.responseJSON?.message || 'Failed to update user role.')
       })
   })
 })

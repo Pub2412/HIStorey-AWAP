@@ -18,6 +18,17 @@ CREATE DATABASE IF NOT EXISTS `hstore_db`
 
 USE `hstore_db`;
 
+-- -------------------------------------------------------------
+--  Drop existing tables if they exist (reverse dependency order)
+-- -------------------------------------------------------------
+DROP TABLE IF EXISTS `reviews`;
+DROP TABLE IF EXISTS `email_logs`;
+DROP TABLE IF EXISTS `transaction_items`;
+DROP TABLE IF EXISTS `transactions`;
+DROP TABLE IF EXISTS `product_images`;
+DROP TABLE IF EXISTS `products`;
+DROP TABLE IF EXISTS `users`;
+
 -- =============================================================
 --  TABLE: users
 --  Stores both customer and admin accounts.
@@ -108,8 +119,7 @@ CREATE TABLE IF NOT EXISTS `transactions` (
   `id`               INT UNSIGNED  NOT NULL AUTO_INCREMENT,
   `user_id`          INT UNSIGNED  NOT NULL,
   `status`           ENUM('Pending','Processing','Shipped','Delivered','Cancelled') NOT NULL DEFAULT 'Pending',
-  `total_amount`     DECIMAL(10,2) NOT NULL,
-  `shipping_address` TEXT          NOT NULL,
+  `payment_status`   ENUM('Pending','Paid','Cancelled') NOT NULL DEFAULT 'Pending',
   `created_at`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -173,33 +183,29 @@ CREATE TABLE IF NOT EXISTS `email_logs` (
 --  Storing reviews per product
 -- =============================================================
 
-CREATE TABLE reviews (
-  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  user_id INT UNSIGNED NOT NULL,
-  product_id INT UNSIGNED NOT NULL,
-  rating TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
-  comment TEXT,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS `reviews` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT UNSIGNED NOT NULL,
+  `product_id` INT UNSIGNED NOT NULL,
+  `rating` TINYINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  `comment` TEXT,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `idx_user_product` (`user_id`, `product_id`),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- =============================================================
 --  SEED DATA - Default admin account
 --  Plain-text password: Admin@1234
 --  Hash generated with bcrypt (salt rounds = 10)
---  !! REPLACE THIS HASH WITH A REAL ONE BEFORE GOING LIVE !!
---
---  To generate a real hash in Node.js:
---    const bcrypt = require('bcrypt');
---    bcrypt.hash('Admin@1234', 10).then(console.log);
 -- =============================================================
 INSERT INTO `users` (`name`, `email`, `password_hash`, `role`, `is_active`)
 VALUES (
   'HIStorey Admin',
   'admin@hiStorey.com',
-  '$2b$10$placeholderHashReplaceThisWithRealBcryptOutput1234567890',
+  '$2b$10$kwkbdH10aayHF13Nh1dmtOWNn1z4ORXf8RsZwOpc5eBo6z1Rk5N4S',
   'admin',
   1
 );

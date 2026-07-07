@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>HIStorey | Admin Orders</title>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+  <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@700&family=Poppins:wght@400;500;600;700&display=swap');
     :root {
@@ -32,9 +34,13 @@
     table { width: 100%; border-collapse: collapse; min-width: 760px; }
     th, td { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.08); text-align: left; }
     .pill { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 700; }
-    .pill.pending { background: #c0392b; color: var(--white); }
+    .pill.pending { background: #d35400; color: var(--white); }
     .pill.paid { background: #2e7d32; color: var(--white); }
     .pill.processing { background: #8d6e63; color: var(--white); }
+    .pill.shipped { background: #2980b9; color: var(--white); }
+    .pill.delivered { background: #27ae60; color: var(--white); }
+    .pill.completed { background: #2e7d32; color: var(--white); }
+    .pill.cancelled { background: #7f8c8d; color: var(--white); }
     .action-btn { border: none; border-radius: 999px; padding: 8px 12px; cursor: pointer; font-weight: 600; background: var(--accent); color: var(--white); }
     .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
     .modal.hidden { display: none; }
@@ -64,7 +70,7 @@
       </header>
 
       <div class="table-card">
-        <table>
+        <table id="ordersTable" class="display" style="width:100%">
           <thead>
             <tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th><th>Action</th></tr>
           </thead>
@@ -77,10 +83,31 @@
   <div class="modal hidden" id="orderModal">
     <div class="modal-card">
       <h3 id="orderModalTitle">Update Order</h3>
-      <p id="orderModalDetails"></p>
-      <div class="actions">
-        <button class="action-btn" id="closeOrderModal">Close</button>
-      </div>
+      <div id="orderModalDetails" style="margin-bottom: 20px; line-height: 1.6;"></div>
+      <form id="updateOrderForm" style="display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label for="orderStatusSelect" style="font-weight: 600;">Order Status</label>
+          <select id="orderStatusSelect" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc; font: inherit;">
+            <option value="Pending">Pending</option>
+            <option value="Processing">Processing</option>
+            <option value="Shipped">Shipped</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label for="paymentStatusSelect" style="font-weight: 600;">Payment Status</label>
+          <select id="paymentStatusSelect" style="padding: 10px; border-radius: 8px; border: 1px solid #ccc; font: inherit;">
+            <option value="Pending">Pending</option>
+            <option value="Paid">Paid</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="actions" style="display: flex; gap: 10px; margin-top: 10px; justify-content: flex-end;">
+          <button type="button" class="action-btn" id="closeOrderModal" style="background-color: #7f8c8d;">Cancel</button>
+          <button type="submit" class="action-btn" id="saveOrderBtn">Save Changes</button>
+        </div>
+      </form>
     </div>
   </div>
 

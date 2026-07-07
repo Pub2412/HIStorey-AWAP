@@ -52,14 +52,33 @@ router.post('/cart/checkout', async (req, res) => {
   
   if (await canUseDatabase()) {
     try {
+      // Check stock before processing checkout
+      for (const item of items) {
+        const [prod] = await sequelize.query(
+          'SELECT stock, name FROM products WHERE id = :product_id AND is_deleted = 0',
+          {
+            replacements: { product_id: item.productId },
+            type: QueryTypes.SELECT
+          }
+        );
+        if (!prod) {
+          return res.status(404).json({ message: `Product not found` });
+        }
+        if (prod.stock <= 0) {
+          return res.status(400).json({ message: `"${prod.name}" is out of stock` });
+        }
+        if (prod.stock < (item.quantity || 1)) {
+          return res.status(400).json({ message: `Only ${prod.stock} units of "${prod.name}" are available in stock` });
+        }
+      }
+
       const [result] = await sequelize.query(
-        'INSERT INTO transactions (user_id, status, total_amount, shipping_address) VALUES (:user_id, :status, :total_amount, :shipping_address)',
+        'INSERT INTO transactions (user_id, status, payment_status) VALUES (:user_id, :status, :payment_status)',
         {
           replacements: { 
             user_id: userId || null, 
             status: 'Pending', 
-            total_amount: total, 
-            shipping_address 
+            payment_status: 'Pending'
           },
           type: QueryTypes.INSERT
         }
@@ -79,6 +98,18 @@ router.post('/cart/checkout', async (req, res) => {
                 unit_price: item.price || 0
               },
               type: QueryTypes.INSERT
+            }
+          );
+
+          // Deduct product stock
+          await sequelize.query(
+            'UPDATE products SET stock = GREATEST(0, CAST(stock AS SIGNED) - :quantity) WHERE id = :product_id',
+            {
+              replacements: {
+                quantity: item.quantity || 1,
+                product_id: item.productId
+              },
+              type: QueryTypes.UPDATE
             }
           );
         }
@@ -107,7 +138,6 @@ router.post('/cart/checkout', async (req, res) => {
         id: transactionId, 
         status: 'Pending', 
         total_amount: total, 
-        shipping_address,
         message: 'Transaction created successfully'
       });
     } catch (error) {

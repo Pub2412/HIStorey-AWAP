@@ -26,10 +26,14 @@ async function sendReceiptEmail(transaction, pdfBuffer) {
   }
 
   try {
+    const subject = transaction.isUpdate
+      ? `Receipt Updated for Order #${transaction.id} - HIStorey`
+      : `Receipt for Order #${transaction.id} - HIStorey`;
+
     const mailOptions = {
       from: process.env.MAILTRAP_FROM_EMAIL || 'receipt@historey.com',
       to: transaction.email,
-      subject: `Receipt for Order #${transaction.id} - HIStorey`,
+      subject: subject,
       html: generateEmailHTML(transaction),
       attachments: [
         {
@@ -42,10 +46,38 @@ async function sendReceiptEmail(transaction, pdfBuffer) {
 
     const info = await transporter.sendMail(mailOptions);
     console.log('Email sent:', info.messageId);
+    await logEmailStatus(transaction.id, transaction.email, subject, 'sent', 1);
     return info;
   } catch (error) {
     console.error('Error sending email:', error);
+    const subject = transaction.isUpdate
+      ? `Receipt Updated for Order #${transaction.id} - HIStorey`
+      : `Receipt for Order #${transaction.id} - HIStorey`;
+    await logEmailStatus(transaction.id, transaction.email, subject, 'failed', 1);
     throw error;
+  }
+}
+
+async function logEmailStatus(transactionId, recipientEmail, subject, status, hasAttachment = 1) {
+  try {
+    const sequelize = require('../config/database');
+    const { QueryTypes } = require('sequelize');
+    await sequelize.query(
+      'INSERT INTO email_logs (transaction_id, recipient, subject, status, has_attachment) VALUES (:transactionId, :recipientEmail, :subject, :status, :hasAttachment)',
+      {
+        replacements: {
+          transactionId,
+          recipientEmail,
+          subject,
+          status,
+          hasAttachment
+        },
+        type: QueryTypes.INSERT
+      }
+    );
+    console.log(`Log written to email_logs for transaction #${transactionId} (${status})`);
+  } catch (logError) {
+    console.error('Failed to write to email_logs:', logError.message);
   }
 }
 
@@ -55,16 +87,22 @@ async function sendReceiptEmail(transaction, pdfBuffer) {
  * @returns {string} - HTML content
  */
 function generateEmailHTML(transaction) {
-  const itemsHTML = transaction.items
+  const itemsHTML = (transaction.items || [])
     .map(
-      (item) => `
+      (item) => {
+        const name = item.name || item.product_name || 'Product';
+        const qty = Number(item.qty || item.quantity || 1);
+        const price = Number(item.price || item.unit_price || 0);
+        const subtotal = price * qty;
+        return `
     <tr>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.name || 'Product'}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">×${item.quantity || 1}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">$${(item.price || 0).toFixed(2)}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">$${((item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${name}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">×${qty}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">PHP ${price.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">PHP ${subtotal.toLocaleString('en-PH', { minimumFractionDigits: 2 })}</td>
     </tr>
-  `
+  `;
+      }
     )
     .join('');
 
@@ -73,7 +111,7 @@ function generateEmailHTML(transaction) {
     <html>
       <head>
         <meta charset="UTF-8">
-        <title>Order Receipt</title>
+        <title>${transaction.isUpdate ? 'Receipt Updated - HIStorey' : 'Order Receipt'}</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -200,7 +238,7 @@ function generateEmailHTML(transaction) {
           <div class="header">
             <h1>HIStorey</h1>
             <p>Michael Jackson Memorabilia Store</p>
-            <p style="color: #999; font-size: 14px; margin: 5px 0 0 0;">Order Receipt</p>
+            <p style="color: #999; font-size: 14px; margin: 5px 0 0 0;">${transaction.isUpdate ? `Receipt Updated for Order #${transaction.id} - HIStorey` : 'Order Receipt'}</p>
           </div>
 
           <div class="order-info">
@@ -235,7 +273,7 @@ function generateEmailHTML(transaction) {
           <div class="summary">
             <div class="summary-row">
               <div class="summary-row-label">Subtotal:</div>
-              <div class="summary-row-value">$${(transaction.total || 0).toFixed(2)}</div>
+              <div class="summary-row-value">PHP ${Number(transaction.total || transaction.total_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div>
             </div>
             <div class="summary-row">
               <div class="summary-row-label">Shipping:</div>
@@ -243,7 +281,7 @@ function generateEmailHTML(transaction) {
             </div>
             <div class="summary-row summary-total">
               <div class="summary-row-label">Total:</div>
-              <div class="summary-row-value">$${(transaction.total || 0).toFixed(2)}</div>
+              <div class="summary-row-value">PHP ${Number(transaction.total || transaction.total_amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}</div>
             </div>
           </div>
 

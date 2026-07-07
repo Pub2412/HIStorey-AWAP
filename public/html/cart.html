@@ -21,8 +21,9 @@
     .cart-shell{width:100%;max-width:1180px;background:var(--panel);border-radius:18px;padding:22px;box-shadow:0 12px 28px rgba(0,0,0,0.18)}
     .cart-title{display:flex;justify-content:space-between;align-items:center;gap:12px}
     .cart-grid{display:grid;grid-template-columns: 1fr 120px 160px 160px 120px;gap:12px;align-items:center;margin-top:18px}
-    .cart-headers{display:grid;grid-template-columns:inherit;gap:12px;color:#333;font-weight:700;padding:12px 6px}
-    .cart-row{display:grid;grid-template-columns:inherit;gap:12px;padding:14px;border-radius:12px;background:#fff;align-items:center}
+    .cart-headers{display:grid;grid-template-columns: 1fr 120px 160px 160px 120px;gap:12px;color:#333;font-weight:700;padding:12px 6px}
+    .cart-row{display:grid;grid-template-columns: 1fr 120px 160px 160px 120px;gap:12px;padding:14px;border-radius:12px;background:#fff;align-items:center}
+    .product-link{display:flex;gap:12px;align-items:center;text-decoration:none;color:inherit}
     .product-info{display:flex;gap:12px;align-items:center}
     .cart-thumb{width:80px;height:80px;border-radius:10px;overflow:hidden;flex-shrink:0}
     .cart-thumb img{width:100%;height:100%;object-fit:cover;display:block}
@@ -44,13 +45,13 @@
     .total-label{font-size:14px;color:#ddd}
     .grand-total{font-size:20px;font-weight:800;color:#fff}
 
-    @media(max-width:900px){ .cart-grid{grid-template-columns:1fr 100px 120px 120px 100px} }
-    @media(max-width:680px){ .cart-grid{grid-template-columns:1fr 100px 100px; } .cart-headers,.cart-row{grid-template-columns:1fr 100px 100px} .checkout-right{display:none} }
+    @media(max-width:900px){ .cart-headers,.cart-row{grid-template-columns:1fr 100px 120px 120px 100px} }
+    @media(max-width:680px){ .cart-headers,.cart-row{grid-template-columns:1fr 100px 100px} .checkout-right{display:none} }
   </style>
 </head>
 <body>
   <header class="top-header">
-    <div class="logo-container"><a href="/home"><img src="/media/images/cart_pg/LogoWhite.png" class="header-logo" alt="HIStore'y"></a></div>
+    <div class="logo-container"><a href="/home"><img src="/media/images/home_pg/LogoWhite.png" class="header-logo" alt="HIStore'y"></a></div>
     <div id="authActions" style="display:flex;gap:12px;align-items:center"></div>
   </header>
   <nav class="main-nav" aria-label="Primary"><a href="/products">PRODUCTS</a><a href="#storySection">HIS STORY</a><a href="#minigameSection">MJ MINIGAME</a></nav>
@@ -62,7 +63,7 @@
         <div class="small">Manage items and proceed to checkout</div>
       </div>
 
-      <div class="cart-headers" style="grid-template-columns:1fr 120px 160px 160px 120px;">
+      <div class="cart-headers">
         <div>Product</div>
         <div>Unit</div>
         <div>Quantity</div>
@@ -124,7 +125,9 @@
         const accountDropdown = document.createElement('div')
         accountDropdown.className = 'account-dropdown'
         accountDropdown.style.cssText = 'position:relative;display:inline-block;'
-        accountDropdown.innerHTML = `<button class="account-btn" id="accountDropdownBtn" type="button" style="padding:10px 20px;border-radius:999px;font-size:15px;font-weight:500;background:#fff;color:#000;text-decoration:none;box-shadow:0 4px 6px rgba(0,0,0,0.2);border:none;cursor:pointer;">${session.name || session.email || 'Customer'}</button><div class="dropdown-content" id="accountDropdownMenu" style="visibility:hidden;opacity:0;transform:translateY(-10px);transition:all 0.25s ease;position:absolute;right:0;top:120%;background:#fff;min-width:160px;border-radius:14px;box-shadow:0 10px 22px rgba(0,0,0,0.24);overflow:hidden;z-index:10;"><a href="/profile" style="display:block;padding:12px 16px;color:#111;text-decoration:none;font-size:14px;">Account</a><a href="#" id="signOutLink" style="display:block;padding:12px 16px;color:#111;text-decoration:none;font-size:14px;">Sign Out</a></div>`
+        const name = session.name || session.email || 'Customer'
+        const avatar = session.profile_photo || '/media/images/profile_pg/placeholder_pfp.png'
+        accountDropdown.innerHTML = `<button class="account-btn" id="accountDropdownBtn" type="button" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:999px;font-size:15px;font-weight:500;background:#fff;color:#000;text-decoration:none;box-shadow:0 4px 6px rgba(0,0,0,0.2);border:none;cursor:pointer;"><img src="${avatar.replace(/"/g, '&quot;')}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" alt="avatar"><span>${name}</span></button><div class="dropdown-content" id="accountDropdownMenu" style="visibility:hidden;opacity:0;transform:translateY(-10px);transition:all 0.25s ease;position:absolute;right:0;top:120%;background:#fff;min-width:160px;border-radius:14px;box-shadow:0 10px 22px rgba(0,0,0,0.24);overflow:hidden;z-index:10;"><a href="/profile" style="display:block;padding:12px 16px;color:#111;text-decoration:none;font-size:14px;">Account</a><a href="#" id="signOutLink" style="display:block;padding:12px 16px;color:#111;text-decoration:none;font-size:14px;">Sign Out</a></div>`
         actions.appendChild(accountDropdown)
       } else {
         const signIn = document.createElement('a')
@@ -141,8 +144,11 @@
     function updateHeaderCartCount(){
       try{
         const c = (window.CartStore && window.CartStore.getCart()) || []
-        const el = document.querySelector('#authActions .cart-btn span')
-        if (el) el.textContent = String(c.reduce((s,i)=>s+Number(i.qty||1),0) || c.length || 0)
+        const count = String(c.reduce((s,i)=>s+Number(i.qty||1),0) || c.length || 0)
+        const el1 = document.querySelector('#authActions .cart-btn span')
+        if (el1) el1.textContent = count
+        const el2 = document.getElementById('cartCount')
+        if (el2) el2.textContent = count
       }catch(e){}
     }
 

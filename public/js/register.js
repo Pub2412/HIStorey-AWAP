@@ -31,6 +31,15 @@ $(function() {
 		togglePassword($(this), isHidden)
 	})
 
+	$('#registerPfpInput').on('change', function() {
+		const file = this.files[0]
+		if (file) {
+			$('#registerPfpPreview').attr('src', URL.createObjectURL(file))
+		} else {
+			$('#registerPfpPreview').attr('src', '/media/images/profile_pg/placeholder_pfp.png')
+		}
+	})
+
 	initRegisterValidator('#registerForm', function(form) {
 		const $form = $(form)
 		const name = $.trim($form.find('[name="name"]').val())
@@ -57,6 +66,7 @@ $(function() {
 			data: formData
 		}).done(function() {
 			$form.trigger('reset')
+			$('#registerPfpPreview').attr('src', '/media/images/profile_pg/placeholder_pfp.png')
 			$form.addClass('hidden')
 			$('#successEmail').text(email)
 			$('#successTitle').text(`Account created for ${name}`)

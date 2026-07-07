@@ -110,6 +110,25 @@
     </div>
   </div>
 
+  <div class="modal hidden" id="roleModal">
+    <div class="modal-card">
+      <h3 id="roleModalTitle">Edit User Role</h3>
+      <form id="editRoleForm" style="display: flex; flex-direction: column; gap: 15px;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label for="userRoleSelect" style="font-weight: 600;">Select Role</label>
+          <select id="userRoleSelect" style="padding: 10px; border-radius: 10px; border: 1px solid #d5c8a9; font: inherit; width: 100%;">
+            <option value="customer">CUSTOMER</option>
+            <option value="admin">ADMIN</option>
+          </select>
+        </div>
+        <div class="modal-actions" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+          <button type="button" class="ghost-btn" id="cancelRoleModal">Cancel</button>
+          <button type="submit" class="primary-btn">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="/public/js/admin-auth.js"></script>
   <script src="/public/js/user.js"></script>
 </body>

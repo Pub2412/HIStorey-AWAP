@@ -402,22 +402,18 @@
 		<section class="content-container" id="reviews-section">
 			<div class="reviews-top">
 				<div class="overall-rating">
-					<h2 id="overallRating">0.0</h2>
-					<span>Overall Rating</span>
+					<h2 id="overallRating" style="margin:0; font-size:48px;">0.0</h2>
+					<div id="detailRating" style="margin-top:6px;"></div>
 				</div>
-				<div class="rating-bars">
-					<div class="rating-bar-row" data-star="5"><span>5</span><div class="bar-track"><div class="bar-fill" style="width: 95%;"></div></div><strong>95%</strong></div>
-					<div class="rating-bar-row" data-star="4"><span>4</span><div class="bar-track"><div class="bar-fill" style="width: 82%;"></div></div><strong>82%</strong></div>
-					<div class="rating-bar-row" data-star="3"><span>3</span><div class="bar-track"><div class="bar-fill" style="width: 66%;"></div></div><strong>66%</strong></div>
-					<div class="rating-bar-row" data-star="2"><span>2</span><div class="bar-track"><div class="bar-fill" style="width: 38%;"></div></div><strong>38%</strong></div>
-					<div class="rating-bar-row" data-star="1"><span>1</span><div class="bar-track"><div class="bar-fill" style="width: 20%;"></div></div><strong>20%</strong></div>
+				<div class="rating-bars" id="ratingBarsContainer">
+					<!-- Dynamically rendered -->
 				</div>
-				<div class="review-cta">
+				<div class="review-cta" id="reviewCtaBlock" style="display: none;">
 					<div>
-						<strong>Share your thoughts</strong>
-						<div style="font-size: 14px; color: #555; margin-top: 4px;">Reviews are shown as a visual preview for this product detail layout.</div>
+						<strong id="reviewCtaTitle">Share your thoughts</strong>
+						<div style="font-size: 14px; color: #555; margin-top: 4px;" id="reviewCtaDesc">If you purchased this item, you can leave a review.</div>
 					</div>
-					<button class="btn-send-review" type="button">Write Review</button>
+					<button class="btn-send-review" type="button" id="openReviewModalBtn">Write Review</button>
 				</div>
 			</div>
 
@@ -434,6 +430,32 @@
 		<p>Copyright 2026 HIStore'y E-commerce</p>
 		<a href="#top">Back to top</a>
 	</footer>
+
+	<!-- Review Modal -->
+	<div id="reviewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center;">
+		<div style="background:var(--panel); padding:30px; border-radius:18px; width:90%; max-width:500px; box-shadow:0 12px 28px rgba(0,0,0,0.3); position:relative; color:var(--text);">
+			<button id="closeReviewModal" type="button" style="position:absolute; top:15px; right:15px; background:none; border:none; font-size:24px; cursor:pointer; color:inherit;">&times;</button>
+			<h3 style="margin:0 0 20px 0; font-family:'Bodoni Moda', serif; font-size:24px;" id="reviewModalTitle">Write a Review</h3>
+			<form id="reviewForm">
+				<div style="margin-bottom:20px;">
+					<label style="display:block; font-weight:600; margin-bottom:8px;">Rating</label>
+					<div id="reviewRatingSelect" style="display:flex; gap:8px; font-size:32px; cursor:pointer; color:var(--accent);">
+						<span class="review-star" data-value="1">★</span>
+						<span class="review-star" data-value="2">★</span>
+						<span class="review-star" data-value="3">★</span>
+						<span class="review-star" data-value="4">★</span>
+						<span class="review-star" data-value="5">★</span>
+					</div>
+					<input type="hidden" id="reviewRatingInput" name="rating" value="5">
+				</div>
+				<div style="margin-bottom:20px;">
+					<label for="reviewComment" style="display:block; font-weight:600; margin-bottom:8px;">Comment</label>
+					<textarea id="reviewComment" name="comment" rows="4" style="width:100%; padding:10px; border:1px solid #ccc; border-radius:8px; font-family:inherit; font-size:14px; background:#fff; color:#000;" placeholder="Tell others about your experience..."></textarea>
+				</div>
+				<button type="submit" class="btn-send-review" style="width:100%; padding:12px; border-radius:8px; cursor:pointer; font-weight:600; border:none;">Submit Review</button>
+			</form>
+		</div>
+	</div>
 
 	<script src="/public/js/search-autocomplete.js"></script>
 	<script src="/public/js/cart-storage.js"></script>

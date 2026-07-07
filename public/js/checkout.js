@@ -1,6 +1,11 @@
 (function(){
   function formatPrice(v){return `PHP ${Number(v||0).toLocaleString('en-PH',{minimumFractionDigits:2})}`}
 
+  let userEmail = ''
+  let userFullName = ''
+  let userPhone = ''
+  let userAddress = ''
+
   function getCart(){ try { return window.CartStore ? window.CartStore.getCart() : [] } catch(e){ return [] } }
 
   function showAlert(message, isError = false){
@@ -52,21 +57,53 @@
     document.getElementById('placeOrderBtn').disabled = false
   }
 
-  function prefillUserInfo(){
+  async function prefillUserInfo(){
     const raw = localStorage.getItem('historey.session')
+    if (!raw) {
+      window.location.href = '/login'
+      return
+    }
     let session = null
     try {
-      session = raw ? JSON.parse(raw) : null
+      session = JSON.parse(raw)
     } catch (e) {
       session = null
     }
 
-    if (session && session.email) {
-      document.getElementById('email').value = session.email || ''
+    if (!session || !session.token) {
+      window.location.href = '/login'
+      return
     }
-    if (session && session.name) {
-      document.getElementById('fullName').value = session.name || ''
+
+    try {
+      const res = await fetch('/api/v1/auth/me', {
+        headers: { 'Authorization': `Bearer ${session.token}` }
+      })
+      if (res.ok) {
+        const data = await res.json()
+        const user = data.user
+        if (user) {
+          userEmail = user.email || ''
+          userFullName = user.name || ''
+          userPhone = user.phone || ''
+          userAddress = user.address || ''
+
+          document.getElementById('displayEmail').textContent = userEmail || '—'
+          document.getElementById('displayName').textContent = userFullName || '—'
+          document.getElementById('displayPhone').textContent = userPhone || '—'
+          document.getElementById('displayAddress').textContent = userAddress || '—'
+          return
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching user profile:', err)
     }
+
+    // fallback to session storage if API fails
+    userEmail = session.email || ''
+    userFullName = session.name || ''
+    document.getElementById('displayEmail').textContent = userEmail || '—'
+    document.getElementById('displayName').textContent = userFullName || '—'
   }
 
   function renderAuthActions(){
@@ -95,7 +132,9 @@
       const accountDropdown = document.createElement('div')
       accountDropdown.className = 'account-dropdown'
       accountDropdown.style.cssText = 'position:relative;display:inline-block;'
-      accountDropdown.innerHTML = `<button class="account-btn" id="accountDropdownBtn" type="button" style="padding:10px 20px;border-radius:999px;font-size:15px;font-weight:500;background:#fff;color:#000;text-decoration:none;box-shadow:0 4px 6px rgba(0,0,0,0.2);border:none;cursor:pointer;">${session.name || session.email || 'Customer'}</button><div class="dropdown-content" id="accountDropdownMenu" style="visibility:hidden;opacity:0;transform:translateY(-10px);transition:all 0.25s ease;position:absolute;right:0;top:120%;background:#fff;min-width:160px;border-radius:14px;box-shadow:0 10px 22px rgba(0,0,0,0.24);overflow:hidden;z-index:10;"><a href="/profile" style="display:block;padding:12px 16px;color:#111;text-decoration:none;font-size:14px;">Account</a><a href="#" id="signOutLink" style="display:block;padding:12px 16px;color:#111;text-decoration:none;font-size:14px;">Sign Out</a></div>`
+      const name = session.name || session.email || 'Customer'
+      const avatar = session.profile_photo || '/media/images/profile_pg/placeholder_pfp.png'
+      accountDropdown.innerHTML = `<button class="account-btn" id="accountDropdownBtn" type="button" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:999px;font-size:15px;font-weight:500;background:#fff;color:#000;text-decoration:none;box-shadow:0 4px 6px rgba(0,0,0,0.2);border:none;cursor:pointer;"><img src="${avatar.replace(/"/g, '&quot;')}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" alt="avatar"><span>${name}</span></button><div class="dropdown-content" id="accountDropdownMenu" style="visibility:hidden;opacity:0;transform:translateY(-10px);transition:all 0.25s ease;position:absolute;right:0;top:120%;background:#fff;min-width:160px;border-radius:14px;box-shadow:0 10px 22px rgba(0,0,0,0.24);overflow:hidden;z-index:10;"><a href="/profile" style="display:block;padding:12px 16px;color:#111;text-decoration:none;font-size:14px;">Account</a><a href="#" id="signOutLink" style="display:block;padding:12px 16px;color:#111;text-decoration:none;font-size:14px;">Sign Out</a></div>`
       actions.appendChild(accountDropdown)
     } else {
       const signIn = document.createElement('a')
@@ -112,8 +151,11 @@
   function updateHeaderCartCount(){
     try{
       const c = (window.CartStore && window.CartStore.getCart()) || []
-      const el = document.querySelector('#authActions .cart-btn span')
-      if (el) el.textContent = String(c.reduce((s,i)=>s+Number(i.qty||1),0) || c.length || 0)
+      const count = String(c.reduce((s,i)=>s+Number(i.qty||1),0) || c.length || 0)
+      const el1 = document.querySelector('#authActions .cart-btn span')
+      if (el1) el1.textContent = count
+      const el2 = document.getElementById('cartCount')
+      if (el2) el2.textContent = count
     }catch(e){}
   }
 
@@ -127,14 +169,14 @@
   async function placeOrder(){
     hideAlert()
     
-    const email = document.getElementById('email').value.trim()
-    const fullName = document.getElementById('fullName').value.trim()
-    const phone = document.getElementById('phone').value.trim()
-    const address = document.getElementById('address').value.trim()
+    const email = userEmail
+    const fullName = userFullName
+    const phone = userPhone
+    const address = userAddress
     const paymentMethod = document.getElementById('paymentMethod').value
 
     if (!email || !fullName || !address) {
-      showAlert('Please fill in all required fields', true)
+      showAlert('Please fill in all required fields. Make sure your profile has your name, email, and address set up.', true)
       return
     }
 

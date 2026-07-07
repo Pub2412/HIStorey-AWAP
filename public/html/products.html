@@ -540,7 +540,9 @@
       if (session && session.token) {
         const accountDropdown = document.createElement('div')
         accountDropdown.className = 'account-dropdown'
-        accountDropdown.innerHTML = `<button class="account-btn" id="accountDropdownBtn" type="button">${session.name ? session.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : session.email || 'Customer'}</button><div class="dropdown-content" id="accountDropdownMenu"><a href="/profile">Account</a><a href="#" id="signOutLink">Sign Out</a></div>`
+        const name = session.name ? session.name.replace(/</g, '&lt;').replace(/>/g, '&gt;') : session.email || 'Customer'
+        const avatar = session.profile_photo || '/media/images/profile_pg/placeholder_pfp.png'
+        accountDropdown.innerHTML = `<button class="account-btn" id="accountDropdownBtn" type="button" style="display: inline-flex; align-items: center; gap: 8px;"><img src="${avatar.replace(/"/g, '&quot;')}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" alt="avatar"><span>${name}</span></button><div class="dropdown-content" id="accountDropdownMenu"><a href="/profile">Account</a><a href="#" id="signOutLink">Sign Out</a></div>`
         actions.appendChild(accountDropdown)
       } else {
         const signIn = document.createElement('a')
@@ -548,6 +550,10 @@
         signIn.href = '/login'
         signIn.textContent = 'Sign In'
         actions.appendChild(signIn)
+      }
+
+      if (window.updateHeaderCartCount) {
+        window.updateHeaderCartCount()
       }
     }
 
@@ -628,12 +634,19 @@
       const actions = document.createElement('div')
       actions.className = 'card-actions'
 
+      const isOutOfStock = Number(p.stock || 0) <= 0
       const session = readSession()
       const buyBtn = document.createElement('button')
       buyBtn.type = 'button'
       buyBtn.className = 'add-to-cart-btn buy-btn'
       buyBtn.dataset.productId = p.id
-      if (session && session.token) {
+      if (isOutOfStock) {
+        buyBtn.textContent = 'Out of Stock'
+        buyBtn.disabled = true
+        buyBtn.style.background = '#888'
+        buyBtn.style.color = '#ccc'
+        buyBtn.style.cursor = 'not-allowed'
+      } else if (session && session.token) {
         buyBtn.textContent = 'Buy Now'
         buyBtn.addEventListener('click', () => {
           showToast('Opening product detail for checkout', 'info')

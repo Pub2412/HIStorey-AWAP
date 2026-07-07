@@ -1,26 +1,16 @@
 (function(){
-  // Simple cookie-backed cart storage. Exposes CartStore globally.
+  // Simple localStorage-backed cart storage. Exposes CartStore globally.
   const NAME = 'historey_cart'
-  function getCookie(name){
-    const v = document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith(name+'='))
-    if(!v) return null
-    return decodeURIComponent(v.split('=').slice(1).join('='))
-  }
-  function setCookie(name,value,days=30){
-    const d = new Date(); d.setTime(d.getTime() + (days*24*60*60*1000));
-    const expires = 'expires=' + d.toUTCString();
-    document.cookie = `${name}=${encodeURIComponent(value)}; ${expires}; path=/`;
-  }
   function read(){
     try{
-      const raw = getCookie(NAME)
+      const raw = localStorage.getItem(NAME)
       if (!raw) return []
       const parsed = JSON.parse(raw)
       return Array.isArray(parsed) ? parsed : []
     }catch(e){ return [] }
   }
   function write(cart){
-    try{ setCookie(NAME, JSON.stringify(cart||[]), 30) }catch(e){ /* noop */ }
+    try{ localStorage.setItem(NAME, JSON.stringify(cart||[])) }catch(e){ /* noop */ }
   }
 
   function findIndex(cart,id){ return cart.findIndex(x=>String(x.id)===String(id)) }

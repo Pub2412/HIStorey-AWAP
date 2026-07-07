@@ -69,9 +69,9 @@ async function run() {
         }
 
         const [txId] = await sequelize.query(
-          'INSERT INTO transactions (user_id, status, total_amount, shipping_address) VALUES (:userId, :status, :totalAmount, :shippingAddress)',
+          'INSERT INTO transactions (user_id, status) VALUES (:userId, :status)',
           {
-            replacements: { userId: tx.userId, status: tx.status, totalAmount, shippingAddress: tx.shippingAddress },
+            replacements: { userId: tx.userId, status: tx.status },
             type: QueryTypes.INSERT
           }
         );

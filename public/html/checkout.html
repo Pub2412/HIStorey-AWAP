@@ -75,24 +75,12 @@
         <div class="checkout-left">
           <div class="checkout-section">
             <h3 class="section-title">Shipping Information</h3>
-            <form id="checkoutForm">
-              <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="your@email.com" required>
-              </div>
-              <div class="form-group">
-                <label for="fullName">Full Name</label>
-                <input type="text" id="fullName" name="fullName" placeholder="John Doe" required>
-              </div>
-              <div class="form-group">
-                <label for="phone">Phone Number</label>
-                <input type="tel" id="phone" name="phone" placeholder="(555) 555-5555">
-              </div>
-              <div class="form-group">
-                <label for="address">Shipping Address</label>
-                <textarea id="address" name="address" rows="3" placeholder="123 Main St, City, Country" required></textarea>
-              </div>
-            </form>
+            <div id="shippingInfoDisplay" style="line-height: 2; font-size: 15px; display: grid; gap: 10px;">
+              <div><strong>Email Address:</strong> <span id="displayEmail">—</span></div>
+              <div><strong>Full Name:</strong> <span id="displayName">—</span></div>
+              <div><strong>Phone Number:</strong> <span id="displayPhone">—</span></div>
+              <div><strong>Address:</strong> <span id="displayAddress">—</span></div>
+            </div>
           </div>
 
           <div class="checkout-section">
