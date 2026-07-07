@@ -111,15 +111,6 @@
     if (!actions) return
     actions.innerHTML = ''
 
-    const cartButton = document.createElement('a')
-    cartButton.href = '/cart'
-    cartButton.className = 'cart-btn'
-    cartButton.id = 'cartButton'
-    cartButton.setAttribute('aria-label', 'Cart')
-    cartButton.style.cssText = 'padding:8px 20px;border-radius:999px;display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:500;background:#fff;color:#000;text-decoration:none;box-shadow:0 4px 6px rgba(0,0,0,0.2);'
-    cartButton.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span id="cartCount">0</span>`
-    actions.appendChild(cartButton)
-
     const raw = localStorage.getItem('historey.session')
     let session = null
     try {
@@ -129,6 +120,15 @@
     }
 
     if (session && session.token) {
+      const cartButton = document.createElement('a')
+      cartButton.href = '/cart'
+      cartButton.className = 'cart-btn'
+      cartButton.id = 'cartButton'
+      cartButton.setAttribute('aria-label', 'Cart')
+      cartButton.style.cssText = 'padding:8px 20px;border-radius:999px;display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:500;background:#fff;color:#000;text-decoration:none;box-shadow:0 4px 6px rgba(0,0,0,0.2);'
+      cartButton.innerHTML = `<svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span id="cartCount">0</span>`
+      actions.appendChild(cartButton)
+
       const accountDropdown = document.createElement('div')
       accountDropdown.className = 'account-dropdown'
       accountDropdown.style.cssText = 'position:relative;display:inline-block;'
@@ -178,6 +178,22 @@
     if (!email || !fullName || !address) {
       showAlert('Please fill in all required fields. Make sure your profile has your name, email, and address set up.', true)
       return
+    }
+
+    if (paymentMethod === 'gcash' || paymentMethod === 'maya') {
+      const mobile = document.getElementById('mobileNumber')?.value.trim()
+      if (!mobile) {
+        showAlert('Please enter your Mobile Number for ' + (paymentMethod === 'gcash' ? 'GCash' : 'Maya') + '.', true)
+        return
+      }
+    } else if (paymentMethod === 'card') {
+      const cardNum = document.getElementById('cardNumber')?.value.trim()
+      const expiry = document.getElementById('cardExpiry')?.value.trim()
+      const cvv = document.getElementById('cardCvv')?.value.trim()
+      if (!cardNum || !expiry || !cvv) {
+        showAlert('Please fill in all Credit/Debit Card details.', true)
+        return
+      }
     }
 
     const items = getCart()
@@ -254,6 +270,13 @@
   document.getElementById('placeOrderBtn')?.addEventListener('click', placeOrder)
   document.getElementById('backToCart')?.addEventListener('click', () => {
     window.location.href = '/cart'
+  })
+  document.getElementById('paymentMethod')?.addEventListener('change', function(e) {
+    const val = e.target.value
+    const ewallet = document.getElementById('ewalletFields')
+    const card = document.getElementById('cardFields')
+    if (ewallet) ewallet.style.display = (val === 'gcash' || val === 'maya') ? 'block' : 'none'
+    if (card) card.style.display = (val === 'card') ? 'block' : 'none'
   })
 
   // Sign out handler

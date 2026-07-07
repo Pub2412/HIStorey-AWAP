@@ -19,6 +19,16 @@
     const target = e.target.closest && e.target.closest('.add-to-cart-btn')
     if (!target) return
     e.preventDefault()
+
+    const raw = localStorage.getItem('historey.session')
+    let session = null
+    try { session = raw ? JSON.parse(raw) : null } catch(err) {}
+    if (!session || !session.token) {
+      e.stopImmediatePropagation()
+      window.location.replace('/login')
+      return
+    }
+
     const $btn = $(target)
     const info = getCardInfo($btn)
     if (!info || !info.id) return
@@ -35,6 +45,16 @@
     const target = e.target.closest && e.target.closest('.related-add-to-cart')
     if (!target) return
     e.preventDefault()
+
+    const raw = localStorage.getItem('historey.session')
+    let session = null
+    try { session = raw ? JSON.parse(raw) : null } catch(err) {}
+    if (!session || !session.token) {
+      e.stopImmediatePropagation()
+      window.location.replace('/login')
+      return
+    }
+
     const $btn = $(target)
     const id = $btn.data('product-id')
     const $card = $btn.closest('.product-card')

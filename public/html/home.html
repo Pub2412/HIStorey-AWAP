@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -23,8 +24,15 @@
 			--shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 		}
 
-		* { box-sizing: border-box; }
-		html, body { min-height: 100%; }
+		* {
+			box-sizing: border-box;
+		}
+
+		html,
+		body {
+			min-height: 100%;
+		}
+
 		body {
 			margin: 0;
 			font-family: 'Poppins', Arial, sans-serif;
@@ -170,7 +178,7 @@
 			display: flex;
 			align-items: center;
 			gap: 8px;
-			background: rgba(255,255,255,0.95);
+			background: rgba(255, 255, 255, 0.95);
 			border-radius: 999px;
 			padding: 8px 10px;
 		}
@@ -229,7 +237,9 @@
 			font-size: 14px;
 		}
 
-		.dropdown-content a:hover { background: #f4f4f4; }
+		.dropdown-content a:hover {
+			background: #f4f4f4;
+		}
 
 		.main-nav {
 			background: var(--nav);
@@ -250,7 +260,9 @@
 			letter-spacing: 0.5px;
 		}
 
-		.main-nav a:hover { opacity: 0.82; }
+		.main-nav a:hover {
+			opacity: 0.82;
+		}
 
 		.main-content {
 			flex: 1;
@@ -332,12 +344,12 @@
 			display: block;
 			filter: drop-shadow(16px 24px 30px rgba(0, 0, 0, 0.55));
 		}
-		
+
 		.hero-carousel {
 			display: grid;
 			place-items: center;
 		}
-		
+
 		.hero-carousel .carousel-slide {
 			grid-area: 1 / 1;
 			opacity: 0;
@@ -346,7 +358,7 @@
 			max-height: 400px;
 			object-fit: cover;
 		}
-		
+
 		.hero-carousel .carousel-slide.active {
 			opacity: 1;
 			z-index: 2;
@@ -427,8 +439,13 @@
 		}
 
 		@keyframes marquee {
-			0% { transform: translateX(100%); }
-			100% { transform: translateX(-150%); }
+			0% {
+				transform: translateX(100%);
+			}
+
+			100% {
+				transform: translateX(-150%);
+			}
 		}
 
 		.product-price {
@@ -481,13 +498,27 @@
 			transition: fill 0.3s ease, transform 0.3s ease;
 		}
 
-		.heart-btn.liked { animation: heartPop 0.3s forwards; }
-		.heart-btn.liked svg { fill: #a81c1c; transform: scale(1.08); }
+		.heart-btn.liked {
+			animation: heartPop 0.3s forwards;
+		}
+
+		.heart-btn.liked svg {
+			fill: #a81c1c;
+			transform: scale(1.08);
+		}
 
 		@keyframes heartPop {
-			0% { transform: scale(1); }
-			50% { transform: scale(1.18); }
-			100% { transform: scale(1.08); }
+			0% {
+				transform: scale(1);
+			}
+
+			50% {
+				transform: scale(1.18);
+			}
+
+			100% {
+				transform: scale(1.08);
+			}
 		}
 
 		.site-footer {
@@ -501,7 +532,9 @@
 			font-size: 14px;
 		}
 
-		#bg-audio { display: none; }
+		#bg-audio {
+			display: none;
+		}
 
 		.radio-alert {
 			position: fixed;
@@ -548,7 +581,9 @@
 		}
 
 		@media (max-width: 1100px) {
-			.product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+			.product-grid {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
 		}
 
 		@media (max-width: 900px) {
@@ -563,7 +598,7 @@
 
 			.auth-container {
 				justify-content: center;
-		}
+			}
 
 			.hero-banner {
 				grid-template-columns: 1fr;
@@ -575,7 +610,9 @@
 				margin: 0 auto;
 			}
 
-			.product-grid { grid-template-columns: 1fr; }
+			.product-grid {
+				grid-template-columns: 1fr;
+			}
 		}
 
 		@media (max-width: 640px) {
@@ -600,31 +637,48 @@
 		}
 	</style>
 </head>
+
 <body>
 	<header class="top-header">
 		<div class="logo-container">
-				<a href="/home" aria-label="Home"><img src="/media/images/home_pg/LogoWhite.png" alt="HIStore'y" class="header-logo"></a>
-			</div>
+			<a href="/home" aria-label="Home"><img src="/media/images/home_pg/LogoWhite.png" alt="HIStore'y"
+					class="header-logo"></a>
+		</div>
 
 		<div class="search-container">
 			<input type="text" placeholder="Search here" class="search-input" aria-label="search">
 			<button class="search-btn" type="button" aria-label="Search">
-				<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+				<svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"
+					stroke-linecap="round" stroke-linejoin="round">
+					<circle cx="11" cy="11" r="8"></circle>
+					<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+				</svg>
 			</button>
 		</div>
 
 		<div class="header-right">
 			<div class="auth-container" id="authActions"></div>
 			<div class="radio-panel" id="radioPanel">
-				<button class="audio-btn" id="audioToggleBtn" type="button" aria-label="Toggle audio" aria-pressed="false">
-				<svg id="icon-vol-on" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
-				<svg id="icon-vol-off" style="display:none;" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="1" x2="1" y2="23"></line></svg>
-			</button>
-			<div class="volume-control">
-				<input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.65" aria-label="Radio volume">
-				<span class="volume-value" id="volumeValue">65%</span>
+				<button class="audio-btn" id="audioToggleBtn" type="button" aria-label="Toggle audio"
+					aria-pressed="false">
+					<svg id="icon-vol-on" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor"
+						stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+						<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+						<path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+					</svg>
+					<svg id="icon-vol-off" style="display:none;" viewBox="0 0 24 24" width="20" height="20"
+						stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"
+						stroke-linejoin="round">
+						<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+						<line x1="23" y1="1" x2="1" y2="23"></line>
+					</svg>
+				</button>
+				<div class="volume-control">
+					<input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.65"
+						aria-label="Radio volume">
+					<span class="volume-value" id="volumeValue">65%</span>
+				</div>
 			</div>
-		</div>
 	</header>
 
 	<nav class="main-nav" aria-label="Primary">
@@ -638,18 +692,22 @@
 			<div class="hero-copy">
 				<img src="/media/images/home_pg/LogoWhite.png" alt="HIStore'y" class="hero-logo">
 				<h1>Get the fan essentials</h1>
-				<p>Exclusive Michael Jackson memorabilia curated for collectors, with featured drops, quick shopping, and a clean customer-first browsing flow.</p>
-				<a href="#featuredProducts" class="cta-btn">Start Shopping</a>
+				<p>Exclusive Michael Jackson memorabilia curated for collectors, with featured drops, quick shopping,
+					and a clean customer-first browsing flow.</p>
 			</div>
 			<div class="hero-image-wrap hero-carousel">
-				<img src="/media/images/history_pg/mj_jackson5.jpg" alt="Michael Jackson 1970s" class="hero-image carousel-slide active">
-				<img src="/media/images/history_pg/mj_thriller.jpg" alt="Michael Jackson 1980s" class="hero-image carousel-slide">
-				<img src="/media/images/history_pg/mj_king_of_pop.jpg" alt="Michael Jackson 1990s" class="hero-image carousel-slide">
+				<img src="/media/images/history_pg/mj_jackson5.jpg" alt="Michael Jackson 1970s"
+					class="hero-image carousel-slide active">
+				<img src="/media/images/history_pg/mj_thriller.jpg" alt="Michael Jackson 1980s"
+					class="hero-image carousel-slide">
+				<img src="/media/images/history_pg/mj_king_of_pop.jpg" alt="Michael Jackson 1990s"
+					class="hero-image carousel-slide">
 			</div>
 		</section>
 
-			<section class="section-title" id="featuredProducts">Featured Picks</section>
-			<div id="productStatus" style="width:100%;max-width:1320px;color:rgba(255,255,255,0.9);font-size:14px;">Loading products from the database...</div>
+		<section class="section-title" id="featuredProducts">Featured Picks</section>
+		<div id="productStatus" style="width:100%;max-width:1320px;color:rgba(255,255,255,0.9);font-size:14px;">Loading
+			products from the database...</div>
 
 
 
@@ -675,4 +733,5 @@
 	<script src="/public/js/carousel.js"></script>
 	<script src="/public/js/home.js"></script>
 </body>
+
 </html>

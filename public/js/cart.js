@@ -61,10 +61,42 @@
   // re-render when cart changes elsewhere
   window.addEventListener('cart.updated', function(){ render() })
 
+  function showWarning(msg) {
+    let toast = document.getElementById('cartWarningToast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'cartWarningToast';
+      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#b83c3c;color:#fff;padding:12px 24px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:9999;font-weight:600;transition:opacity 0.3s;pointer-events:none;';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+  }
+
   function changeQty(id,delta){
     const cart = getCart(); const idx = cart.findIndex(x=>String(x.id)===String(id)); if (idx===-1) return
-    cart[idx].qty = Math.max(1,(Number(cart[idx].qty||1)+delta))
-    saveCart(cart); render()
+    
+    if (delta > 0) {
+      $.ajax({ url: '/api/v1/products/' + id, method: 'GET' })
+        .done(function(product) {
+          const maxStock = Number(product.stock || 0)
+          const currentQty = Number(cart[idx].qty || 1)
+          if (currentQty + delta > maxStock) {
+            showWarning('Cannot add more than available stock (' + maxStock + ').')
+          } else {
+            cart[idx].qty = currentQty + delta
+            saveCart(cart); render()
+          }
+        })
+        .fail(function() {
+          showWarning('Failed to verify stock.')
+        })
+    } else {
+      cart[idx].qty = Math.max(1,(Number(cart[idx].qty||1)+delta))
+      saveCart(cart); render()
+    }
   }
   function removeItem(id){
     let cart = getCart(); cart = cart.filter(x=>String(x.id)!==String(id)); saveCart(cart); render()

@@ -8,6 +8,31 @@
 	let currentProduct = null
 	let currentQty = 1
 
+	const radioTracks = [
+		{ file: 'ABC.mp3', title: 'ABC', album: 'Jackson 5' },
+		{ file: "Bad.mp3", title: 'Bad', album: 'Bad' },
+		{ file: 'Beat It.mp3', title: 'Beat It', album: 'Thriller' },
+		{ file: 'Billie Jean.mp3', title: 'Billie Jean', album: 'Thriller' },
+		{ file: 'Black or White.mp3', title: 'Black or White', album: 'Dangerous' },
+		{ file: 'Chicago.mp3', title: 'Chicago', album: 'Michael Jackson' },
+		{ file: 'Dirty Diana.mp3', title: 'Dirty Diana', album: 'Bad' },
+		{ file: "Don't Stop 'Til You Get Enough.mp3", title: "Don't Stop 'Til You Get Enough", album: 'Off the Wall' },
+		{ file: 'Earth Song.mp3', title: 'Earth Song', album: 'HIStory' },
+		{ file: 'Heal the World.mp3', title: 'Heal the World', album: 'Dangerous' },
+		{ file: 'Human Nature.mp3', title: 'Human Nature', album: 'Thriller' },
+		{ file: "I'll Be There.mp3", title: "I'll Be There", album: 'Jackson 5' },
+		{ file: 'Jam.mp3', title: 'Jam', album: 'Dangerous' },
+		{ file: 'Man in the Mirror.mp3', title: 'Man in the Mirror', album: 'Bad' },
+		{ file: 'Remember the Time.mp3', title: 'Remember the Time', album: 'Dangerous' },
+		{ file: 'Smooth Criminal.mp3', title: 'Smooth Criminal', album: 'Bad' },
+		{ file: 'The Way You Make Me Feel.mp3', title: 'The Way You Make Me Feel', album: 'Bad' },
+		{ file: "They Don't Care About Us.mp3", title: "They Don't Care About Us", album: 'HIStory' },
+		{ file: 'Thriller.mp3', title: 'Thriller', album: 'Thriller' },
+		{ file: "Wanna Be Startin' Somethin'.mp3", title: "Wanna Be Startin' Somethin'", album: 'Thriller' },
+		{ file: 'You Are Not Alone.mp3', title: 'You Are Not Alone', album: 'HIStory' }
+	]
+	let currentRadioIndex = -1
+
 	function showCartToast(message) {
 		let toast = document.querySelector('.cart-toast')
 		if (toast) toast.remove()
@@ -92,15 +117,15 @@
 		const session = readSession()
 		$actions.empty()
 
-		$actions.append(`<a href="/cart" class="cart-btn" id="cartButton" aria-label="Cart"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>0</span></a>`)
 		if (session && session.token) {
+			$actions.append(`<a href="/cart" class="cart-btn" id="cartButton" aria-label="Cart"><svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>0</span></a>`)
 			const name = session.name || session.email || 'Customer'
 			const avatar = session.profile_photo || '/media/images/profile_pg/placeholder_pfp.png'
 			$actions.append(`<div class="account-dropdown"><button class="account-btn" id="accountDropdownBtn" type="button" style="display: inline-flex; align-items: center; gap: 8px;"><img src="${escapeHtml(avatar)}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" alt="avatar"><span>${escapeHtml(name)}</span></button><div class="dropdown-content" id="accountDropdownMenu"><a href="/profile">Account</a><a href="#" id="signOutLink">Sign Out</a></div></div>`)
 		} else {
 			$actions.append(`<a class="sign-in-btn" href="/login">Sign In</a>`)
 		}
-		$actions.append(`<button class="audio-btn" id="audioToggleBtn" type="button" aria-label="Toggle audio" aria-pressed="false"><svg id="icon-vol-on" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg><svg id="icon-vol-off" style="display:none;" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="1" x2="1" y2="23"></line></svg></button>`)
+
 		
 		if (window.updateHeaderCartCount) {
 			window.updateHeaderCartCount()
@@ -296,7 +321,8 @@
 			`
 		}).join(''))
 
-		if (!readSession()) {
+		const session = readSession()
+		if (!session || !session.token) {
 			$('.related-add-to-cart').text('Sign in to buy')
 		}
 	}
@@ -565,14 +591,124 @@
 			})
 	}
 
-	bindInteractions()
-	loadProduct()
+	function encodeRadioFile(fileName) {
+		return `/media/songs/radio/${encodeURIComponent(fileName)}`
+	}
 
-	const mutedPref = localStorage.getItem('landing-muted')
-	if (mutedPref === 'true') {
+	function getRandomRadioIndex(excludeIndex) {
+		if (!radioTracks.length) return -1
+		if (radioTracks.length === 1) return 0
+
+		let nextIndex = Math.floor(Math.random() * radioTracks.length)
+		while (nextIndex === excludeIndex) {
+			nextIndex = Math.floor(Math.random() * radioTracks.length)
+		}
+		return nextIndex
+	}
+
+	function showRadioAlert(reason, track) {
+		const $alert = $('#radioAlert')
+		const $label = $('#radioAlertLabel')
+		const $title = $('#radioAlertTitle')
+		const $meta = $('#radioAlertMeta')
+
+		if (!$alert.length || !track) return
+		$label.text(reason)
+		$title.text(track.title)
+		$meta.text(track.album)
+		$alert.addClass('show')
+		clearTimeout(showRadioAlert.timer)
+		showRadioAlert.timer = setTimeout(() => {
+			$alert.removeClass('show')
+		}, 4200)
+	}
+
+	function playRadioTrack(nextIndex, reason) {
+		const audio = document.getElementById('bg-audio')
+		if (!audio || nextIndex < 0 || !radioTracks[nextIndex]) return
+
+		currentRadioIndex = nextIndex
+		const track = radioTracks[currentRadioIndex]
+		audio.src = encodeRadioFile(track.file)
+		audio.loop = false
+		audio.load()
+		showRadioAlert(reason, track)
+
+		const playPromise = audio.play()
+		if (playPromise && playPromise.catch) {
+			playPromise.catch(() => setMuteState(true))
+		}
+	}
+
+	function startRadio() {
+		const nextIndex = getRandomRadioIndex(-1)
+		playRadioTrack(nextIndex, 'Now Playing')
+	}
+
+	function playNextRadioTrack() {
+		const nextIndex = getRandomRadioIndex(currentRadioIndex)
+		playRadioTrack(nextIndex, 'Switching Tracks')
+	}
+
+	function setMuteState(muted) {
+		const audio = document.getElementById('bg-audio')
+		const muteBtn = document.getElementById('audioToggleBtn')
 		const iconVolOn = document.getElementById('icon-vol-on')
 		const iconVolOff = document.getElementById('icon-vol-off')
-		if (iconVolOn) iconVolOn.style.display = 'none'
-		if (iconVolOff) iconVolOff.style.display = 'block'
+
+		if (!audio || !muteBtn) return
+		audio.muted = muted
+		muteBtn.setAttribute('aria-pressed', muted ? 'true' : 'false')
+		if (iconVolOn) iconVolOn.style.display = muted ? 'none' : 'block'
+		if (iconVolOff) iconVolOff.style.display = muted ? 'block' : 'none'
+		localStorage.setItem('home-radio-muted', muted ? 'true' : 'false')
 	}
+
+	function setAudioVolume(value) {
+		const audio = document.getElementById('bg-audio')
+		const volumeValue = document.getElementById('volumeValue')
+		if (!audio || !volumeValue) return
+
+		audio.volume = value
+		volumeValue.textContent = Math.round(value * 100) + '%'
+		localStorage.setItem('home-radio-volume', audio.volume.toString())
+	}
+
+	function restoreAudioSettings() {
+		const savedVolume = localStorage.getItem('home-radio-volume')
+		if (savedVolume !== null) {
+			setAudioVolume(savedVolume)
+			const slider = document.getElementById('volumeSlider')
+			if (slider) slider.value = savedVolume
+		}
+
+		const savedMuted = localStorage.getItem('home-radio-muted') === 'true'
+		setMuteState(savedMuted)
+	}
+
+	$(document).on('click', '#audioToggleBtn', function() {
+		const audio = document.getElementById('bg-audio')
+		if (!audio) return
+		const muted = !audio.muted
+		setMuteState(muted)
+		if (!muted) audio.play().catch(() => {})
+	})
+
+	$(document).on('input', '#volumeSlider', function(e) {
+		setAudioVolume(e.target.value)
+		if (document.getElementById('bg-audio').muted) {
+			setMuteState(false)
+		}
+	})
+
+	bindInteractions()
+	loadProduct()
+	
+	const radioAudio = document.getElementById('bg-audio')
+	if (radioAudio) {
+		radioAudio.addEventListener('ended', playNextRadioTrack)
+	}
+	
+	restoreAudioSettings()
+	startRadio()
 })()
