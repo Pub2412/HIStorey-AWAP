@@ -31,7 +31,7 @@ async function sendReceiptEmail(transaction, pdfBuffer) {
       : `Receipt for Order #${transaction.id} - HIStorey`;
 
     const mailOptions = {
-      from: process.env.MAILTRAP_FROM_EMAIL || 'receipt@historey.com',
+      from: process.env.MAILTRAP_FROM_EMAIL || 'noreply@historey.com',
       to: transaction.email,
       subject: subject,
       html: generateEmailHTML(transaction),
