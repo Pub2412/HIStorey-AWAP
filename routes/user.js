@@ -43,4 +43,6 @@ router.post('/auth/logout', verifyToken, userController.logout)
 // Update current user's profile (phone, address, name, photo)
 router.patch('/auth/me', verifyToken, upload.userUpload ? upload.userUpload.single('profile_photo') : upload.single('profile_photo'), userController.updateMe)
 
+router.get('/auth/me/favorites', verifyToken, userController.getMyFavorites)
+
 module.exports = router

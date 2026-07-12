@@ -107,6 +107,12 @@
           <div class="no-orders">Loading orders...</div>
         </div>
       </div>
+      <div class="profile-card fav-card" style="margin-top:16px;">
+        <h3 style="margin:0 0 8px 0">My Favorites</h3>
+        <div id="favList" class="tx-list">
+          <div class="no-orders">Loading favorites...</div>
+        </div>
+      </div>
       <div style="display:flex; justify-content:flex-start; margin-top:14px">
         <button id="signOutBtn" class="btn">Sign out</button>
       </div>
@@ -118,6 +124,7 @@
   <script src="/public/js/cart-storage.js"></script>
   <script src="/public/js/cart-actions.js"></script>
   <script src="/public/js/profile.js"></script>
+  <script src="/public/js/chatbot.js"></script>
   <script>
     // sign-out button below orders
     document.getElementById('signOutBtn')?.addEventListener('click', function(e){

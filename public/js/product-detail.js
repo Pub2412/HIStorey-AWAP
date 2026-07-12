@@ -8,6 +8,63 @@
 	let currentProduct = null
 	let currentQty = 1
 
+	let globalFavorites = []
+
+	function loadFavorites() {
+		const session = readSession()
+		if (!session || !session.token) return
+
+		$.ajax({
+			url: `${apiBase}/auth/me/favorites`,
+			method: 'GET',
+			headers: { 'Authorization': `Bearer ${session.token}` }
+		}).done(function(favorites) {
+			globalFavorites = favorites.map(f => f.id)
+			applyFavorites()
+		})
+	}
+
+	function applyFavorites() {
+		if (currentProduct && globalFavorites.includes(currentProduct.id)) {
+			$('#mainHeartBtn').addClass('liked')
+		} else {
+			$('#mainHeartBtn').removeClass('liked')
+		}
+
+		$('.heart-btn').each(function() {
+			const pid = parseInt($(this).data('product-id'))
+			if (globalFavorites.includes(pid)) {
+				$(this).addClass('liked')
+			} else {
+				$(this).removeClass('liked')
+			}
+		})
+	}
+
+	function toggleFavoriteApi(productId, $btn) {
+		const session = readSession()
+		if (!session || !session.token) {
+			window.location.href = '/login'
+			return
+		}
+
+		$.ajax({
+			url: `${apiBase}/products/${productId}/favorite`,
+			method: 'POST',
+			headers: { 'Authorization': `Bearer ${session.token}` }
+		}).done(function(res) {
+			if (res.favorited) {
+				$btn.addClass('liked')
+				if (!globalFavorites.includes(productId)) globalFavorites.push(productId)
+			} else {
+				$btn.removeClass('liked')
+				globalFavorites = globalFavorites.filter(id => id !== productId)
+			}
+		}).fail(function() {
+			showCartToast('Failed to update favorite')
+		})
+	}
+
 	const radioTracks = [
 		{ file: 'ABC.mp3', title: 'ABC', album: 'Jackson 5' },
 		{ file: "Bad.mp3", title: 'Bad', album: 'Bad' },
@@ -325,6 +382,7 @@
 		if (!session || !session.token) {
 			$('.related-add-to-cart').text('Sign in to buy')
 		}
+		applyFavorites()
 	}
 
 	function setQty(value) {
@@ -374,7 +432,9 @@
 
 		$(document).on('click', '.heart-btn', function(event) {
 			event.stopPropagation()
-			$(this).toggleClass('liked')
+			event.preventDefault()
+			const pid = parseInt($(this).data('product-id'))
+			toggleFavoriteApi(pid, $(this))
 		})
 
 		$(document).on('click', '.product-link', function(e) {
@@ -385,10 +445,11 @@
 		$('#qty-minus').on('click', () => setQty(currentQty - 1))
 		$('#qty-plus').on('click', () => setQty(currentQty + 1))
 
-		$('#mainHeartBtn').on('click', function() {
-			const isLiked = $(this).toggleClass('liked').hasClass('liked')
-			let count = Number($('#mainHeartCount').text() || '0')
-			$('#mainHeartCount').text(isLiked ? count + 1 : Math.max(0, count - 1))
+		$('#mainHeartBtn').on('click', function(e) {
+			e.preventDefault()
+			if (currentProduct) {
+				toggleFavoriteApi(currentProduct.id, $(this))
+			}
 		})
 
 		// Detail add-to-cart is handled here using local storage session
@@ -585,6 +646,8 @@
 						renderRelatedProducts(list, product.id)
 					})
 					.fail(() => renderRelatedProducts([], product.id))
+				
+				applyFavorites()
 			})
 			.fail(() => {
 				window.location.replace('/404')
@@ -703,6 +766,7 @@
 
 	bindInteractions()
 	loadProduct()
+	loadFavorites()
 	
 	const radioAudio = document.getElementById('bg-audio')
 	if (radioAudio) {

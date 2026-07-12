@@ -8,6 +8,7 @@
   <link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/public/css/search-autocomplete.css">
+  <link rel="stylesheet" href="/public/css/products.css">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <style>
     /* Copy of homepage styles (keeps products page visually consistent) */
@@ -747,6 +748,7 @@
   <script src="https://unpkg.com/infinite-scroll@4/dist/infinite-scroll.pkgd.min.js"></script>
   <script src="/public/js/cart-storage.js"></script>
   <script src="/public/js/cart-actions.js"></script>
+  <script src="/public/js/chatbot.js"></script>
   <script>
     function readSession() {
       try {
@@ -862,39 +864,49 @@
       }, duration)
     }
 
-    function getSavedFavorites() {
-      const raw = localStorage.getItem('productFavorites')
-      if (!raw) return []
-      try {
-        const parsed = JSON.parse(raw)
-        return Array.isArray(parsed) ? parsed.map(Number) : []
-      } catch (e) {
-        return []
-      }
-    }
+    let globalFavorites = []
 
-    function saveFavorites(list) {
-      localStorage.setItem('productFavorites', JSON.stringify(Array.from(new Set(list.map(Number)))))
+    async function loadFavorites() {
+      const session = readSession()
+      if (!session || !session.token) return
+      try {
+        const res = await fetch('/api/v1/auth/me/favorites', { headers: { Authorization: `Bearer ${session.token}` } })
+        if (res.ok) {
+          const list = await res.json()
+          globalFavorites = list.map(f => f.id)
+        }
+      } catch (err) {}
     }
 
     function isFavorite(productId) {
-      return getSavedFavorites().includes(Number(productId))
+      return globalFavorites.includes(Number(productId))
     }
 
-    function toggleFavorite(productId) {
-      const favorites = getSavedFavorites()
-      const id = Number(productId)
-      const index = favorites.indexOf(id)
-      if (index === -1) {
-        favorites.push(id)
-        saveFavorites(favorites)
-        showToast('Added to favorites', 'success')
-        return true
+    async function toggleFavorite(productId, btn) {
+      const session = readSession()
+      if (!session || !session.token) {
+        showToast('Please login to use favorites', 'error')
+        window.location.href = '/login'
+        return
       }
-      favorites.splice(index, 1)
-      saveFavorites(favorites)
-      showToast('Removed from favorites', 'info')
-      return false
+      try {
+        const res = await fetch(`/api/v1/products/${productId}/favorite`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${session.token}` }
+        })
+        const data = await res.json()
+        if (data.favorited) {
+          globalFavorites.push(Number(productId))
+          updateFavoriteButton(btn, true)
+          showToast('Added to favorites', 'success')
+        } else {
+          globalFavorites = globalFavorites.filter(id => id !== Number(productId))
+          updateFavoriteButton(btn, false)
+          showToast('Removed from favorites', 'info')
+        }
+      } catch (err) {
+        showToast('Failed to toggle favorite', 'error')
+      }
     }
 
     function updateFavoriteButton(button, isFavorited) {
@@ -1058,8 +1070,7 @@
       favBtn.addEventListener('click', function (event) {
         event.stopPropagation()
         event.preventDefault()
-        const favorited = toggleFavorite(p.id)
-        updateFavoriteButton(favBtn, favorited)
+        toggleFavorite(p.id, favBtn)
       })
 
       // place Buy button first, heart on the right with spacing
@@ -1276,7 +1287,7 @@
     setupSearchFiltering()
     restoreAudioSettings()
     startRadio()
-    initInfiniteScroll()
+    loadFavorites().then(() => initInfiniteScroll())
 
     const radioAudio = document.getElementById('bg-audio')
     if (radioAudio) {

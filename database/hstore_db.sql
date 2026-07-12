@@ -21,6 +21,7 @@ USE `hstore_db`;
 -- -------------------------------------------------------------
 --  Drop existing tables if they exist (reverse dependency order)
 -- -------------------------------------------------------------
+DROP TABLE IF EXISTS `favorites`;
 DROP TABLE IF EXISTS `reviews`;
 DROP TABLE IF EXISTS `email_logs`;
 DROP TABLE IF EXISTS `transaction_items`;
@@ -191,6 +192,21 @@ CREATE TABLE IF NOT EXISTS `reviews` (
   `comment` TEXT,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   UNIQUE KEY `idx_user_product` (`user_id`, `product_id`),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- =============================================================
+--  TABLE: favorites
+--  Storing user favorite products
+-- =============================================================
+
+CREATE TABLE IF NOT EXISTS `favorites` (
+  `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT UNSIGNED NOT NULL,
+  `product_id` INT UNSIGNED NOT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `idx_favorite_user_product` (`user_id`, `product_id`),
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

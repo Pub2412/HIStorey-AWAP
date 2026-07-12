@@ -2,6 +2,9 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const { signToken, JWT_SECRET } = require('../middlewares/auth')
 
+const FavoriteModel = require('../models/favorite')
+const ProductModel = require('../models/product')
+
 let UserModel = null
 let useDb = false
 
@@ -317,6 +320,37 @@ async function reactivateUser(req, res) {
     }
 }
 
+const getMyFavorites = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        if (!FavoriteModel || !ProductModel) {
+            return res.status(500).json({ message: 'Database models not initialized' });
+        }
+
+        const favorites = await FavoriteModel.findAll({
+            where: { user_id: userId },
+            include: [{
+                model: ProductModel,
+                as: 'product',
+                where: { is_deleted: false },
+                required: true
+            }]
+        });
+
+        // Format to just return the products with a favorited flag
+        const favoriteProducts = favorites.map(fav => {
+            const prod = fav.product.toJSON();
+            prod.favorited = true;
+            return prod;
+        });
+
+        return res.json(favoriteProducts);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'Failed to fetch favorites' });
+    }
+}
+
 module.exports = {
 	listUsers,
 	register,
@@ -326,5 +360,6 @@ module.exports = {
 	updateMe,
 	updateRole,
     deactivateUser,
-	reactivateUser
+	reactivateUser,
+    getMyFavorites
 }

@@ -3,6 +3,9 @@ const app = express();
 const cors = require('cors')
 const path = require('path');
 
+// Initialize Sequelize associations
+require('./models');
+
 // Middleware
 app.use(cors())
 app.use(express.json())
@@ -98,11 +101,13 @@ const products = require('./routes/products')
 const transactions = require('./routes/transactions')
 const userRoutes = require('./routes/user')
 const cartRoutes = require('./routes/cart');
+const chatbotRoutes = require('./routes/chatbot');
 
 app.use('/api/v1', cartRoutes);
 app.use('/api/v1', products)
 app.use('/api/v1', transactions)
 app.use('/api/v1', userRoutes)
+app.use('/api/v1', chatbotRoutes)
 
 app.use((req, res, next) => {
     if (req.method !== 'GET' || req.path.startsWith('/api/')) {

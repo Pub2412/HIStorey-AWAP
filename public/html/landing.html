@@ -6,6 +6,17 @@
   <title>HIStore'y - Landing</title>
   <link rel="icon" href="/media/images/famicon.ico" type="image/x-icon">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script>
+    try {
+      const session = localStorage.getItem('historey.session');
+      if (session) {
+        const parsed = JSON.parse(session);
+        if (parsed && parsed.token) {
+          window.location.replace('/404');
+        }
+      }
+    } catch(e) {}
+  </script>
   <link rel="stylesheet" href="/public/css/search-autocomplete.css">
   <style>
     :root {

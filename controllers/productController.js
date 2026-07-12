@@ -5,8 +5,29 @@ let useDb = false
 const ProductImage = require('../models/product_image')
 const ReviewModel = require('../models/review')
 const UserModel = require('../models/user')
+const FavoriteModel = require('../models/favorite')
 const path = require('path')
 const fs = require('fs')
+
+let profanityList = [];
+try {
+  const profanityPath = path.join(__dirname, '../includes/profanitydictionary.txt');
+  const profanityData = fs.readFileSync(profanityPath, 'utf8');
+  profanityList = profanityData.split(/\r?\n/).map(w => w.trim().toLowerCase()).filter(w => w.length > 0);
+} catch (e) {
+  console.error('Failed to load profanity dictionary:', e);
+}
+
+function censorProfanity(text) {
+  if (!text || profanityList.length === 0) return text;
+  let censoredText = text;
+  profanityList.forEach(word => {
+    const escapedWord = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`\\b${escapedWord}\\b`, 'gi');
+    censoredText = censoredText.replace(regex, '****');
+  });
+  return censoredText;
+}
 
 // in-memory fallback
 const products = []
@@ -195,11 +216,13 @@ exports.createProductReview = async (req, res) => {
 
   const productId = Number(req.params.id)
   const rating = Number(req.body.rating)
-  const comment = String(req.body.comment || '').trim()
+  let comment = String(req.body.comment || '').trim()
 
   if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
     return res.status(400).json({ message: 'Rating must be between 1 and 5.' })
   }
+
+  comment = censorProfanity(comment)
 
   try {
     const product = await ProductModel.findByPk(productId)
@@ -561,11 +584,13 @@ exports.listProductReviews = async (req, res) => {
 exports.createProductReview = async (req, res) => {
   const productId = Number(req.params.id)
   const userId = req.user.id
-  const { rating, comment } = req.body
+  let { rating, comment } = req.body
 
   if (!rating || rating < 1 || rating > 5) {
     return res.status(400).json({ message: 'Rating must be between 1 and 5' })
   }
+
+  comment = censorProfanity(comment)
 
   if (useDb) {
     try {
@@ -686,3 +711,34 @@ exports.checkProductPurchase = async (req, res) => {
 
   return res.json({ hasPurchased: true, existingReview: null })
 }
+
+exports.toggleFavorite = async (req, res) => {
+  try {
+    const productId = req.params.id
+    const userId = req.user.id
+
+    if (!FavoriteModel) {
+      return res.status(500).json({ message: 'Database models not initialized' })
+    }
+
+    const product = await ProductModel.findByPk(productId)
+    if (!product || product.is_deleted) {
+      return res.status(404).json({ message: 'Product not found' })
+    }
+
+    const existingFavorite = await FavoriteModel.findOne({
+      where: { user_id: userId, product_id: productId }
+    })
+
+    if (existingFavorite) {
+      await existingFavorite.destroy()
+      return res.json({ favorited: false, message: 'Removed from favorites' })
+    } else {
+      await FavoriteModel.create({ user_id: userId, product_id: productId })
+      return res.json({ favorited: true, message: 'Added to favorites' })
+    }
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Failed to toggle favorite status' })
+  }
+}

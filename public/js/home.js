@@ -269,9 +269,29 @@ $(function() {
 		}).done(function(response) {
 			const products = Array.isArray(response) ? response.filter(product => !product.is_deleted) : []
 			renderProducts(products)
+			loadFavorites()
 		}).fail(function() {
 			$('#productGrid').html('')
 			$('#productStatus').text('Could not load products from the database right now.')
+		})
+	}
+
+	function loadFavorites() {
+		const session = readSession()
+		if (!session || !session.token) return
+
+		$.ajax({
+			url: `${apiBase}/auth/me/favorites`,
+			method: 'GET',
+			headers: { Authorization: `Bearer ${session.token}` }
+		}).done(function(favorites) {
+			const favoriteIds = favorites.map(f => f.id)
+			$('.heart-btn').each(function() {
+				const id = $(this).data('product-id')
+				if (favoriteIds.includes(id)) {
+					$(this).addClass('liked')
+				}
+			})
 		})
 	}
 
@@ -356,7 +376,27 @@ $(function() {
 	})
 
 	$(document).on('click', '.heart-btn', function() {
-		$(this).toggleClass('liked')
+		const $btn = $(this)
+		const session = readSession()
+		if (!session || !session.token) {
+			window.location.href = '/login'
+			return
+		}
+		
+		const productId = $btn.data('product-id')
+		$.ajax({
+			url: `${apiBase}/products/${productId}/favorite`,
+			method: 'POST',
+			headers: { Authorization: `Bearer ${session.token}` }
+		}).done(function(response) {
+			if (response.favorited) {
+				$btn.addClass('liked')
+			} else {
+				$btn.removeClass('liked')
+			}
+		}).fail(function(err) {
+			alert('Failed to update favorite status.')
+		})
 	})
 
 	$(document).on('click', '.product-link', function(e) {

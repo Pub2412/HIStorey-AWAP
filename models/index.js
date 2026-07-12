@@ -3,6 +3,7 @@ const Transaction = require('./transaction');
 const TransactionItem = require('./transaction_item');
 const CartItem = require('./cart_item');
 const EmailLog = require('./email_log');
+const Favorite = require('./favorite');
 
 // Define relationships
 Transaction.hasMany(TransactionItem, {
@@ -31,10 +32,16 @@ CartItem.belongsTo(Product, {
   as: 'product',
 });
 
+Favorite.belongsTo(Product, {
+  foreignKey: 'product_id',
+  as: 'product',
+});
+
 module.exports = {
   Product,
   Transaction,
   TransactionItem,
   CartItem,
   EmailLog,
+  Favorite,
 };

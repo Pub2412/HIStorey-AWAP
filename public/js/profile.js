@@ -149,6 +149,7 @@
     
     // load user's transactions
     fetchTransactions()
+    fetchFavorites()
 
     // wire custom file chooser UI
     const chooseBtn = document.getElementById('chooseFileBtn')
@@ -267,6 +268,51 @@
       }
 
       container.appendChild(card)
+    })
+  }
+
+  async function fetchFavorites() {
+    const token = getAuthToken()
+    if (!token) return
+    try {
+      const res = await fetch(`${apiBase}/auth/me/favorites`, { headers: { Authorization: `Bearer ${token}` } })
+      if (!res.ok) throw new Error('Failed')
+      const data = await res.json()
+      renderFavorites(Array.isArray(data) ? data : [])
+    } catch (err) {
+      renderFavorites([])
+    }
+  }
+
+  function renderFavorites(list) {
+    const container = document.getElementById('favList')
+    if (!container) return
+    container.innerHTML = ''
+    if (!list || !list.length) {
+      const el = document.createElement('div')
+      el.className = 'no-orders'
+      el.innerHTML = '<strong>No favorites yet</strong>'
+      container.appendChild(el)
+      return
+    }
+
+    list.forEach(product => {
+      const row = document.createElement('div')
+      row.style.display = 'flex'
+      row.style.justifyContent = 'space-between'
+      row.style.alignItems = 'center'
+      row.style.padding = '8px 0'
+      row.style.borderBottom = '1px dashed #eee'
+      
+      const left = document.createElement('div')
+      left.innerHTML = `<a href="/product/${product.id}" style="color:#8a0c0c;text-decoration:none;font-weight:500;">${escapeHtml(product.name)}</a>`
+      
+      const right = document.createElement('div')
+      right.innerHTML = `PHP ${Number(product.price || 0).toLocaleString('en-PH', { minimumFractionDigits:2 })}`
+      
+      row.appendChild(left)
+      row.appendChild(right)
+      container.appendChild(row)
     })
   }
 
