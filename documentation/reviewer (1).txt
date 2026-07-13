@@ -1,0 +1,1032 @@
+================================================================================
+HIStore'y Project Reviewer: Requirement Code Mapping & Explanations
+================================================================================
+
+This document outlines the codebase mapping, key code snippets, and technical
+explanations for all the academic and application requirements in the HIStore'y
+memorabilia store project.
+
+--------------------------------------------------------------------------------
+1. REQUIREMENT: mp1 - NodeJS CRUD api (Products CRUD)
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Routes: routes/products.js (lines 12-16)
+  - Controller: controllers/productController.js (lines 245-364)
+
+* CODE SNIPPET (routes/products.js):
+```javascript
+router.post('/products', verifyToken, checkAdmin, productController.createProduct)
+router.put('/products/:id', verifyToken, checkAdmin, productController.updateProduct)
+router.delete('/products/:id', verifyToken, checkAdmin, productController.deleteProduct)
+router.patch('/products/:id/deactivate', verifyToken, checkAdmin, productController.deactivateProduct)
+router.patch('/products/:id/reactivate', verifyToken, checkAdmin, productController.reactivateProduct)
+```
+
+* CODE SNIPPET (controllers/productController.js - Create & Soft-Delete):
+```javascript
+// CREATE
+exports.createProduct = async (req, res) => {
+  const payload = normalizeProductPayload(req.body)
+  if (useDb && ProductModel) {
+    try {
+      const created = await ProductModel.create(payload)
+      return res.status(201).json(created)
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({ message: 'DB create error' })
+    }
+  }
+  // in-memory fallback ...
+}
+
+// SOFT DELETE / DEACTIVATE
+exports.deactivateProduct = async (req, res) => {
+  const id = Number(req.params.id)
+  if (useDb && ProductModel) {
+    try {
+      const p = await ProductModel.findByPk(id)
+      if (!p) return res.status(404).json({ message: 'Not found' })
+      await p.update({ is_deleted: true })
+      return res.json({ message: 'Product deactivated' })
+    } catch (err) {
+      console.error(err)
+      return res.status(500).json({ message: 'DB update error' })
+    }
+  }
+  // in-memory fallback ...
+}
+```
+
+* EXPLANATION:
+  This API exposes CRUD capability for product listings. The routing definitions 
+  in `routes/products.js` direct HTTP methods (POST, PUT, DELETE, and PATCH) 
+  to actions inside `productController.js`. It performs:
+  - Create (POST `/products` -> `ProductModel.create` payload)
+  - Read (GET `/products` / `/products/:id` -> `ProductModel.findAll` / `findByPk`)
+  - Update (PUT `/products/:id` -> `productInstance.update` with payload inputs)
+  - Delete / Deactivate (DELETE `/products/:id` or PATCH `/products/:id/deactivate` 
+    -> Updates the database column `is_deleted` to true for logical/soft delete).
+
+
+--------------------------------------------------------------------------------
+2. REQUIREMENT: mp2 - NodeJS CRUD api (Transactions/Orders CRUD)
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Routes & logic: routes/transactions.js (lines 96-338)
+
+* CODE SNIPPET (routes/transactions.js - CREATE with Raw SQL):
+```javascript
+router.post('/transactions', async (req, res) => {
+  if (await canUseDatabase()) {
+    const { user_id = null, status = 'Pending', payment_status = 'Pending', items = [], email } = req.body
+    try {
+      const [result] = await sequelize.query(
+        'INSERT INTO transactions (user_id, status, payment_status) VALUES (:user_id, :status, :payment_status)',
+        {
+          replacements: { user_id, status, payment_status },
+          type: QueryTypes.INSERT
+        }
+      )
+
+      const transactionId = result || null
+      if (transactionId && Array.isArray(items) && items.length) {
+        for (const item of items) {
+          await sequelize.query(
+            'INSERT INTO transaction_items (transaction_id, product_id, quantity, unit_price) VALUES (:transaction_id, :product_id, :quantity, :unit_price)',
+            {
+              replacements: {
+                transaction_id: transactionId,
+                product_id: item.product_id,
+                quantity: item.quantity || 1,
+                unit_price: item.unit_price || 0
+              },
+              type: QueryTypes.INSERT
+            }
+          )
+        }
+      }
+      // Calculated total & email dispatches receipt pdf...
+      return res.status(201).json({ id: transactionId, status, payment_status, total_amount: calculatedTotal })
+    } catch (error) {
+      console.error(error)
+      return res.status(500).json({ message: 'DB error' })
+    }
+  }
+  // in-memory fallback...
+})
+```
+
+* EXPLANATION:
+  The transaction CRUD endpoints manage user orders. They support:
+  - Create (POST `/transactions`) inserting rows into the `transactions` and 
+    associated `transaction_items` tables using Sequelize's raw SQL execution 
+    (`sequelize.query`).
+  - Read (GET `/transactions` / `/:id` / `/mine` fetching customer transaction listings).
+  - Update (PUT `/transactions/:id` updating `status` and `payment_status`).
+  - Delete (DELETE `/transactions/:id` removing the transaction record).
+  Stock limits are updated when a transaction is completed, and receipts are emailed.
+
+
+--------------------------------------------------------------------------------
+3. REQUIREMENT: mp3 - CRUD Jquery/datatables multiple file uploads for product pictures
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Multer utility: utils/multer.js (lines 12-21, 34-38)
+  - Controller: controllers/productController.js (lines 366-393)
+  - Frontend JS: public/js/admin-products.js (lines 221-236)
+  - Frontend HTML: public/html/admin/products.html (file upload field)
+
+* CODE SNIPPET (utils/multer.js):
+```javascript
+const productStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, productDir)
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname)
+    const name = `${Date.now()}-${Math.random().toString(36).slice(2,8)}${ext}`
+    cb(null, name)
+  }
+})
+const productUpload = multer({ storage: productStorage })
+```
+
+* CODE SNIPPET (public/js/admin-products.js):
+```javascript
+function uploadProductImages(productId) {
+  const files = $('#productImages')[0].files
+  if (!files || files.length === 0) return $.Deferred().resolve([]).promise()
+
+  const formData = new FormData()
+  Array.from(files).forEach((file) => formData.append('images', file))
+
+  return $.ajax({
+    url: `/api/v1/products/${productId}/images`,
+    method: 'POST',
+    data: formData,
+    processData: false,
+    contentType: false,
+    headers: getSessionHeaders()
+  })
+}
+```
+
+* CODE SNIPPET (controllers/productController.js):
+```javascript
+exports.uploadImages = async (req, res) => {
+  const id = Number(req.params.id)
+  if (!req.files || req.files.length === 0) return res.status(400).json({ message: 'No files uploaded' })
+
+  if (useDb && ProductModel && ProductImage) {
+    try {
+      const p = await ProductModel.findByPk(id)
+      if (!p) return res.status(404).json({ message: 'Product not found' })
+
+      const created = []
+      for (const f of req.files) {
+        const publicPath = `/uploads/products/${f.filename}`
+        const img = await ProductImage.create({ product_id: id, file_path: publicPath, is_primary: false })
+        created.push({ id: img.id, url: toImageUrl(img.file_path) })
+      }
+      return res.status(201).json(created)
+    } catch (err) {
+      console.error('DB uploadImages error:', err)
+    }
+  }
+  // in-memory fallback...
+}
+```
+
+* EXPLANATION:
+  This allows administrators to upload multiple photos for memorabilia items.
+  - Backend: `multer` handles the `multipart/form-data` request, saves images to 
+    `public/uploads/products/` with unique filenames, and exposes the list in `req.files`.
+    The `uploadImages` action creates `ProductImage` database rows mapped to the product ID.
+  - Frontend: An `<input type="file" multiple>` collects files. `uploadProductImages` 
+    constructs a JavaScript `FormData` payload and submits it using a jQuery AJAX POST 
+    request. It explicitly disables jQuery's automatic query serialization by passing 
+    `processData: false` and `contentType: false`. The uploaded images are rendered inside
+    a JQuery DataTables column for easy product catalog management.
+
+
+--------------------------------------------------------------------------------
+4. REQUIREMENT: mp4 - CRUD Jquery/datatables frontend for tables on admin pages
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Frontend JS: public/js/admin-orders.js (lines 15-88)
+  - Frontend HTML: public/html/admin/orders.html (lines 100-120)
+
+* CODE SNIPPET (public/js/admin-orders.js):
+```javascript
+function initOrdersTable() {
+  if (ordersTable) return ordersTable
+
+  ordersTable = $('#ordersTable').DataTable({
+    data: [],
+    columns: [
+      { data: 'id' },
+      {
+        data: null,
+        render: function (data, type, row) {
+          return row.customer_name || row.customer || 'Unknown'
+        }
+      },
+      {
+        data: 'created_at',
+        render: function (data, type) {
+          if (!data) return '—'
+          if (type !== 'display') return data
+          return new Date(data).toLocaleString('en-PH')
+        }
+      },
+      {
+        data: 'total_amount',
+        render: function (data, type, row) {
+          const total = Number(data || row.total || 0)
+          if (type !== 'display') return total
+          return formatCurrency(total)
+        }
+      },
+      {
+        data: 'payment_status',
+        render: function (data, type) {
+          const val = data || 'Pending'
+          if (type !== 'display') return val
+          return `<span class="pill ${val.toLowerCase()}">${val}</span>`
+        }
+      },
+      {
+        data: 'status',
+        render: function (data, type) {
+          const val = data || 'Pending'
+          if (type !== 'display') return val
+          return `<span class="pill ${val.toLowerCase()}">${val}</span>`
+        }
+      },
+      {
+        data: null,
+        orderable: false,
+        searchable: false,
+        render: function (data, type, row) {
+          if (type !== 'display') return ''
+          return `<button class="action-btn view-order" data-id="${row.id}">Edit</button>`
+        }
+      }
+    ],
+    autoWidth: false,
+    scrollX: false,
+    order: [[0, 'desc']],
+    pageLength: 10,
+    lengthMenu: [5, 10, 25, 50],
+    language: { emptyTable: 'No transactions found.' },
+    dom: 'rt<"dt-footer"lip>'
+  })
+
+  return ordersTable
+}
+
+function renderOrders() {
+  initOrdersTable()
+  ordersTable.clear().rows.add(orders).draw()
+  ordersTable.columns.adjust().draw()
+}
+```
+
+* EXPLANATION:
+  This requirement handles displaying transactions/orders and other admin tables 
+  on the administration dashboard using JQuery and DataTables.
+  - The DataTable is initialized on `#ordersTable` with custom column definitions,
+    custom renders (e.g. styling badges for transaction status, currency formattings),
+    and paging lengths.
+  - Data is fetched asynchronously via JQuery AJAX GET (`/api/v1/transactions`). 
+    On success, the local array is populated, and `ordersTable.clear().rows.add(orders).draw()`
+    binds the data to the view, providing client-side sorting and paging.
+
+
+--------------------------------------------------------------------------------
+5. REQUIREMENT: mp5 - generate and send tokens for authentication / save token on users table
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Token signing: middlewares/auth.js (lines 6-12)
+  - User DB definition: models/user.js (line 11)
+  - Controller (Registration & Login): controllers/userController.js (lines 132-133, 196-197)
+
+* CODE SNIPPET (middlewares/auth.js):
+```javascript
+function signToken(user) {
+  return jwt.sign(
+    { id: user.id, email: user.email, role: user.role },
+    JWT_SECRET,
+    { expiresIn: JWT_EXPIRES_IN }
+  )
+}
+```
+
+* CODE SNIPPET (models/user.js):
+```javascript
+const User = sequelize.define('User', {
+  // ...
+  active_token: { type: DataTypes.TEXT, allowNull: true },
+  // ...
+}, { tableName: 'users', timestamps: true, createdAt: 'created_at', updatedAt: 'updated_at' })
+```
+
+* CODE SNIPPET (controllers/userController.js - Login saving token):
+```javascript
+const token = signToken(user)
+await user.update({ active_token: token })
+
+return res.json({
+  message: 'Signed in successfully.',
+  user: publicUser(user),
+  token
+})
+```
+
+* EXPLANATION:
+  Upon a user successfully completing registration or authentication checks during 
+  login, a JSON Web Token (JWT) is constructed containing the user's ID, email, and 
+  role. It is signed using a secure secret key via `jwt.sign`.
+  To implement stateful token tracking and session validation (preventing multiple
+  concurrent active sessions or checking for active sessions), the generated JWT is 
+  updated directly in the database under the `active_token` column on the user's row. 
+  When checking incoming requests or during logout (which updates `active_token: null`),
+  the system validates the token from the header matches the active one in the database.
+
+
+--------------------------------------------------------------------------------
+6. REQUIREMENT: mp6 - User registration, Login API via Jquery AJAX / Admin update role & deactivation / Users Datatable
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Client AJAX: public/js/login.js, public/js/register.js, public/js/user.js
+  - Controller logic: controllers/userController.js (lines 61-144, 245-318)
+  - Users page structure: public/html/admin/users.html
+
+* CODE SNIPPET (public/js/login.js - JQuery AJAX Login):
+```javascript
+$.ajax({
+  url: '/api/v1/auth/login',
+  method: 'POST',
+  contentType: 'application/json',
+  data: JSON.stringify({ email: emailVal, password: passwordVal })
+})
+.done(function(response) {
+  const session = {
+    token: response.token,
+    id: response.user.id,
+    name: response.user.name,
+    email: response.user.email,
+    role: response.user.role,
+    profile_photo: response.user.profile_photo
+  }
+  localStorage.setItem('historey.session', JSON.stringify(session))
+  showToast('Welcome back! Redirecting...', 'success')
+  setTimeout(() => window.location.href = '/', 900)
+})
+.fail(function(xhr) {
+  const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Invalid login credentials.'
+  showToast(msg, 'error')
+})
+```
+
+* CODE SNIPPET (controllers/userController.js - Update Role & Deactivate):
+```javascript
+// UPDATE USER ROLE
+async function updateRole(req, res) {
+  if (!requireDatabase(res)) return
+  try {
+    const { id } = req.params
+    const { role } = req.body
+    if (!['admin', 'customer'].includes(role)) {
+      return res.status(400).json({ message: 'Invalid role' })
+    }
+    const user = await UserModel.findByPk(id)
+    if (!user) return res.status(404).json({ message: 'User not found' })
+    if (Number(req.user.id) === Number(id)) {
+      return res.status(403).json({ message: "You cannot change your own role" })
+    }
+    await user.update({ role })
+    return res.json({ message: 'Role updated successfully' })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Failed to update role' })
+  }
+}
+
+// DEACTIVATE USER
+async function deactivateUser(req, res) {
+  if (!requireDatabase(res)) return
+  try {
+    const { id } = req.params
+    const user = await UserModel.findByPk(id)
+    if (!user) return res.status(404).json({ message: 'User not found' })
+    await user.update({ is_active: false })
+    return res.json({ message: 'User deactivated' })
+  } catch (err) {
+    console.error(err)
+    return res.status(500).json({ message: 'Failed to deactivate user' })
+  }
+}
+```
+
+* EXPLANATION:
+  This integrates client-side jQuery authentication with administrator dashboards:
+  - Users sign in and register through pages that compile form details, validate 
+    them client-side, and make JQuery AJAX calls to the registration/login API.
+  - The returned token session is preserved in `localStorage` (`historey.session`).
+  - Under `public/html/admin/users.html`, users are rendered using jQuery DataTable.
+  - Administrators can select a user, trigger role adjustments (PATCH `/users/:id/role`),
+    or toggle a user's status to deactivate/reactivate them (PATCH `/users/:id/deactivate`).
+    The controller enforces security by checking that the active administrator is 
+    not updating their own role.
+
+
+--------------------------------------------------------------------------------
+7. REQUIREMENT: mp7 - use Sequelize ORM on CRUD functions
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Controllers: controllers/productController.js, controllers/userController.js
+  - Models: models/product.js, models/user.js, models/product_image.js, models/review.js
+
+* CODE SNIPPET (controllers/productController.js):
+```javascript
+// Fetch products along with associated images (association loading)
+const result = await ProductModel.findAndCountAll({
+  where: q ? sequelizeWhere(q) : { is_deleted: false },
+  include: [{ model: ProductImage, as: 'images', attributes: ['id','file_path','is_primary','uploaded_at'] }],
+  distinct: true,
+  limit,
+  offset,
+  order: [['created_at', 'DESC']]
+})
+```
+
+* CODE SNIPPET (controllers/userController.js):
+```javascript
+// ORM find user by email
+const user = await UserModel.findOne({ where: { email } })
+```
+
+* EXPLANATION:
+  Relational database tables are translated into JavaScript objects using Sequelize
+  ORM.
+  - Models define the column types, primary/foreign keys, and validation rules.
+  - Rather than writing raw query strings (e.g. `SELECT * FROM products`), controllers
+    call built-in ORM helpers like `findByPk`, `findOne`, `create`, `update`, and `findAll`.
+  - Associations are handled by defining relationships (`Product.hasMany(ProductImage)`)
+    and eagerly loading related columns using `include: [...]` inside the find queries.
+
+
+--------------------------------------------------------------------------------
+8. REQUIREMENT: term test Lab - transactions CRUD api and jquery front end / send an email when updating / attach receipt with order details in pdf
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Routes & raw CRUD: routes/transactions.js (lines 255-321)
+  - Mail dispatch: utils/nodemailer.js (lines 7-59)
+  - PDF construction: utils/pdfGenerator.js (lines 10-144)
+
+* CODE SNIPPET (routes/transactions.js - PUT with automatic mail attachment):
+```javascript
+router.put('/transactions/:id', verifyToken, checkAdmin, async (req, res) => {
+  if (await canUseDatabase()) {
+    try {
+      const transaction = await getTransactionFromDb(req.params.id)
+      if (!transaction) return res.status(404).json({ message: 'Not found' })
+
+      const items = await getItemsForTransaction(req.params.id)
+      const status = req.body.status ?? transaction.status
+      const payment_status = req.body.payment_status ?? transaction.payment_status
+      const email = req.body.email || transaction.email
+      
+      await sequelize.query('UPDATE transactions SET status = :status, payment_status = :payment_status, updated_at = CURRENT_TIMESTAMP WHERE id = :id', {
+        replacements: { id: req.params.id, status, payment_status },
+        type: QueryTypes.UPDATE
+      })
+
+      const calculatedTotal = items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0)
+
+      if (email) {
+        try {
+          const transactionData = {
+            id: transaction.id,
+            status,
+            payment_status,
+            total: calculatedTotal,
+            email,
+            updatedAt: new Date(),
+            items: items || [],
+            isUpdate: true
+          }
+          const pdfBuffer = await generateReceiptPDF(transactionData)
+          const info = await sendReceiptEmail(transactionData, pdfBuffer)
+          return res.json({ transaction: { ...transaction, status, payment_status, total_amount: calculatedTotal }, emailInfo: info })
+        } catch (emailError) {
+          console.error('Email sending failed:', emailError)
+        }
+      }
+      return res.json({ transaction: { ...transaction, status, payment_status, total_amount: calculatedTotal } })
+    } catch (error) {
+      console.error(error)
+      return res.status(500).json({ message: 'DB error' })
+    }
+  }
+  // in-memory fallback...
+})
+```
+
+* CODE SNIPPET (utils/pdfGenerator.js - PDF content creation):
+```javascript
+async function generateReceiptPDF(transaction) {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ size: 'A4', margin: 40, bufferPages: true });
+      const chunks = [];
+      doc.on('data', (chunk) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+
+      // Render headers, lines, tables...
+      doc.fontSize(24).font('Helvetica-Bold').text('HIStorey', { align: 'center' });
+      // Add items table...
+      transaction.items.forEach(item => {
+        doc.text(item.name || item.product_name || 'Product', 40, doc.y);
+        doc.text(item.quantity || item.qty || '1', 350, doc.y);
+      });
+      doc.end();
+    } catch (error) { reject(error); }
+  });
+}
+```
+
+* CODE SNIPPET (utils/nodemailer.js - Mail attachment options):
+```javascript
+const mailOptions = {
+  from: process.env.MAILTRAP_FROM_EMAIL || 'receipt@historey.com',
+  to: transaction.email,
+  subject: subject,
+  html: generateEmailHTML(transaction),
+  attachments: [
+    {
+      filename: `Receipt_${transaction.id}.pdf`,
+      content: pdfBuffer,
+      contentType: 'application/pdf',
+    },
+  ],
+};
+const info = await transporter.sendMail(mailOptions);
+```
+
+* EXPLANATION:
+  This covers the entire transaction workflow. 
+  - Admin users view and edit transaction status from `public/html/admin/orders.html`
+    using jQuery AJAX.
+  - When the transaction is updated (PUT `/transactions/:id`), the backend SQL updates 
+    the status and reads the transaction details.
+  - The backend calls `generateReceiptPDF` from `utils/pdfGenerator.js`, which uses 
+    `pdfkit` to write a stylized layout, drawing text and columns directly into an 
+    in-memory PDF write-stream.
+  - The resulting PDF buffer is passed into `sendReceiptEmail` in `utils/nodemailer.js`.
+    Nodemailer sends the email template using SMTP (configured with Mailtrap for dev),
+    attaching the PDF binary buffer directly using the `attachments` array.
+
+
+--------------------------------------------------------------------------------
+9. REQUIREMENT: quiz 4 - Jquery validation for forms
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Form validation: public/js/auth-validation.js (lines 1-112)
+  - Target HTML files: public/html/login.html, public/html/register.html
+
+* CODE SNIPPET (public/js/auth-validation.js):
+```javascript
+$(function() {
+  $.validator.setDefaults({
+    errorClass: 'field-error',
+    validClass: 'field-valid',
+    errorElement: 'span',
+    errorPlacement: function(error, element) {
+      const $row = element.closest('.input-row')
+      if ($row.length) {
+        error.insertAfter($row)
+        return
+      }
+      error.insertAfter(element)
+    },
+    highlight: function(element) {
+      $(element).addClass('input-error')
+    },
+    unhighlight: function(element) {
+      $(element).removeClass('input-error')
+    }
+  })
+
+  // Rules for Registration
+  const registerRules = {
+    name: { required: true, minlength: 2 },
+    email: { required: true, email: true },
+    password: { required: true, minlength: 8 },
+    confirmPassword: { required: true, equalTo: "#registerForm [name='password']" },
+    terms: { required: true }
+  }
+
+  window.initRegisterValidator = function(formSelector, submitHandler) {
+    return $(formSelector).validate({
+      rules: registerRules,
+      messages: registerMessages,
+      submitHandler
+    })
+  }
+})
+```
+
+* EXPLANATION:
+  Instead of relying on basic browser-default HTML5 validation, the forms use the
+  `jquery-validation` library.
+  - Rules (`required`, `email`, `minlength`, `equalTo`) are declared programmatically.
+  - Validation runs on inputs as they change or when the form is submitted.
+  - If validation succeeds, the `submitHandler` callback is invoked to make the 
+    AJAX request.
+  - If validation fails, error messages are rendered as spans after the inputs, and 
+    styles like `input-error` and `field-error` are applied for styling.
+
+
+--------------------------------------------------------------------------------
+10. REQUIREMENT: quiz 5 - jquery/api search/autocomplete on homepage
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Autocomplete logic: public/js/search-autocomplete.js (lines 91-153)
+  - Target HTML files: public/html/home.html, public/html/products.html
+
+* CODE SNIPPET (public/js/search-autocomplete.js):
+```javascript
+function fetchSuggestions(query, $input) {
+  if (!query || query.length < minLength) {
+    clearSuggestions($input)
+    return
+  }
+
+  const url = `${apiBase}?q=${encodeURIComponent(query)}&limit=${suggestionLimit}`
+  $.getJSON(url).done(results => {
+    renderSuggestions($input, Array.isArray(results) ? results : [])
+  }).fail(() => {
+    clearSuggestions($input)
+  })
+}
+
+function bindInput($input) {
+  $input.attr('autocomplete', 'off')
+
+  $input.on('input', function () {
+    const query = $.trim($input.val())
+    clearTimeout(debounceTimer)
+    if (query.length < minLength) {
+      clearSuggestions($input)
+      return
+    }
+    debounceTimer = setTimeout(() => fetchSuggestions(query, $input), debounceDelay)
+  })
+
+  $input.on('keydown', function (event) {
+    // Allows keyboard navigation: ArrowUp, ArrowDown, Enter selection, Escape to close
+  })
+}
+```
+
+* EXPLANATION:
+  This script implements a search autocomplete menu:
+  - It listens to `input` events on search boxes with the `.search-input` class.
+  - Keystrokes are debounced (`250ms`) using `setTimeout`/`clearTimeout` to prevent 
+    spamming the backend API.
+  - When the search term is at least 2 characters, it makes a GET request to 
+    `/api/v1/products?q=QUERY`.
+  - Suggestions are displayed in a floating dropdown list positioned relative to 
+    the search input.
+  - Users can select items by clicking them or using the Arrow keys and Enter, which
+    redirects them to the details page `/product/:id`.
+
+
+--------------------------------------------------------------------------------
+11. REQUIREMENT: quiz 6 - route protection / role checking middleware
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Middleware: middlewares/auth.js (lines 14-46)
+  - Target Routes: routes/products.js (lines 12-18), routes/user.js (lines 9-35)
+
+* CODE SNIPPET (middlewares/auth.js):
+```javascript
+function verifyToken(req, res, next) {
+  const header = req.headers.authorization || ''
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null
+  if (!token) {
+    return res.status(401).json({ message: 'Authentication required' })
+  }
+
+  try {
+    req.user = jwt.verify(token, JWT_SECRET)
+    req.authToken = token
+    return next()
+  } catch (error) {
+    return res.status(401).json({ message: 'Invalid or expired token' })
+  }
+}
+
+function checkAdmin(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({ message: 'Authentication required' });
+  }
+
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access required' });
+  }
+
+  next();
+}
+```
+
+* EXPLANATION:
+  To prevent unauthorized operations on product lists and users:
+  - `verifyToken` acts as the first layer. It reads the HTTP `Authorization` header,
+    extracts the JWT Bearer token, verifies its cryptographic signature against the
+    system secret, and stores the decoded token payload on `req.user`.
+  - `checkAdmin` verifies that the authenticated user's role is `admin`. If a non-admin 
+    attempts a write action, it returns a `403 Forbidden` status to block the request.
+
+
+--------------------------------------------------------------------------------
+12. REQUIREMENT: quiz 7 - three(3) js charts on admin dashboard
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Charts JS: public/js/admin-dashboard.js (lines 45-139)
+  - Target Canvas HTML: public/html/admin/dashboard.html (lines 135-155)
+
+* CODE SNIPPET (public/js/admin-dashboard.js):
+```javascript
+function renderCharts(summary) {
+  const revenueCtx = document.getElementById('revenueChart')
+  const roleCtx = document.getElementById('roleChart')
+  const salesCtx = document.getElementById('itemSalesChart')
+
+  if (!revenueCtx || !roleCtx || !salesCtx) return
+
+  // 1. LINE CHART: Weekly Revenue
+  window.revenueChart = new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+      labels: weeklyRevenue.labels,
+      datasets: [{
+        label: 'Revenue',
+        data: weeklyRevenue.data,
+        borderColor: '#634a1a',
+        backgroundColor: 'rgba(99, 74, 26, 0.18)',
+        fill: true,
+        tension: 0.35
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  })
+
+  // 2. PIE CHART: User Roles
+  window.roleChart = new Chart(roleCtx, {
+    type: 'pie',
+    data: {
+      labels: ['Admin', 'Customer'],
+      datasets: [{
+        data: [summary.adminUsers, summary.customerUsers],
+        backgroundColor: ['#634a1a', '#8d6e63']
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  })
+
+  // 3. BAR CHART: Units Sold per Item
+  window.itemSalesChart = new Chart(salesCtx, {
+    type: 'bar',
+    data: {
+      labels: summary.topItems.map((item) => item.name),
+      datasets: [{
+        label: 'Units Sold',
+        data: summary.topItems.map((item) => item.units),
+        backgroundColor: '#634a1a',
+      }]
+    },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+  })
+}
+```
+
+* EXPLANATION:
+  The admin dashboard renders three charts using `Chart.js` inside HTML `<canvas>` elements:
+  - Line Chart (`revenueChart`): Plots daily sales over the last 7 days.
+  - Pie Chart (`roleChart`): Shows the breakdown of registered administrators vs. customers.
+  - Bar Chart (`itemSalesChart`): A horizontal bar chart displaying top-selling items.
+  When loading the dashboard, it queries the backend API endpoints, maps the metrics,
+  destroys any existing instances, and redraws the charts with updated data.
+
+
+--------------------------------------------------------------------------------
+13. REQUIREMENT: unit test 2 - jquery infinite scroll (pagination is not applicable)
+--------------------------------------------------------------------------------
+* FILEPATH: 
+  - Frontend HTML & JS: public/html/products.html (plugin CDN script on line 355, initialization on lines 715-810)
+  - Controller Pagination: controllers/productController.js (lines 90-110)
+
+* PLUGIN SCRIPT IMPORT (public/html/products.html):
+```html
+<script src="https://unpkg.com/infinite-scroll@4/dist/infinite-scroll.pkgd.min.js"></script>
+```
+
+* CODE SNIPPET (controllers/productController.js - paginated response):
+```javascript
+if (page && limit) {
+  const offset = (page - 1) * limit
+  const result = await ProductModel.findAndCountAll({
+    where: q ? sequelizeWhere(q) : { is_deleted: false },
+    include: [{ model: ProductImage, as: 'images', attributes: ['id','file_path','is_primary','uploaded_at'] }],
+    distinct: true,
+    limit,
+    offset,
+    order: [['created_at', 'DESC']]
+  })
+  const items = result.rows.map(mapProduct)
+  return res.json({ items, total: result.count, page, limit, totalPages: Math.ceil(result.count / limit) })
+}
+```
+
+* CODE SNIPPET (public/html/products.html - InfiniteScroll initialization):
+```javascript
+function getProductsPath() {
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) })
+  if (currentSearchQuery) { params.set('q', currentSearchQuery) }
+  return `/api/v1/products?${params.toString()}`
+}
+
+function initInfiniteScroll() {
+  infiniteScroller = new InfiniteScroll(productGrid, {
+    path: getProductsPath,
+    responseBody: 'json',
+    domParseResponse: false,
+    history: false,
+    loadOnScroll: true,
+    prefill: false,
+    scrollThreshold: 100
+  })
+
+  infiniteScroller.on('load', function(body) {
+    applyProductsPayload(body)
+  })
+
+  infiniteScroller.loadNextPage()
+}
+```
+
+* EXPLANATION:
+  This allows items on the `/products` store page to load dynamically as the user 
+  scrolls down.
+  - Backend: `listProducts` checks for `page` and `limit` query parameters. If 
+    present, it runs a paginated database query using Sequelize's `findAndCountAll` 
+    with calculated `limit` and `offset` constraints, returning matching products 
+    along with page statistics.
+  - Frontend: It loads the `InfiniteScroll` library. The grid container dynamically
+    requests the next page via `/api/v1/products?page=PAGE&limit=LIMIT`. As new JSON
+    results arrive, they are parsed and appended to the grid. Infinite scroll is 
+    destroyed/stopped when `page > totalPages` is reached.
+================================================================================
+
+================================================================================
+ADDITIONAL TOPIC: JavaScript & Web Framework Features Reference
+================================================================================
+
+This section details how specific JavaScript syntax, browser objects, Express request 
+parameters, and JQuery Validation methods are implemented across the codebase.
+
+--------------------------------------------------------------------------------
+A. Spread operator (...)
+--------------------------------------------------------------------------------
+* FILEPATH: routes/transactions.js (lines 56-64)
+* CODE SNIPPET:
+```javascript
+  return rows.map((row) => {
+    const items = itemsMap[row.id] || []
+    const calculatedTotal = items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0)
+    return {
+      ...row,
+      total_amount: calculatedTotal,
+      items
+    }
+  })
+```
+* EXPLANATION:
+  The spread operator (`...`) allows copying or cloning all enumerable properties 
+  from an existing object (in this case, `row`) into a new object. This allows 
+  merging additional fields like `total_amount` and `items` into the transaction
+  object without mutating the original database row object.
+
+--------------------------------------------------------------------------------
+B. Ternary operator (condition ? exprIfTrue : exprIfFalse)
+--------------------------------------------------------------------------------
+* FILEPATH: controllers/productController.js (line 49)
+* CODE SNIPPET:
+```javascript
+const obj = instance.toJSON ? instance.toJSON() : instance
+```
+* EXPLANATION:
+  The ternary operator is a shorthand for an `if-else` statement. If `instance.toJSON`
+  is truthy, it executes and returns `instance.toJSON()`, otherwise it returns 
+  `instance` itself. This evaluates inline expressions cleanly.
+
+--------------------------------------------------------------------------------
+C. Document object
+--------------------------------------------------------------------------------
+* FILEPATH: public/html/products.html (lines 587-590)
+* CODE SNIPPET:
+```javascript
+const productGrid = document.getElementById('productGrid')
+const status = document.getElementById('productStatus')
+const loadingEl = document.getElementById('loading')
+const endEl = document.getElementById('end')
+```
+* EXPLANATION:
+  The browser's native `document` object represents the web page loaded in the 
+  browser and serves as the entry point into the DOM (Document Object Model) tree. 
+  It is used to select and interact with HTML elements by ID, class name, or selector 
+  (e.g., `document.getElementById` or `document.querySelector`).
+
+--------------------------------------------------------------------------------
+D. req.params (Req.param)
+--------------------------------------------------------------------------------
+* FILEPATH: controllers/productController.js (lines 152-153)
+* CODE SNIPPET:
+```javascript
+exports.getProduct = async (req, res) => {
+  const id = Number(req.params.id)
+```
+* EXPLANATION:
+  `req.params` is an Express request property containing route parameters mapped 
+  from path strings. For instance, if a route is defined as `/products/:id`, Express 
+  exposes whatever value is passed in the place of `:id` as `req.params.id`.
+
+--------------------------------------------------------------------------------
+E. req.query (Req.query)
+--------------------------------------------------------------------------------
+* FILEPATH: controllers/productController.js (lines 90-93)
+* CODE SNIPPET:
+```javascript
+exports.listProducts = async (req, res) => {
+  const q = (req.query.q || '').toLowerCase()
+  const page = Number(req.query.page) || null
+  const limit = Number(req.query.limit) || null
+```
+* EXPLANATION:
+  `req.query` is an Express request property containing the parsed query parameters 
+  from the URL query string (everything following the `?` symbol). In 
+  `/api/v1/products?q=Beatles&page=2&limit=10`, `req.query.q` evaluates to `"Beatles"`, 
+  `req.query.page` to `"2"`, and `req.query.limit` to `"10"`.
+
+--------------------------------------------------------------------------------
+F. Array.prototype.map (.map)
+--------------------------------------------------------------------------------
+* FILEPATH: controllers/productController.js (line 129)
+* CODE SNIPPET:
+```javascript
+const mapped = all.map(mapProduct)
+```
+* EXPLANATION:
+  The `.map()` array helper iterates over every item in an array, calls a 
+  callback function on each element, and returns a new array containing the 
+  returned values. Here, it transforms raw Sequelize instances using `mapProduct`.
+
+--------------------------------------------------------------------------------
+G. jQuery .validate() (.validate)
+--------------------------------------------------------------------------------
+* FILEPATH: public/js/auth-validation.js (lines 78-79)
+* CODE SNIPPET:
+```javascript
+window.initLoginValidator = function(submitHandler) {
+  return $('#loginForm').validate({
+```
+* EXPLANATION:
+  The `.validate()` method is provided by the JQuery Validation plugin. It is called 
+  on a JQuery form object to initialize validation behaviors, specifying standard validation 
+  rules, custom message triggers, styling behavior, and final submit handlers.
+
+--------------------------------------------------------------------------------
+H. Rules configuration (Rule)
+--------------------------------------------------------------------------------
+* FILEPATH: public/js/auth-validation.js (lines 80-89)
+* CODE SNIPPET:
+```javascript
+rules: {
+  email: {
+    required: true,
+    email: true
+  },
+  password: {
+    required: true,
+    minlength: 8
+  }
+}
+```
+* EXPLANATION:
+  Validation rules define the validation criteria (e.g. `required: true`, `email: true`,
+  `minlength: 8`) applied to HTML input fields. They are mapped to input elements by their 
+  `name` attributes inside the `.validate` configuration block.
+================================================================================

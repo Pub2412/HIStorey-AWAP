@@ -44,9 +44,7 @@ ${productContext}
 
 STRICT INSTRUCTIONS:
 1. When asked for recommendations, suggest items from the CATALOG.
-2. In your text, format product names as Markdown links pointing to their page (e.g. [Thriller Vinyl](/product/1)).
-3. CRITICAL: Whenever you recommend a product, you MUST invisibly append the tag [PRODUCT:id] at the VERY END of your response. Example: [PRODUCT:5]
-4. NEVER mention or explain the "[PRODUCT:id]" tag to the user. It is a hidden system code. Talk like a real human assistant!`;
+2. In your text, format product names as Markdown links pointing to their page (e.g. [Thriller Vinyl](/product/1)). Do not output any other tags or technical descriptions of the formatting.`;
 
         const dynamicModel = genAI.getGenerativeModel({ 
             model: 'gemini-flash-latest',
